@@ -5,7 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple
+from typing import Optional, TextIO, List, Tuple, Dict
 
 #Definim classes
 
@@ -25,19 +25,7 @@ class Station:
     connections: list[str] #list of the ids of the stations connected in the same line
     accesses: list[str] #list of the accesses id that go to the station
     line_changes: list[str] #List of the ids of the "transbords"
-    # def __init__(self, row):
-    #     self.id = row["ID_ESTACIO"]
-    #     self.group_code = row["CODI_GRUP_ESTACIO"]
-    #     self.name = row["NOM_ESTACIO"]
-    #     self.line_name = row["NOM_LINIA"]
-    #     self.line_id = row["ID_LINIA"]
-    #     self.line_order = row["ORDRE_LINIA"]
-    #     self.accessibility = row["ACCESSIBILITAT"]
-    #     self.position = row["GEOMETRY"]
-    #     self.connections = []
-    #     self.accesses = []
-    #     self.line_changes = []
-    
+  
 
     def __hash__(self):
         return st_id
@@ -87,22 +75,39 @@ def create_graph ( station_list: Stations, access_list:Stations):
     Metro = nx.Graph()
     lines = [] #hi guardem temporalment les arestes corresponents a la connexio en metro entre estacions de una mateixa linia
     i = 0
+    transbord: dict[int,List[int]] = dict()
     prev_id = None
     for station in station_list:
         Metro.add_node(station.id,pos = station.position, tipus = "station") #AQUI HAUREM DE VEURE QUE FA FALTA AFEGIR A LA LLARGA  
         # if(station.line_order>1 and station.line_id == prev_line):
         #     lines.append([prev_id,station.id])
         if(prev_id!= None and station.line_id == prev_line):
-            lines.append([prev_id,station.id])
-        prev_id = station.id
+            # lines.append([prev_id,station.id])
+            Metro.add_edge(prev_id,station.id,tipus="line")
+        prev_id =station.id 
         prev_line = station.line_id
-    Metro.add_edges_from(lines)
+        if transbord.get(station.group_code,None)==None:
+            transbord[station.group_code]=[station.id]
+        else:
+            transbord[station.group_code].append(station.id)
+        
+
+    # Metro.add_edges_from(lines)
     lines = []
     for access in access_list:
         Metro.add_node(access.code,pos = access.position, tipus = "access")
-        lines.append([access.code,access.station_id])
-    Metro.add_edges_from(lines)
+        Metro.add_edge(access.code,access.station_id,tipus="access")
+        # lines.append([access.code,access.station_id])
+    # Metro.add_edges_from(lines)
+    lines = []
+    for item in transbord.items():
+        for id1 in range(len(item[1])):
+            for id2 in range(id1+1,len(item[1])):
+                if(item[1][id1]!=item[1][id2]):
+                    Metro.add_edge(item[1][id1],item[1][id2],tipus="transbord")
+
     return Metro
+
 
 
 def main():
@@ -110,12 +115,6 @@ def main():
     station_list: Stations = read_stations()
     access_list: Accesses = read_accesses()
     Metro = create_graph(station_list,access_list)
-    for i in station_list:
-        if(i==None):
-            print("merda ",i)
-    for i in access_list:
-        if(i==None):
-            print("merda ",i)
     positions = nx.get_node_attributes(Metro,"pos")
     fig,ax=plt.subplots()
     nx.draw(Metro,pos=positions,font_size   = 10,
