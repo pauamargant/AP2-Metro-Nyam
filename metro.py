@@ -141,12 +141,12 @@ def show(g: MetroGraph)->None:
     plt.show()
 
 
-def main():
+# def main():
     # Llegim les addes
-    station_list: Stations = read_stations()
-    access_list: Accesses = read_accesses()
-    Metro = create_graph(station_list, access_list)
-    # plot(Metro,"prova.png")
+station_list: Stations = read_stations()
+access_list: Accesses = read_accesses()
+Metro = create_graph(station_list, access_list)
+# plot(Metro,"prova.png")
     
 
-main()
+# main()
