@@ -102,7 +102,8 @@ def create_graph(station_list: Stations, access_list: Stations):
 
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, type="access")
-        Metro.add_edge(access.code, access.station_id, tipus="access")
+        Metro.add_edge(access.code, access.station_id,
+                       tipus="access")  # tipus?
 
     for item in transbord.items():
         for id1 in range(len(item[1])):
@@ -123,16 +124,17 @@ def get_metro_graph() -> MetroGraph:
 
 def plot(g: MetroGraph, filename: str) -> None:
 
-    map = StaticMap(3000,3000)
-    for pos in nx.get_node_attributes(g,"pos").values():
-        map.add_marker(CircleMarker(pos, 'red',6))
+    map = StaticMap(3000, 3000)
+    for pos in nx.get_node_attributes(g, "pos").values():
+        map.add_marker(CircleMarker(pos, 'red', 6))
     for edge in g.edges:
-        l = Line([g.nodes[edge[0]]['pos'],g.nodes[edge[1]]['pos']],'blue',3)
+        l = Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], 'blue', 3)
         map.add_line(l)
     image = map.render()
     image.save("prova.png")
 
-def show(g: MetroGraph)->None:
+
+def show(g: MetroGraph) -> None:
     positions = nx.get_node_attributes(g, "pos")
     fig, ax = plt.subplots()
     nx.draw(g, pos=positions, font_size=10,
@@ -147,6 +149,6 @@ station_list: Stations = read_stations()
 access_list: Accesses = read_accesses()
 Metro = create_graph(station_list, access_list)
 # plot(Metro,"prova.png")
-    
+
 
 # main()
