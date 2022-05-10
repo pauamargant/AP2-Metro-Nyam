@@ -9,7 +9,7 @@ from typing import Optional, TextIO, List, Tuple, Dict, TypeAlias
 
 # Definim classes
 
-Point = Tuple[int, int]
+Point = Tuple[int, int]  # -- float?
 MetroGraph: TypeAlias = nx.Graph
 
 
@@ -51,6 +51,7 @@ Accesses = List[Access]
 
 
 def string_to_point(p: str) -> Point:
+    # -- pq map?
     return tuple(map(float, (p.split('(')[1].split(')')[0].split())))
 
 
@@ -103,7 +104,7 @@ def create_graph(station_list: Stations, access_list: Stations):
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, type="access")
         Metro.add_edge(access.code, access.station_id,
-                       tipus="access")  # tipus?
+                       tipus="access")  # -- tipus?
 
     for item in transbord.items():
         for id1 in range(len(item[1])):
