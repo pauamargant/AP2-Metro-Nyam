@@ -5,11 +5,12 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict
+from typing_extensions import TypeAlias
 
 # Definim classes
 
-Point = Tuple[int, int]  # -- float?
+Point = Tuple[float, float]  # -- float?
 MetroGraph: TypeAlias = nx.Graph
 
 
@@ -26,9 +27,9 @@ class Station:
     accessibility: str
     position: Point
     # list of the ids of the stations connected in the same line
-    connections: list[int]
-    accesses: list[int]  # list of the accesses id that go to the station
-    line_changes: list[int]  # List of the ids of the "transbords"
+    connections: List[int]
+    accesses: List[int]  # List of the accesses id that go to the station
+    line_changes: List[int]  # List of the ids of the "transbords"
 
     def __hash__(self):
         return st_id
@@ -52,7 +53,8 @@ Accesses = List[Access]
 
 def string_to_point(p: str) -> Point:
     # -- pq map?
-    return tuple(map(float, (p.split('(')[1].split(')')[0].split())))
+    pt = p.split('(')[1].split(')')[0].split()
+    return (float(pt[0]), float(pt[1]))
 
 
 # COM FER EL TYPE HINTING AMB PANDAS?
@@ -85,9 +87,9 @@ def read_accesses() -> Accesses:
     return access_list
 
 
-def create_graph(station_list: Stations, access_list: Stations):
+def create_graph(station_list: Stations, access_list: Accesses):
     Metro = nx.Graph()
-    transbord: dict[int, List[int]] = dict()
+    transbord: Dict[int, List[int]] = dict()
     prev_id = None
     for station in station_list:
         # AQUI HAUREM DE VEURE QUE FA FALTA AFEGIR A LA LLARGA
@@ -104,7 +106,7 @@ def create_graph(station_list: Stations, access_list: Stations):
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, type="access")
         Metro.add_edge(access.code, access.station_id,
-                       tipus="access")  # -- tipus?
+                       type="access")  # -- tipus?
 
     for item in transbord.items():
         for id1 in range(len(item[1])):
@@ -150,6 +152,6 @@ station_list: Stations = read_stations()
 access_list: Accesses = read_accesses()
 Metro = create_graph(station_list, access_list)
 # plot(Metro,"prova.png")
-
+show(Metro)
 
 # main()
