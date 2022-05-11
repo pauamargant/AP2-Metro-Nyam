@@ -24,6 +24,7 @@ class Station:
     line_name: str
     line_id: int
     line_order: int
+    line_colour: str
     accessibility: str
     position: Point
     # list of the ids of the stations connected in the same line
@@ -33,6 +34,12 @@ class Station:
 
     def __hash__(self):
         return st_id
+
+
+@dataclass
+class Line:
+    line_name: str
+    line_colour: str
 
 
 @dataclass
@@ -60,7 +67,7 @@ def string_to_point(p: str) -> Point:
 # COM FER EL TYPE HINTING AMB PANDAS?
 def create_station(row) -> Station:
     return Station(row["CODI_ESTACIO"], row["CODI_GRUP_ESTACIO"], row["NOM_ESTACIO"],
-                   row["NOM_LINIA"], row["ID_LINIA"], row["ORDRE_LINIA"], row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]), [], [], [])
+                   row["NOM_LINIA"], row["ID_LINIA"], row["ORDRE_LINIA"], row["COLOR_LINIA"], row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]), [], [], [])
 
 
 def read_stations() -> Stations:
@@ -95,7 +102,8 @@ def create_graph(station_list: Stations, access_list: Accesses):
         # AQUI HAUREM DE VEURE QUE FA FALTA AFEGIR A LA LLARGA
         Metro.add_node(station.id, pos=station.position, type="station")
         if(prev_id != None and station.line_id == prev_line):
-            Metro.add_edge(prev_id, station.id, type="line")
+            Metro.add_edge(prev_id, station.id, type="line",
+                           line=Line(station.line_name, station.line_order))
         prev_id = station.id
         prev_line = station.line_id
         if transbord.get(station.group_code, None) == None:

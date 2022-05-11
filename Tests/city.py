@@ -23,6 +23,8 @@ def get_osmnx_graph() -> OsmnxGraph:
     for u, v, key, geom in graph.edges(data="geometry", keys=True):
         if geom is not None:
             del(graph[u][v][key]["geometry"])
+    graph.remove_edges_from(nx.selfloop_edges(graph))
+
     # x = nx.get_node_attributes(graph, "x")
     # y = nx.get_node_attributes(graph, "y")
     # pos = dict()
@@ -56,7 +58,9 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
             Y.append(coords[1])
             nodes.append(node)
     nearest, distances = ox.distance.nearest_nodes(g1, X, Y, return_dist=True)
-    city = nx.union(nx.Graph(g1), g2)
+    g1 = nx.Graph(g1)
+
+    city = nx.union(g1, g2)
     # AQUI TEMA VELOCITAT
     city.add_edges_from(zip(nearest, nodes), type="Street",distance=distances)
     return city
@@ -64,19 +68,17 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
 
 g2 = metro.get_metro_graph()
 # save_osmnx_graph(get_osmnx_graph(), "barcelona.pickle")
-g1 = load_osmnx_graph("barcelona.pickle")
+# g1=get_osmnx_graph()
+# save_osmnx_graph(g1,"city.pickle")
+g1 = load_osmnx_graph("city.pickle")
 for node in g1.nodes():
     g1.nodes[node]["pos"] = (g1.nodes[node]["x"], g1.nodes[node]["y"])
-# x = nx.get_node_attributes(graph, "x")
-    # y = nx.get_node_attributes(graph, "y")
-    # pos = dict()
-    # for key in x.keys():
-    #     pos[key] = (x[key], y[key])
-    # nx.set_node_attributes(graph, pos)
+g1.remove_edges_from(nx.selfloop_edges(g1))
+
 
 city = build_city_graph(g1, g2)
 
-
 positions = nx.get_node_attributes(city, "pos")
-nx.draw(city, pos=positions)
+
+nx.draw(city, pos=positions,node_size=5)
 plt.show()
