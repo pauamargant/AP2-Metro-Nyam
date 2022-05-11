@@ -31,6 +31,7 @@ def get_osmnx_graph() -> OsmnxGraph:
     # nx.set_node_attributes(graph, pos)
     return graph
 
+#AFEGIR OS.PATH.EXISTS!!!!!!
 
 def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
     pickle_out = open(filename, "wb")
@@ -57,7 +58,7 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     nearest, distances = ox.distance.nearest_nodes(g1, X, Y, return_dist=True)
     city = nx.union(nx.Graph(g1), g2)
     # AQUI TEMA VELOCITAT
-    city.add_edges_from(zip(nearest, nodes), distance=distances)
+    city.add_edges_from(zip(nearest, nodes), type="Street",distance=distances)
     return city
 
 
@@ -76,6 +77,6 @@ for node in g1.nodes():
 city = build_city_graph(g1, g2)
 
 
-pos = nx.get_node_attributes(city, "pos")
-nx.draw(city, pos=pos)
+positions = nx.get_node_attributes(city, "pos")
+nx.draw(city, pos=positions)
 plt.show()
