@@ -15,7 +15,7 @@ CityGraph: TypeAlias = nx.Graph
 OsmnxGraph: TypeAlias = nx.MultiDiGraph
 
 # CONSTANTS
-
+FILENAME: str = "city.pickle"
 SIZE_X: int = 1500
 SIZE_Y: int = 1500
 
@@ -36,15 +36,18 @@ def get_osmnx_graph() -> OsmnxGraph:
     graph: OsmxnGraph
     '''
     try:
-        graph = ox.graph_from_place(
-            "Barcelona", network_type='walk', simplify=True)
+        if not os.path.exists(FILENAME):
+            graph = ox.graph_from_place(
+                "Barcelona", network_type='walk', simplify=True)
 
-        for u, v, key, geom in graph.edges(data="geometry", keys=True):
-            if geom is not None:
-                del(graph[u][v][key]["geometry"])
-        graph.remove_edges_from(nx.selfloop_edges(graph))
+            for u, v, key, geom in graph.edges(data="geometry", keys=True):
+                if geom is not None:
+                    del(graph[u][v][key]["geometry"])
+            graph.remove_edges_from(nx.selfloop_edges(graph))
 
-        return graph
+            return graph
+        else:
+            return load_osmnx_graph(FILENAME)
     except Exception:
         print("Could not retrieve the graph")
 
