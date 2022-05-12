@@ -1,4 +1,4 @@
-import metro as metro
+import metro
 
 import pandas as pd
 import osmnx as ox
@@ -6,7 +6,8 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict
+from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
 
@@ -86,16 +87,15 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> [List[int], List[int], List
     a list with the nearest node in g1 to each access node in g2 tohether with a list which contains the corresponding
     distances
     '''
-    nodes: List[int] = []
+    nodes: List[int] = [node for node in g2.nodes()]
     X: List[float] = []
     Y: List[float] = []
-    for node in g2.nodes():
+    for node in nodes:
         value = g2.nodes[node]
         if value["type"] == "access":
             coords = value["pos"]
             X.append(coords[0])
             Y.append(coords[1])
-            nodes.append(node)
     nearest, distances = ox.distance.nearest_nodes(g1, X, Y, return_dist=True)
     return nodes, nearest, distances
 

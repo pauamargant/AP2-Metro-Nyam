@@ -175,23 +175,29 @@ def get_metro_graph() -> MetroGraph:
     line_transfers: Dict[int, List[int]] = dict()
 
     # In order to connect subway lines we take adavantadge of the fact that they are
-    #stored in order
-    prev_id: Optional[int] = None
-    for station in station_list:
+    # stored in order
+    # We add the first station of the list before iterating through the others
+    s1 = station_list[0]
+    prev_id: Optional[int]= s1.id
+    prev_line: Optional[int] = s1.line_id
+    Metro.add_node(s1.id, pos=s1.position, type="station",
+                       accessibility=s1.accessibility, line=s1.line_id)
+    line_transfers[s1.group_code] = [s1.id]
+    
+    for station in station_list[1:]:
         # We create the station node
         Metro.add_node(station.id, pos=station.position, type="station",
                        accessibility=station.accessibility, line=station.line_id)
 
         # If the previous station is in the same line, we connect them
-        if(prev_id != None and station.line_id == prev_line):
+        if(station.line_id == prev_line):
             Metro.add_edge(prev_id, station.id, type="line",
                            line_name=station.line_name, line_colour=station.line_colour)
-        prev_id = station.id
-        prev_line: Optional[int] = station.line_id
+        prev_id, prev_line = station.id, station.line_id
 
         # If we have previously read a station in the same group we append the current
         # station id to the list of transfers. Otherwise we create a new entry in the dict
-        if line_transfers.get(station.group_code, None) == None:
+        if line_transfers.get(station.group_code) is None:
             line_transfers[station.group_code] = [station.id]
         else:
             line_transfers[station.group_code].append(station.id)
@@ -205,11 +211,10 @@ def get_metro_graph() -> MetroGraph:
 
     # PODEM FERHO MILLOR??????????????????????????????????????
     for item in line_transfers.items():
-        for id1 in range(len(item[1])):
-            for id2 in range(id1+1, len(item[1])):
-                if(item[1][id1] != item[1][id2]):
-                    Metro.add_edge(item[1][id1], item[1]
-                                   [id2], type="transbord")
+        for id1, i1 in enumerate(item[1]):
+            for i2 in item[1][id1+1:]:
+                if(i1 != i2):
+                    Metro.add_edge(i1, i2, type="transbord")
 
     return Metro
 

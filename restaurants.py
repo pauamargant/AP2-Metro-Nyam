@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Optional, List, Tuple, Dict, TypeAlias, Union
+from typing import Optional, List, Tuple, Dict, Union
+from typing_extensions import TypeAlias
 
 import math
 import pandas as pd
@@ -30,7 +31,8 @@ Restaurants: TypeAlias = List[Restaurant]
 
 
 def create_restaurant(row) -> Optional[Restaurant]:
-    """Creates a restaurant from a row of the read data"""
+    """Creates a restaurant from a row of the read data, returns None if the
+    restaurant data is invalid"""
     try:
         adress = Adress(int(row['addresses_road_id']),
                         str(row['addresses_road_name']),
@@ -75,7 +77,7 @@ def find(query: str, restaurants: Restaurants) -> Restaurants:
     return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
 
 
-lst = read()
-x = find('King', lst)
-for res in x:
-    print(res.name)
+# lst = read()
+# x = find('King', lst)
+# for res in x:
+#     print(res.name)

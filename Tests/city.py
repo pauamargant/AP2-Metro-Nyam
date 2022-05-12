@@ -6,7 +6,8 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict
+from typing_extensions import TypeAlias
 import pickle as pkl
 
 CityGraph: TypeAlias = nx.Graph
@@ -49,8 +50,7 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
 
 def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     nodes = []
-    X = []
-    Y = []
+    X, Y = [], []
     for node in g2.nodes():
         value = g2.nodes[node]
         if value["type"] == "access":

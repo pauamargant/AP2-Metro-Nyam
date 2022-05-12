@@ -1,48 +1,64 @@
 # IMPORTS
+from logging import exception
 import pandas as pd
 import osmnx as ox
 import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict
+from typing_extensions import TypeAlias
+
+from Tests.city import build_city_graph
+
+
+# CONSTANTS
+
+SIZE_X: int = 1500
+SIZE_Y: int = 1500
+
 
 # Definim classes
 
-Point = Tuple[int, int]
+Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
 
 
 @dataclass
 class Station:
-    # SHA DE MIRAR TEMA TIPUS DE DADES DE LES ID
+    '''
+    Class used to store subway stations.
+    '''
     id: int
     group_code: int
-    # A LA VERSIO FINAL TREURE IUSAR UN DICCIONARI SI FA FALTA (ESTALVIAR MEMORIA)
     name: str
     line_name: str
     line_id: int
     line_order: int
+    line_colour: str
     accessibility: str
-    position: Point
+    position: Coord
     # list of the ids of the stations connected in the same line
-    connections: list[int]
-    accesses: list[int]  # list of the accesses id that go to the station
-    line_changes: list[int]  # List of the ids of the "transbords"
-
-    def __hash__(self):
-        return st_id
+    connections: List[int]
+    accesses: List[int]  # List of the accesses id that go to the station
+    line_transfers: List[int]  # List of the ids of the "transbords"
+    # Not used:
+    # def __hash__(self):
+    #   return st_id
 
 
 @dataclass
 class Access:
+    '''
+    Class used to store subway access
+    '''
     code: int  # FAIG SERVIR CODE PQ SI POSO ID ES LIA AMB LES ESTACIONS. SOLUCIO??
     name: str
     station_id: int
     station_name: int
     group_code: int
     accessibility: int
-    position: Point
+    position: Coord
 
 
 Stations = List[Station]
@@ -50,32 +66,85 @@ Stations = List[Station]
 Accesses = List[Access]
 
 
-def string_to_point(p: str) -> Point:
-    return tuple(map(float, (p.split('(')[1].split(')')[0].split())))
+def string_to_point(point_str: str) -> Coord:
+    '''
+    Given a string following the pattern "POINT (X Y)" returns a tuple (X,Y)
+
+    Parameters
+    ----------
+    point_str: str
+
+    Returns
+    -------
+    coordinates: Coords
+
+    '''
+    point: List[str] = point_str.split('(')[1].split(')')[0].split()
+    return (float(point[0]), float(point[1]))
 
 
 # COM FER EL TYPE HINTING AMB PANDAS?
-def create_station(row) -> Station:
-    return Station(row["CODI_ESTACIO"], row["CODI_GRUP_ESTACIO"], row["NOM_ESTACIO"],
-                   row["NOM_LINIA"], row["ID_LINIA"], row["ORDRE_LINIA"], row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]), [], [], [])
+def create_station(row: pd.Series) -> Station:
+    '''
+    Given station information in a dataframe row, returns a Station with the relevant information
+    The given row is assumed to be of the expected format
+
+    Parameters
+    ----------
+    row: pd.Series
+
+    Returns
+    -------
+    station: Station
+
+
+    '''
+    try:
+        return Station(row["CODI_ESTACIO"], row["CODI_GRUP_ESTACIO"], row["NOM_ESTACIO"],
+                       row["NOM_LINIA"], row["ID_LINIA"], row["ORDRE_LINIA"], row["COLOR_LINIA"],
+                       row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]), [], [], [])
+    except Exception:
+        print("station row has the wrong format or incomplete data")
 
 
 def read_stations() -> Stations:
-    # canviar per agafar de internet
-    stations_df = pd.read_csv("data/estacions.csv")
+    '''
+    Reads all the stations from the estations.csv file and returns a list of Stations
+    '''
+    # AL FINAL CANVIAR DE ON SE AGAFA?
+    stations_df = pd.read_csv("data/estacions.csv", encoding='latin1')
     station_list: Stations = []
     for index, row in stations_df.iterrows():
         station_list.append(create_station(row))
     return station_list
 
 
-def create_access(row) -> Access:
-    return Access(row["CODI_ACCES"], row["NOM_ACCES"], row["ID_ESTACIO"], row["NOM_ESTACIO"], row["CODI_GRUP_ESTACIO"],
-                  row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]))
+def create_access(row: pd.Series) -> Access:
+    '''
+    Given a row in a dataframe of access returns an Access
+
+    Parameters
+    ----------
+    row: pd.Series
+
+    Returns
+    -------
+    access: Access
+    '''
+    try:
+        return Access(row["CODI_ACCES"], row["NOM_ACCES"], row["ID_ESTACIO"], row["NOM_ESTACIO"], row["CODI_GRUP_ESTACIO"],
+                      row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]))
+    except Exception:
+        print("access row has the wrong format or is incomplete")
 
 
 def read_accesses() -> Accesses:
-    accesses_df = pd.read_csv("data/accessos.csv")  # CANVIAR!
+    # A QUIN ARXIU AL FINAL?
+    '''
+    Reads all the accesses in the file ###NOM### and returns a list of Accesses.
+    '''
+    accesses_df = pd.read_csv(
+        "data/accessos.csv", encoding='latin1')  # CANVIAR!
     access_list: Accesses = []
     for index, row in accesses_df.iterrows():
 
@@ -84,69 +153,90 @@ def read_accesses() -> Accesses:
     return access_list
 
 
-def create_graph(station_list: Stations, access_list: Stations):
-    Metro = nx.Graph()
-    transbord: dict[int, List[int]] = dict()
-    prev_id = None
-    for station in station_list:
-        # AQUI HAUREM DE VEURE QUE FA FALTA AFEGIR A LA LLARGA
-        Metro.add_node(station.id, pos=station.position, type="station")
-        if(prev_id != None and station.line_id == prev_line):
-            Metro.add_edge(prev_id, station.id, type="line")
-        prev_id = station.id
-        prev_line = station.line_id
-        if transbord.get(station.group_code, None) == None:
-            transbord[station.group_code] = [station.id]
-        else:
-            transbord[station.group_code].append(station.id)
+def get_metro_graph() -> MetroGraph:
+    '''
+    Reads station and access data from STATION_FILE and ACCESS_FILE and creates a graph with the
+    following characteristics:
+    -Stations and accesses are nodes in the graph. 
+    -There is and edge between each access and its corresponding station
+    -Subway lines are represented as edges between contiguous stations in the line.
+    -Stations of the same group but different line are connected by an edge.
 
+    Returns
+    -------
+    Metro: MetroGraph
+    '''
+    # We read the data
+    station_list: Stations = read_stations()
+    access_list: Accesses = read_accesses()
+
+    # We create the graph
+    Metro: MetroGraph = nx.Graph()
+    # We will store line_transfers for each station group in a dict
+    # in order to be more efficient
+    line_transfers: Dict[int, List[int]] = dict()
+
+    # In order to connect subway lines we take adavantadge of the fact that they are
+    #stored in order
+    prev_id: Optional[int] = None
+    for station in station_list:
+        # We create the station node
+        Metro.add_node(station.id, pos=station.position, type="station",
+                       accessibility=station.accessibility, line=station.line_id)
+
+        # If the previous station is in the same line, we connect them
+        if(prev_id != None and station.line_id == prev_line):
+            Metro.add_edge(prev_id, station.id, type="line",
+                           line_name=station.line_name, line_colour=station.line_colour)
+        prev_id = station.id
+        prev_line: Optional[int] = station.line_id
+
+        # If we have previously read a station in the same group we append the current
+        # station id to the list of transfers. Otherwise we create a new entry in the dict
+        if line_transfers.get(station.group_code, None) == None:
+            line_transfers[station.group_code] = [station.id]
+        else:
+            line_transfers[station.group_code].append(station.id)
+
+    # We add the nodes corresponding to the accesses and connect each access with its station
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, type="access")
-        Metro.add_edge(access.code, access.station_id, tipus="access")
+        Metro.add_edge(access.code, access.station_id, type="access")
 
-    for item in transbord.items():
-        for id1 in range(len(item[1])):
-            for id2 in range(id1+1, len(item[1])):
-                if(item[1][id1] != item[1][id2]):
-                    Metro.add_edge(item[1][id1], item[1]
-                                   [id2], type="transbord")
+    # We connect stations which are in the same station group but are of a different line
+
+    # PODEM FERHO MILLOR??????????????????????????????????????
+    for item in line_transfers.items():
+        for id1, i1 in enumerate(item[1]):
+            for i2 in item[1][id1:]:
+                if(i1 != i2):
+                    Metro.add_edge(i1, i2, type="transbord")
 
     return Metro
 
 
-def get_metro_graph() -> MetroGraph:
-    station_list: Stations = read_stations()
-    access_list: Accesses = read_accesses()
-    # CANVIAR QUE RETORNI FUNCIO I POSAR COSA DE LA FUNCIO A DINS
-    return create_graph(station_list, access_list)
-
-
 def plot(g: MetroGraph, filename: str) -> None:
+    '''
+    Given a MetroGraph g and a filename we create an image of the graph
+    g and save it with the corresponding filename
+    '''
 
-    map = StaticMap(3000,3000)
-    for pos in nx.get_node_attributes(g,"pos").values():
-        map.add_marker(CircleMarker(pos, 'red',6))
+    map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
+    for pos in nx.get_node_attributes(g, "pos").values():
+        map.add_marker(CircleMarker(pos, 'red', 6))
     for edge in g.edges:
-        l = Line([g.nodes[edge[0]]['pos'],g.nodes[edge[1]]['pos']],'blue',3)
-        map.add_line(l)
+        map.add_line(
+            Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], 'blue', 3))
     image = map.render()
-    image.save("prova.png")
+    image.save(filename)
 
-def show(g: MetroGraph)->None:
-    positions = nx.get_node_attributes(g, "pos")
-    fig, ax = plt.subplots()
+
+def show(g: MetroGraph) -> None:
+    '''
+    Given a MetroGraph g plots it interactively
+    '''
+    positions: Dict[int, Coord] = nx.get_node_attributes(g, "pos")
     nx.draw(g, pos=positions, font_size=10,
             node_color="blue",
             node_size=50,)
     plt.show()
-
-
-def main():
-    # Llegim les addes
-    station_list: Stations = read_stations()
-    access_list: Accesses = read_accesses()
-    Metro = create_graph(station_list, access_list)
-    # plot(Metro,"prova.png")
-    
-
-main()
