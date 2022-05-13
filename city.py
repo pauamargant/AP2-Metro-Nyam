@@ -16,8 +16,8 @@ OsmnxGraph: TypeAlias = nx.MultiDiGraph
 
 # CONSTANTS
 FILENAME: str = "city.pickle"
-SIZE_X: int = 1500
-SIZE_Y: int = 1500
+SIZE_X: int = 3000
+SIZE_Y: int = 3000
 
 
 # Definim classes
@@ -92,15 +92,14 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> [List[int], List[int], List
     a list with the nearest node in g1 to each access node in g2 tohether with a list which contains the corresponding
     distances
     '''
-    nodes: List[int] = [node for node in g2.nodes()]
-    X: List[float] = []
-    Y: List[float] = []
-    for node in nodes:
-        value = g2.nodes[node]
+    nodes = []
+    X, Y = [], []
+    for node, value in g2.nodes(data=True):
         if value["type"] == "access":
             coords = value["pos"]
             X.append(coords[0])
             Y.append(coords[1])
+            nodes.append(node)
     nearest, distances = ox.distance.nearest_nodes(g1, X, Y, return_dist=True)
     return nodes, nearest, distances
 
@@ -129,6 +128,7 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     # We create a new attribute which stores x and y in a tuple
     for node in g1.nodes():
         g1.nodes[node]["pos"] = (g1.nodes[node]["x"], g1.nodes[node]["y"])
+    g1.remove_edges_from(nx.selfloop_edges(g1))
 
     # We convert g1 from Multidigraph to graph
     g1 = nx.Graph(g1)
@@ -152,13 +152,12 @@ def plot(g: MetroGraph, filename: str) -> None:
     map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
     types = set()
     for u, node in g.nodes(data=True):
-        map.add_marker(CircleMarker(node.get('pos'), colorNodes.get(node.get('type')), 3))
+        map.add_marker(CircleMarker(node.get('pos'), colorNodes.get(node.get('type')), 4))
     for edge in g.edges:
         t = (g.nodes[edge[0]].get('type'),g.nodes[edge[1]].get('type'))
         types.add(t)
-        # print(t, colorTypes.get(t, 'blue'))
         map.add_line(
-            Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], colorTypes.get(t, 'blue'), 3))
+            Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], colorTypes.get(t, 'blue'), 2))
     print(types)
     image = map.render()
     image.save(filename)
@@ -177,9 +176,9 @@ def test():
     # save_osmnx_graph(g1,"city.pickle")
     g1 = load_osmnx_graph("city.pickle")
     city = build_city_graph(g1, g2)
-    show(city)
-    # print('plotting')
-    # plot(city, 'cityTest.png')
+    # show(city)
+    print('plotting')
+    plot(city, 'cityTest.png')
 
 
 test()
