@@ -146,13 +146,13 @@ def plot(g: MetroGraph, filename: str) -> None:
     Given a CityGraph g and a filename we create an image of the graph
     g and save it with the corresponding filename
     '''
-    colorTypes = {(None, None) :'yellow', (None, 'access'): 'orange' }
+    colorTypes = {(None, None) :'yellow', (None, 'access'): 'orange', (None, 'station'): 'orange' }
     colorNodes = {'station' : 'red', 'access' : 'black', None : 'green'}
 
     map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
     types = set()
     for u, node in g.nodes(data=True):
-        map.add_marker(CircleMarker(node.get('pos'), colorNodes.get(node), 6))
+        map.add_marker(CircleMarker(node.get('pos'), colorNodes.get(node.get('type')), 3))
     for edge in g.edges:
         t = (g.nodes[edge[0]].get('type'),g.nodes[edge[1]].get('type'))
         types.add(t)
@@ -177,4 +177,9 @@ def test():
     # save_osmnx_graph(g1,"city.pickle")
     g1 = load_osmnx_graph("city.pickle")
     city = build_city_graph(g1, g2)
-    plot(city, 'cityTest.png')
+    show(city)
+    # print('plotting')
+    # plot(city, 'cityTest.png')
+
+
+test()
