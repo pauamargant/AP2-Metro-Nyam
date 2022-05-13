@@ -18,15 +18,11 @@ OsmnxGraph: TypeAlias = nx.MultiDiGraph
 
 # CONSTANTS
 FILENAME: str = "city.pickle"
-<<<<<<< Updated upstream
-SIZE_X: int = 3000
-SIZE_Y: int = 3000
-=======
+
 SIZE_X: int = 1500
 SIZE_Y: int = 1500
 WALKING_SPEED: float = 1.42
 SUBWAY_SPEED: float = 7.22222222
->>>>>>> Stashed changes
 
 
 # Definim classes
@@ -172,18 +168,15 @@ def plot(g: MetroGraph, filename: str) -> None:
     Given a CityGraph g and a filename we create an image of the graph
     g and save it with the corresponding filename
     '''
-<<<<<<< Updated upstream
-    colorTypes = {(None, None) :'yellow', (None, 'access'): 'orange', (None, 'station'): 'orange' }
-    colorNodes = {'station' : 'red', 'access' : 'black', None : 'green'}
-=======
-    colorTypes = {(None, None): 'yellow', (None, 'access'): 'orange'}
+    colorTypes = {(None, None): 'yellow', (None, 'access')
+                   : 'orange', (None, 'station'): 'orange'}
     colorNodes = {'station': 'red', 'access': 'black', None: 'green'}
->>>>>>> Stashed changes
 
     map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
     types = set()
     for u, node in g.nodes(data=True):
-        map.add_marker(CircleMarker(node.get('pos'), colorNodes.get(node.get('type')), 4))
+        map.add_marker(CircleMarker(node.get('pos'),
+                       colorNodes.get(node.get('type')), 4))
     for edge in g.edges:
         t = (g.nodes[edge[0]].get('type'), g.nodes[edge[1]].get('type'))
         types.add(t)
