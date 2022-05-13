@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
-
 import math
 import pandas as pd
 
@@ -77,7 +76,7 @@ def find(query: str, restaurants: Restaurants) -> Restaurants:
     return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
 
 
-# lst = read()
-# x = find('King', lst)
-# for res in x:
-#     print(res.name)
+lst = read()
+x = find('King', lst)
+for res in x:
+    print(res.name)

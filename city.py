@@ -6,7 +6,7 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict
+from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
@@ -24,6 +24,8 @@ SIZE_Y: int = 1500
 
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
+NodeID : TypeAlias = int
+Path : TypeAlias = List[NodeID]
 
 
 def get_osmnx_graph() -> OsmnxGraph:
@@ -139,6 +141,27 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     city.add_edges_from(zip(nearest, nodes), type="Street", distance=distances)
     return city
 
+def plot(g: MetroGraph, filename: str) -> None:
+    '''
+    Given a CityGraph g and a filename we create an image of the graph
+    g and save it with the corresponding filename
+    '''
+    colorTypes = {(None, None) :'yellow', (None, 'access'): 'orange' }
+    colorNodes = {'station' : 'red', 'access' : 'black', None : 'green'}
+
+    map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
+    types = set()
+    for u, node in g.nodes(data=True):
+        map.add_marker(CircleMarker(node.get('pos'), colorNodes.get(node), 6))
+    for edge in g.edges:
+        t = (g.nodes[edge[0]].get('type'),g.nodes[edge[1]].get('type'))
+        types.add(t)
+        # print(t, colorTypes.get(t, 'blue'))
+        map.add_line(
+            Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], colorTypes.get(t, 'blue'), 3))
+    print(types)
+    image = map.render()
+    image.save(filename)
 
 def show(g: CityGraph) -> None:
     '''Shows the CityGraph g in a interative window'''
@@ -154,4 +177,4 @@ def test():
     # save_osmnx_graph(g1,"city.pickle")
     g1 = load_osmnx_graph("city.pickle")
     city = build_city_graph(g1, g2)
-    show(city)
+    plot(city, 'cityTest.png')
