@@ -1,3 +1,4 @@
+from tkinter.messagebox import NO
 import metro
 
 import pandas as pd
@@ -19,8 +20,8 @@ OsmnxGraph: TypeAlias = nx.MultiDiGraph
 # CONSTANTS
 FILENAME: str = "city.pickle"
 
-SIZE_X: int = 1500
-SIZE_Y: int = 1500
+SIZE_X: int = 3000
+SIZE_Y: int = 3000
 WALKING_SPEED: float = 1.42
 SUBWAY_SPEED: float = 7.22222222
 
@@ -163,13 +164,18 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     return city
 
 
+def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
+    src_node: NodeID = ox.distance.nearest_node(ox_g, src)
+    dst_node: NodeID = ox.distance.nearest_node(ox_g, dst)
+    return nx.shortest_path(g, src_node, dst_node, weight="distance.time")
+
+
 def plot(g: MetroGraph, filename: str) -> None:
     '''
     Given a CityGraph g and a filename we create an image of the graph
     g and save it with the corresponding filename
     '''
-    colorTypes = {(None, None): 'yellow', (None, 'access')
-                   : 'orange', (None, 'station'): 'orange'}
+    colorTypes = {(None, None): 'yellow', (None, 'access')                  : 'orange', (None, 'station'): 'orange'}
     colorNodes = {'station': 'red', 'access': 'black', None: 'green'}
 
     map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
@@ -201,9 +207,6 @@ def test():
     # save_osmnx_graph(g1,"city.pickle")
     g1 = load_osmnx_graph("city.pickle")
     city = build_city_graph(g1, g2)
-    # show(city)
+    show(city)
     print('plotting')
     plot(city, 'cityTest.png')
-
-
-test()

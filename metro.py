@@ -269,18 +269,5 @@ def show(g: MetroGraph) -> None:
     nx.draw(g, pos=positions, font_size=10,
             node_color="blue",
             node_size=50,)
-<<<<<<< Updated upstream
-    #plt.show()
+    # plt.show()
     plt.savefig('plot.svg')
-
-=======
-
-
-# << << << < Updated upstream
-# plt.show()
-# == == == =
-# # plt.show()
-# plt.savefig('plot.svg')
-
-# >>>>>> > Stashed changes
->>>>>>> Stashed changes
