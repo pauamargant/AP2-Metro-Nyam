@@ -10,22 +10,37 @@ from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
+from haversine import haversine, Unit
+
 
 CityGraph: TypeAlias = nx.Graph
 OsmnxGraph: TypeAlias = nx.MultiDiGraph
 
 # CONSTANTS
 FILENAME: str = "city.pickle"
+<<<<<<< Updated upstream
 SIZE_X: int = 3000
 SIZE_Y: int = 3000
+=======
+SIZE_X: int = 1500
+SIZE_Y: int = 1500
+WALKING_SPEED: float = 1.42
+SUBWAY_SPEED: float = 7.22222222
+>>>>>>> Stashed changes
 
 
 # Definim classes
 
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
-NodeID : TypeAlias = int
-Path : TypeAlias = List[NodeID]
+NodeID: TypeAlias = int
+Path: TypeAlias = List[NodeID]
+
+
+@dataclass
+class Distance():
+    dist: float
+    time: float
 
 
 def get_osmnx_graph() -> OsmnxGraph:
@@ -40,14 +55,15 @@ def get_osmnx_graph() -> OsmnxGraph:
     try:
         if not os.path.exists(FILENAME):
             graph = ox.graph_from_place(
-                "Barcelona", network_type='walk', simplify=True)
-
+                "Barcelona, Spain", network_type="walk", simplify=True)
             for u, v, key, geom in graph.edges(data="geometry", keys=True):
                 if geom is not None:
                     del(graph[u][v][key]["geometry"])
-            graph.remove_edges_from(nx.selfloop_edges(graph))
 
+            graph.remove_edges_from(nx.selfloop_edges(graph))
+            save_osmnx_graph(graph, FILENAME)
             return graph
+
         else:
             return load_osmnx_graph(FILENAME)
     except Exception:
@@ -104,7 +120,12 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> [List[int], List[int], List
     return nodes, nearest, distances
 
 
-def weighted_distance(city: CityGraph, p1: Coord, p2: Coord): ...
+def walking_street_distance(g: OsmnxGraph, orig_id: int, dest_id: int) -> Distance:
+    d: float = haversine(g.nodes[orig_id]["pos"],
+                         g.nodes[dest_id]["pos"], unit="m")
+    time: float = d / WALKING_SPEED
+
+    return Distance(d, time)
 
 
 def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
@@ -130,6 +151,10 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
         g1.nodes[node]["pos"] = (g1.nodes[node]["x"], g1.nodes[node]["y"])
     g1.remove_edges_from(nx.selfloop_edges(g1))
 
+    for edge in g1.edges:
+        g1.edges[edge]["Distance"] = walking_street_distance(
+            g1, edge[0], edge[1])
+
     # We convert g1 from Multidigraph to graph
     g1 = nx.Graph(g1)
 
@@ -141,26 +166,33 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     city.add_edges_from(zip(nearest, nodes), type="Street", distance=distances)
     return city
 
+
 def plot(g: MetroGraph, filename: str) -> None:
     '''
     Given a CityGraph g and a filename we create an image of the graph
     g and save it with the corresponding filename
     '''
+<<<<<<< Updated upstream
     colorTypes = {(None, None) :'yellow', (None, 'access'): 'orange', (None, 'station'): 'orange' }
     colorNodes = {'station' : 'red', 'access' : 'black', None : 'green'}
+=======
+    colorTypes = {(None, None): 'yellow', (None, 'access'): 'orange'}
+    colorNodes = {'station': 'red', 'access': 'black', None: 'green'}
+>>>>>>> Stashed changes
 
     map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
     types = set()
     for u, node in g.nodes(data=True):
         map.add_marker(CircleMarker(node.get('pos'), colorNodes.get(node.get('type')), 4))
     for edge in g.edges:
-        t = (g.nodes[edge[0]].get('type'),g.nodes[edge[1]].get('type'))
+        t = (g.nodes[edge[0]].get('type'), g.nodes[edge[1]].get('type'))
         types.add(t)
         map.add_line(
             Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], colorTypes.get(t, 'blue'), 2))
     print(types)
     image = map.render()
     image.save(filename)
+
 
 def show(g: CityGraph) -> None:
     '''Shows the CityGraph g in a interative window'''

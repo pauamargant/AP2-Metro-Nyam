@@ -8,13 +8,15 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from typing import Optional, TextIO, List, Tuple, Dict
 from typing_extensions import TypeAlias
-
+from haversine import haversine, Unit
 
 # CONSTANTS
 
 SIZE_X: int = 1500
 SIZE_Y: int = 1500
-
+#Speeds in m/s
+WALKING_SPEED: float = 1.42
+SUBWAY_SPEED: float = 7.22222222
 
 # Definim classes
 
@@ -57,6 +59,12 @@ class Access:
     group_code: int
     accessibility: int
     position: Coord
+
+
+@dataclass
+class Distance():
+    dist: float
+    time: float
 
 
 Stations = List[Station]
@@ -151,6 +159,22 @@ def read_accesses() -> Accesses:
     return access_list
 
 
+def line_distance(g: MetroGraph, orig_id: int, dest_id: int) -> Distance:
+    d: float = haversine(g.nodes[orig_id]["pos"],
+                         g.nodes[dest_id]["pos"], unit="m")
+    time: float = d / SUBWAY_SPEED
+
+    return Distance(d, time)
+
+
+def walking_metro_distance(g: MetroGraph, orig_id: int, dest_id: int) -> Distance:
+    d: float = haversine(g.nodes[orig_id]["pos"],
+                         g.nodes[dest_id]["pos"], unit="m")
+    time: float = d / WALKING_SPEED
+
+    return Distance(d, time)
+
+
 def get_metro_graph() -> MetroGraph:
     '''
     Reads station and access data from STATION_FILE and ACCESS_FILE and creates a graph with the
@@ -178,12 +202,12 @@ def get_metro_graph() -> MetroGraph:
     # stored in order
     # We add the first station of the list before iterating through the others
     s1 = station_list[0]
-    prev_id: Optional[int]= s1.id
+    prev_id: Optional[int] = s1.id
     prev_line: Optional[int] = s1.line_id
     Metro.add_node(s1.id, pos=s1.position, type="station",
-                       accessibility=s1.accessibility, line=s1.line_id)
+                   accessibility=s1.accessibility, line=s1.line_id)
     line_transfers[s1.group_code] = [s1.id]
-    
+
     for station in station_list[1:]:
         # We create the station node
         Metro.add_node(station.id, pos=station.position, type="station",
@@ -192,7 +216,7 @@ def get_metro_graph() -> MetroGraph:
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
             Metro.add_edge(prev_id, station.id, type="line",
-                           line_name=station.line_name, line_colour=station.line_colour)
+                           line_name=station.line_name, line_colour=station.line_colour, distance=line_distance(Metro, prev_id, station.id))
         prev_id, prev_line = station.id, station.line_id
 
         # If we have previously read a station in the same group we append the current
@@ -205,7 +229,8 @@ def get_metro_graph() -> MetroGraph:
     # We add the nodes corresponding to the accesses and connect each access with its station
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, type="access")
-        Metro.add_edge(access.code, access.station_id, type="access")
+        Metro.add_edge(access.code, access.station_id, type="access",
+                       distance=walking_metro_distance(Metro, access.code, access.station_id))
 
     # We connect stations which are in the same station group but are of a different line
 
@@ -214,7 +239,8 @@ def get_metro_graph() -> MetroGraph:
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
-                    Metro.add_edge(i1, i2, type="transbord")
+                    Metro.add_edge(i1, i2, type="transbord", distance=walking_metro_distance(
+                        Metro, access.code, access.station_id))
 
     return Metro
 
@@ -243,6 +269,18 @@ def show(g: MetroGraph) -> None:
     nx.draw(g, pos=positions, font_size=10,
             node_color="blue",
             node_size=50,)
+<<<<<<< Updated upstream
     #plt.show()
     plt.savefig('plot.svg')
 
+=======
+
+
+# << << << < Updated upstream
+# plt.show()
+# == == == =
+# # plt.show()
+# plt.savefig('plot.svg')
+
+# >>>>>> > Stashed changes
+>>>>>>> Stashed changes
