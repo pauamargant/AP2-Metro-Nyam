@@ -99,7 +99,7 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
         return pkl.load(pickle_in)
 
 
-def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> [List[int], List[int], List[float]]:
+def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[int], List[int], List[float]]:
     '''
     Given a OsmnxGraph g1 and a MetroGraph g2 returns a list which contains a list with the ids of the access nodes, 
     a list with the nearest node in g1 to each access node in g2 tohether with a list which contains the corresponding
@@ -175,20 +175,18 @@ def plot(g: MetroGraph, filename: str) -> None:
     Given a CityGraph g and a filename we create an image of the graph
     g and save it with the corresponding filename
     '''
-    colorTypes = {(None, None): 'yellow', (None, 'access')                  : 'orange', (None, 'station'): 'orange'}
+    # color for each set of edges, blue is the default
+    colorEdges = {(None, None): 'yellow', (None, 'access'): 'orange',
+                  (None, 'station'): 'orange'}
     colorNodes = {'station': 'red', 'access': 'black', None: 'green'}
-
     map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
-    types = set()
     for u, node in g.nodes(data=True):
         map.add_marker(CircleMarker(node.get('pos'),
                        colorNodes.get(node.get('type')), 4))
     for edge in g.edges:
-        t = (g.nodes[edge[0]].get('type'), g.nodes[edge[1]].get('type'))
-        types.add(t)
-        map.add_line(
-            Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], colorTypes.get(t, 'blue'), 2))
-    print(types)
+        n0, n1 = g.nodes[edge[0]], g.nodes[edge[1]]
+        map.add_line(Line([n0['pos'], n1['pos']], colorEdges.get(
+            (n0.get('type'), n1.get('type')), 'blue'), 2))
     image = map.render()
     image.save(filename)
 
