@@ -1,9 +1,12 @@
 # importa l'API de Telegram
+from pandas import concat
 import metro
 import city
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
+
+import restaurants
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 # defineix una funció que saluda i que s'executarà quan el bot rebi el missatge /start
@@ -53,6 +56,26 @@ def plot_metro(update, context):
             text='💣')
 
 
+def find(update, context):
+    try:
+        query = ""
+        for word in context.args:
+            query += (" "+word)
+        rest = restaurants.read()
+        search = restaurants.find(query, rest)
+        message = ""
+        for res in search:
+            message += res.name+"\n"
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=message
+        )
+    except Exception as e:
+        print(e)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='💣')
+
     # crea objectes per treballar amb Telegram
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
@@ -63,7 +86,7 @@ dispatcher.add_handler(CommandHandler('help', help))
 dispatcher.add_handler(CommandHandler('author', author))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
 dispatcher.add_handler(CommandHandler('plot_metro', plot_metro))
-
+dispatcher.add_handler(CommandHandler('find', find))
 # engega el bot
 updater.start_polling()
 updater.idle()

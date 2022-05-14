@@ -2,7 +2,11 @@ from dataclasses import dataclass
 from typing import Optional, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import math
+from fuzzysearch import find_near_matches
 import pandas as pd
+# PREGUNTAR SI PODEM FER SERVIR; ES ESTANDARD
+import difflib
+from heapq import nlargest
 
 
 @dataclass
@@ -73,10 +77,47 @@ def interesting(query: str, res: Restaurant) -> bool:
 
 
 def find(query: str, restaurants: Restaurants) -> Restaurants:
-    return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
+    # Original implementation
+    # return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
+
+    # Retornem els 12 elements amb més "importancia"
+    return nlargest(12, restaurants, key=lambda res: importance(query, res))
 
 
-lst = read()
-x = find('King', lst)
-for res in x:
-    print(res.name)
+def importance(query: str, res: Restaurant):
+    '''
+    Returns a value which determines the relevance of a restaurant
+    '''
+
+    # CONSTANTS:
+    DN = 4  # Per donar mes relevancia al nom
+    DA = 1  # Per modificar la reelvancia de la adreça
+    MIN_N = 0.8  # Ratio minima per considerar un "Match" al nom
+    MIN_A = 0.8  # Ratio minima per un match a l'adreça
+
+    # Per cada paraula de la query calculem primer la ratio de match amb cada paraula del nom del restaurant
+    # Despres fem el mateix amb les adreçes
+    value = 0
+    for q in query.split():
+        max = 0
+        for w in res.name.split():
+            val = DN*difflib.SequenceMatcher(lambda x: x == " ", q, w).ratio()
+            if(val is not None and val > 0.6 and val > max):
+                if val > MIN_N:
+                    max = 4*val
+                else:
+                    max = val
+        value += max
+        for w in (res.adress.nb_name + res.adress.road_name).split():
+            val = DA*difflib.SequenceMatcher(lambda x: x == " ", q, w).ratio()
+            if(val is not None and val > MIN_A and val > max):
+                max = val
+        value += max
+    return value
+
+
+def test(query):
+    lst = read()
+    x = find(query, lst)
+    for res in x:
+        print(res.name)
