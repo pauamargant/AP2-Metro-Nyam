@@ -61,12 +61,6 @@ class Access:
     position: Coord
 
 
-@dataclass
-class Distance():
-    dist: float
-    time: float
-
-
 Stations = List[Station]
 
 Accesses = List[Access]
@@ -159,20 +153,20 @@ def read_accesses() -> Accesses:
     return access_list
 
 
-def line_distance(g: MetroGraph, orig_id: int, dest_id: int) -> Distance:
+def line_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
     d: float = haversine(g.nodes[orig_id]["pos"],
                          g.nodes[dest_id]["pos"], unit="m")
     time: float = d / SUBWAY_SPEED
 
-    return Distance(d, time)
+    return time
 
 
-def walking_metro_distance(g: MetroGraph, orig_id: int, dest_id: int) -> Distance:
+def walking_metro_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
     d: float = haversine(g.nodes[orig_id]["pos"],
                          g.nodes[dest_id]["pos"], unit="m")
     time: float = d / WALKING_SPEED
 
-    return Distance(d, time)
+    return time
 
 
 def get_metro_graph() -> MetroGraph:
@@ -216,7 +210,7 @@ def get_metro_graph() -> MetroGraph:
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
             Metro.add_edge(prev_id, station.id, type="line",
-                           line_name=station.line_name, line_colour=station.line_colour, distance=line_distance(Metro, prev_id, station.id))
+                           line_name=station.line_name, line_colour=station.line_colour, travel_time=line_distance(Metro, prev_id, station.id))
         prev_id, prev_line = station.id, station.line_id
 
         # If we have previously read a station in the same group we append the current
@@ -230,7 +224,7 @@ def get_metro_graph() -> MetroGraph:
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, type="access")
         Metro.add_edge(access.code, access.station_id, type="access",
-                       distance=walking_metro_distance(Metro, access.code, access.station_id))
+                       travel_time=walking_metro_distance(Metro, access.code, access.station_id))
 
     # We connect stations which are in the same station group but are of a different line
 
@@ -239,7 +233,7 @@ def get_metro_graph() -> MetroGraph:
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
-                    Metro.add_edge(i1, i2, type="transbord", distance=walking_metro_distance(
+                    Metro.add_edge(i1, i2, type="transbord", travel_time=walking_metro_distance(
                         Metro, access.code, access.station_id))
 
     return Metro
