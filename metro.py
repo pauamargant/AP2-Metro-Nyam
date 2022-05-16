@@ -9,16 +9,7 @@ from dataclasses import dataclass
 from typing import Optional, TextIO, List, Tuple, Dict
 from typing_extensions import TypeAlias
 from haversine import haversine, Unit
-
-# CONSTANTS
-
-SIZE_X: int = 1500
-SIZE_Y: int = 1500
-#Speeds in m/s
-WALKING_SPEED: float = 1.42
-SUBWAY_SPEED: float = 7.22222222
-
-# Definim classes
+from constants import *
 
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
@@ -233,7 +224,7 @@ def get_metro_graph() -> MetroGraph:
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
-                    Metro.add_edge(i1, i2, type="transbord", travel_time=walking_metro_distance(
+                    Metro.add_edge(i1, i2, type="transfer", travel_time=walking_metro_distance(
                         Metro, access.code, access.station_id))
 
     return Metro
@@ -245,7 +236,7 @@ def plot(g: MetroGraph, filename: str) -> None:
     g and save it with the corresponding filename
     '''
 
-    map: StaticMap = StaticMap(SIZE_X, SIZE_Y)
+    map: StaticMap = StaticMap(SIZE_X, SIZE_Y,url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     for pos in nx.get_node_attributes(g, "pos").values():
         map.add_marker(CircleMarker(pos, 'red', 6))
     for edge in g.edges:

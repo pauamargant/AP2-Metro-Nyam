@@ -117,26 +117,24 @@ def info(update, context):
 
 
 def guide(update, context):
-    # try:
-    file = "%d.png" % random.randint(1000000, 9999999)
-    src: Coord = context.user_data['user'].location
-    dst: Coord = context.user_data['user'].current_search[int(
-        context.args[0])].coords
-    print(src)
-    print(dst)
-    Path = city.find_path(city_osmnx, city_graph, src, dst)
-    print("path trobat")
-    city.plot_path(city_graph, Path, file, src, dst)
-    context.bot.send_photo(
-        chat_id=update.effective_chat.id,
-        photo=open(file, 'rb'))
-    os.remove(file)
-    print("enviat???")
-    # except Exception as e:
-    #     print(e)
-    #     context.bot.send_message(
-    #         chat_id=update.effective_chat.id,
-    #         text='💣')
+    try:
+        file = "%d.png" % random.randint(1000000, 9999999)
+        src: Coord = context.user_data['user'].location
+        dst: Coord = context.user_data['user'].current_search[int(
+            context.args[0])].coords
+        Path = city.find_path(city_osmnx, city_graph, src, dst)
+        print("path trobat")
+        city.plot_path(city_graph, Path, file, src, dst)
+        context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=open(file, 'rb'))
+        os.remove(file)
+        print("enviat")
+    except Exception as e:
+        print(e)
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='💣')
 
 
     # crea objectes per treballar amb Telegram
