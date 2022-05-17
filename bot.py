@@ -31,23 +31,24 @@ rest = restaurants.read()
 
 
 @dataclass
-class user:
+class User:
     location: Coord
-    current_search: restaurants
+    current_search: restaurants.Restaurants
     name: str
 
 
 def start(update, context):
-    current_user = user(None, None, "usuari")
+    current_user = User(None, None, "usuari")
     context.user_data["user"] = current_user
     context.bot.send_message(
         chat_id=update.effective_chat.id, text="Hola! Soc un bot bàsic.")
 
 
 def help(update, context):
-    context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Ajuda inexistent aquí"
-    )
+    with open('help_msg.txt', 'r') as msg:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id, text=msg.read(), parse_mode='Markdown'
+        )
 
 
 def author(update, context):
@@ -67,7 +68,7 @@ def where(update, context):
 def plot_metro(update, context):
     try:
         file = "%d.png" % random.randint(1000000, 9999999)
-        metro.plot(g, file)
+        metro.plot(metro_graph, file)
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
             photo=open(file, 'rb'))
@@ -81,13 +82,12 @@ def plot_metro(update, context):
 
 def find(update, context):
     try:
-        query = ""
-        for word in context.args:
-            query += (" "+word)
+        query = update.message.text[6:]
+        print(query)
+        rest = restaurants.read()
         search = restaurants.find(query, rest)
         message = ""
-        for i in range(len(search)):
-            res = search[i]
+        for i, res in enumerate(search):
             message += str(i)+". "+res.name+"\n"
         context.user_data['user'].current_search = search
         context.bot.send_message(
@@ -140,7 +140,7 @@ def guide(update, context):
             text='💣')
 
 
-    # crea objectes per treballar amb Telegram
+# crea objectes per treballar amb Telegram
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
@@ -152,7 +152,6 @@ dispatcher.add_handler(CommandHandler('author', author))
 dispatcher.add_handler(MessageHandler(Filters.location, where))
 dispatcher.add_handler(CommandHandler('plot_metro', plot_metro))
 dispatcher.add_handler(CommandHandler('find', find))
-dispatcher.add_handler(MessageHandler(Filters.location, where))
 dispatcher.add_handler(CommandHandler('info', info))
 dispatcher.add_handler(CommandHandler('guide', guide))
 

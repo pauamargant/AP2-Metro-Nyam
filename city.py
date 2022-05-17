@@ -5,7 +5,7 @@ import metro
 import pandas as pd
 import osmnx as ox
 import networkx as nx
-from staticmap import StaticMap, CircleMarker, Line
+from staticmap import StaticMap, CircleMarker, Line, IconMarker
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from typing import Optional, TextIO, List, Tuple, Dict, Union
@@ -55,8 +55,8 @@ def get_osmnx_graph() -> OsmnxGraph:
 
             for edge in graph.edges:
                 distance = walking_street_distance(graph, edge[0], edge[1])
-                graph.edges[edge]["distance"]=distance
-                graph.edges[edge]["travel_time"] =  distance/WALKING_SPEED
+                graph.edges[edge]["distance"] = distance
+                graph.edges[edge]["travel_time"] = distance/WALKING_SPEED
                 graph.edges[edge]["type"] = 'street'
 
             save_osmnx_graph(graph, PICKLE_FILENAME)
@@ -99,7 +99,7 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
         return pkl.load(pickle_in)
 
 
-def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> [List[int], List[int], List[float]]:
+def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[int], List[int], List[float]]:
     '''
     Given a OsmnxGraph g1 and a MetroGraph g2 returns a list which contains a list with the ids of the access nodes,
     a list with the nearest node in g1 to each access node in g2 tohether with a list which contains the corresponding
@@ -208,25 +208,30 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
                      edge_color(g, prev_node, node), 2))
         prev_node = node
 
+    map.add_marker(CircleMarker(g.nodes[p[0]]['pos'], 'blue', 10))
+    map.add_marker(CircleMarker(g.nodes[p[-1]]['pos'], 'red', 10))
+
     image = map.render()
     image.save(filename)
 
-def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord)->Tuple(float,int):
+
+def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float, int]:
     '''Returns time and distance for a path'''
     time = 0
 
     if len(p) != 0:
-        dist=haversine(src,g[p[0]]["pos"],unit="m")
-        distance+=dist
-        time+=dist/WALKING_SPEED
-        dist=haversine(g[p[len(p)-1]]["pos"],dst,unit="m")
-        distance+=dist
-        time+=dist/WALKING_SPEED
+        dist = haversine(src, g[p[0]]["pos"], unit="m")
+        distance += dist
+        time += dist/WALKING_SPEED
+        dist = haversine(g[p[len(p)-1]]["pos"], dst, unit="m")
+        distance += dist
+        time += dist/WALKING_SPEED
         n1 = p[0]
     for id in p[1:]:
-        distance+=g.edges[(n1,id)]["distance"]
-        time+=g.edges[(n1,id)]["travel_time"]
-    return distance,time
+        distance += g.edges[(n1, id)]["distance"]
+        time += g.edges[(n1, id)]["travel_time"]
+    return distance, time
+
 
 def show(g: CityGraph) -> None:
     '''Shows the CityGraph g in a interative window'''
