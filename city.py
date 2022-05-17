@@ -146,7 +146,7 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     g1 = nx.Graph(g1)
     city = nx.union(g1, g2)
     for i in range(len(distances)):
-        distances[i]=distances[i]/WALKING_SPEED
+        distances[i] = distances[i]/WALKING_SPEED
     city.add_edges_from(zip(nearest, nodes), type="Street", distance=distances)
     return city
 
@@ -189,8 +189,8 @@ def edge_color(g: CityGraph, n1: NodeID, n2: NodeID) -> str:
             return "#"+edge['line_colour']
         elif edge['type'] == 'transfer':
             return TRANSFER_COLOR
-        elif edge['type'] == 'street':
-            return STREET_COLOR
+        elif edge['type'] == 'access':
+            return ACCESS_COLOR
         return STREET_COLOR
     except Exception as e:
         print(e)
@@ -209,6 +209,14 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
 
     image = map.render()
     image.save(filename)
+
+# def path_time(g: CityGraph, p: Path, src: Coord, dsr: Coord):
+#     time = 0
+#     if len(p) != 0:
+#         time+=haversine(src,g[p[0]]["pos"])
+#         time+=haversine(g[p[len(p)-1]]["pos"],dst)
+
+#     for id in p:
 
 
 def show(g: CityGraph) -> None:

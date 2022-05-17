@@ -129,6 +129,9 @@ def guide(update, context):
             chat_id=update.effective_chat.id,
             photo=open(file, 'rb'))
         os.remove(file)
+        # time = city.path_time(city_graph, Path, src, dst)
+        # context.bot.send_message(
+        #     chat_id=update.effective_chat.id, text="Temps estimat és "+str(time))
         print("enviat")
     except Exception as e:
         print(e)
