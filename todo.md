@@ -1,4 +1,4 @@
 # COSES PENDENTS
 
-## METRO:
-REVISAR COSES DEL TYPING I COSES QUE HE MARCAT A COMENTARIS (DETALLS PETITS)
+- City.py: acabar funció time
+- Fer el bot bé

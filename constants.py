@@ -5,3 +5,4 @@ SUBWAY_SPEED: float = 7.22222222
 
 TRANSFER_COLOR = 'red'
 STREET_COLOR = 'black'
+ACCESS_COLOR = 'grey'

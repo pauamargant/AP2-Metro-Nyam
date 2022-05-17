@@ -147,17 +147,13 @@ def read_accesses() -> Accesses:
 def line_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
     d: float = haversine(g.nodes[orig_id]["pos"],
                          g.nodes[dest_id]["pos"], unit="m")
-    time: float = d / SUBWAY_SPEED
-
-    return time
+    return d
 
 
 def walking_metro_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
     d: float = haversine(g.nodes[orig_id]["pos"],
                          g.nodes[dest_id]["pos"], unit="m")
-    time: float = d / WALKING_SPEED
-
-    return time
+    return d
 
 
 def get_metro_graph() -> MetroGraph:
@@ -189,19 +185,20 @@ def get_metro_graph() -> MetroGraph:
     s1 = station_list[0]
     prev_id: Optional[int] = s1.id
     prev_line: Optional[int] = s1.line_id
-    Metro.add_node(s1.id, pos=s1.position, type="station",
+    Metro.add_node(s1.id, pos=s1.position, type="station", name=s1.name,
                    accessibility=s1.accessibility, line=s1.line_id)
     line_transfers[s1.group_code] = [s1.id]
 
     for station in station_list[1:]:
         # We create the station node
-        Metro.add_node(station.id, pos=station.position, type="station",
+        Metro.add_node(station.id, pos=station.position, type="station", name=station.name,
                        accessibility=station.accessibility, line=station.line_id)
 
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
+            distance: float = line_distance(Metro, prev_id, station.id)
             Metro.add_edge(prev_id, station.id, type="line",
-                           line_name=station.line_name, line_colour=station.line_colour, travel_time=line_distance(Metro, prev_id, station.id))
+                           line_name=station.line_name, line_colour=station.line_colour, distance=distance, travel_time=distance/SUBWAY_SPEED)
         prev_id, prev_line = station.id, station.line_id
 
         # If we have previously read a station in the same group we append the current
@@ -214,9 +211,10 @@ def get_metro_graph() -> MetroGraph:
     # We add the nodes corresponding to the accesses and connect each access with its station
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, type="access")
-        Metro.add_edge(access.code, access.station_id, type="access",
-                       travel_time=walking_metro_distance(Metro, access.code, access.station_id))
-
+        distance: float = walking_metro_distance(
+            Metro, access.code, access.station_id)
+        Metro.add_edge(access.code, access.station_id, type="access", distance=distance,
+                       travel_time=distance/WALKING_SPEED)
     # We connect stations which are in the same station group but are of a different line
 
     # PODEM FERHO MILLOR??????????????????????????????????????
@@ -224,8 +222,10 @@ def get_metro_graph() -> MetroGraph:
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
-                    Metro.add_edge(i1, i2, type="transfer", travel_time=walking_metro_distance(
-                        Metro, access.code, access.station_id))
+                    distance: float = walking_metro_distance(
+                        Metro, access.code, access.station_id)
+                    Metro.add_edge(
+                        i1, i2, type="transfer", distance=distance, travel_time=distance/WALKING_SPEED)
 
     return Metro
 
@@ -236,7 +236,8 @@ def plot(g: MetroGraph, filename: str) -> None:
     g and save it with the corresponding filename
     '''
 
-    map: StaticMap = StaticMap(SIZE_X, SIZE_Y,url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
+    map: StaticMap = StaticMap(
+        SIZE_X, SIZE_Y, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     for pos in nx.get_node_attributes(g, "pos").values():
         map.add_marker(CircleMarker(pos, 'red', 6))
     for edge in g.edges:

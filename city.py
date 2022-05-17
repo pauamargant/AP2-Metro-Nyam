@@ -19,7 +19,7 @@ CityGraph: TypeAlias = nx.Graph
 OsmnxGraph: TypeAlias = nx.MultiDiGraph
 
 # CONSTANTS
-FILENAME: str = "city.pickle"
+PICKLE_FILENAME: str = "barcelona.grf"
 
 
 # Definim classes
@@ -41,7 +41,7 @@ def get_osmnx_graph() -> OsmnxGraph:
     graph: OsmxnGraph
     '''
     try:
-        if not os.path.exists(FILENAME):
+        if not os.path.exists(PICKLE_FILENAME):
             graph = ox.graph_from_place(
                 "Barcelona, Spain", network_type="walk", simplify=True)
             for u, v, key, geom in graph.edges(data="geometry", keys=True):
@@ -58,11 +58,11 @@ def get_osmnx_graph() -> OsmnxGraph:
                     graph, edge[0], edge[1])
                 graph.edges[edge]["type"] = 'street'
 
-            save_osmnx_graph(graph, FILENAME)
+            save_osmnx_graph(graph, PICKLE_FILENAME)
             return graph
 
         else:
-            graph = load_osmnx_graph(FILENAME)
+            graph = load_osmnx_graph(PICKLE_FILENAME)
             return graph
     except Exception:
         print("Could not retrieve the graph")
@@ -200,7 +200,7 @@ def edge_color(g: CityGraph, n1: NodeID, n2: NodeID) -> str:
 def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) -> None:
 
     map: StaticMap = StaticMap(
-        SIZE_X, SIZE_Y, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
+        SIZE_X, SIZE_Y)  # , url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     prev_node: NodeID = p[0]
     for node in p:
         map.add_line(Line([g.nodes[prev_node]['pos'], g.nodes[node]['pos']],
