@@ -76,6 +76,19 @@ def interesting(query: str, res: Restaurant) -> bool:
     return query in res.name + res.adress.dist_name + res.adress.nb_name + res.adress.road_name
 
 
+def normalize_str(string):
+    '''
+    Normalizes a string
+    '''
+    normalMap = {'à': 'a', 'á': 'a', 'ä': 'a',
+                 'è': 'e', 'é': 'e', 'ë': 'e',
+                 'í': 'i', 'ï': 'i',
+                 'ò': 'o', 'ó': 'o', 'ö': 'o',
+                 'ú': 'u', 'ü': 'u',
+                 }
+    return string.lower().translate(str.maketrans(normalMap))
+
+
 def find(query: str, restaurants: Restaurants) -> Restaurants:
     # Original implementation
     # return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
@@ -89,30 +102,15 @@ def importance(query: str, res: Restaurant):
     Returns a value which determines the relevance of a restaurant
     '''
 
-    # CONSTANTS:
-    DN = 4  # Per donar mes relevancia al nom
-    DA = 1  # Per modificar la reelvancia de la adreça
-    MIN_N = 0.8  # Ratio minima per considerar un "Match" al nom
-    MIN_A = 0.8  # Ratio minima per un match a l'adreça
-
-    # Per cada paraula de la query calculem primer la ratio de match amb cada paraula del nom del restaurant
-    # Despres fem el mateix amb les adreçes
     value = 0
     for q in query.split():
-        max = 0
-        for w in res.name.split():
-            val = DN*difflib.SequenceMatcher(lambda x: x == " ", q, w).ratio()
-            if(val is not None and val > 0.6 and val > max):
-                if val > MIN_N:
-                    max = 4*val
-                else:
-                    max = val
-        value += max
-        for w in (res.adress.nb_name + res.adress.road_name).split():
-            val = DA*difflib.SequenceMatcher(lambda x: x == " ", q, w).ratio()
-            if(val is not None and val > MIN_A and val > max):
-                max = val
-        value += max
+        match = find_near_matches(q, normalize_str(res.name), max_l_dist=1)
+        if match:
+            value += 2*(2-match[0].dist)
+        match = find_near_matches(q, normalize_str(
+            res.adress.nb_name), max_l_dist=1)
+        if match:
+            value += (2-match[0].dist)
     return value
 
 

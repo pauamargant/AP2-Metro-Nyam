@@ -200,7 +200,7 @@ def edge_color(g: CityGraph, n1: NodeID, n2: NodeID) -> str:
 def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) -> None:
 
     map: StaticMap = StaticMap(
-        SIZE_X, SIZE_Y)  # , url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
+        SIZE_X, SIZE_Y, padding_x=PADDING, padding_y=PADDING, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     prev_node: NodeID = p[0]
     for node in p:
         map.add_line(Line([g.nodes[prev_node]['pos'], g.nodes[node]['pos']],

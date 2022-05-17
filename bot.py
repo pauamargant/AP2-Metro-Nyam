@@ -27,6 +27,7 @@ TOKEN = open('token.txt').read().strip()
 metro_graph = metro.get_metro_graph()
 city_osmnx = city.get_osmnx_graph()
 city_graph = city.build_city_graph(city_osmnx, metro_graph)
+rest = restaurants.read()
 
 
 @dataclass
@@ -83,7 +84,6 @@ def find(update, context):
         query = ""
         for word in context.args:
             query += (" "+word)
-        rest = restaurants.read()
         search = restaurants.find(query, rest)
         message = ""
         for i in range(len(search)):
