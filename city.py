@@ -54,8 +54,9 @@ def get_osmnx_graph() -> OsmnxGraph:
             graph.remove_edges_from(nx.selfloop_edges(graph))
 
             for edge in graph.edges:
-                graph.edges[edge]["travel_time"] = walking_street_time(
-                    graph, edge[0], edge[1])
+                distance = walking_street_distance(graph, edge[0], edge[1])
+                graph.edges[edge]["distance"]=distance
+                graph.edges[edge]["travel_time"] =  distance/WALKING_SPEED
                 graph.edges[edge]["type"] = 'street'
 
             save_osmnx_graph(graph, PICKLE_FILENAME)
@@ -116,10 +117,10 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> [List[int], List[int], List
     return nodes, nearest, distances
 
 
-def walking_street_time(g: OsmnxGraph, orig_id: int, dest_id: int) -> float:
+def walking_street_distance(g: OsmnxGraph, orig_id: int, dest_id: int) -> float:
     d: float = haversine(g.nodes[orig_id]["pos"],
                          g.nodes[dest_id]["pos"], unit="m")
-    time: float = d / WALKING_SPEED
+    time: float = d
 
     return time
 
@@ -210,14 +211,22 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
     image = map.render()
     image.save(filename)
 
-# def path_time(g: CityGraph, p: Path, src: Coord, dsr: Coord):
-#     time = 0
-#     if len(p) != 0:
-#         time+=haversine(src,g[p[0]]["pos"])
-#         time+=haversine(g[p[len(p)-1]]["pos"],dst)
+def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord)->Tuple(float,int):
+    '''Returns time and distance for a path'''
+    time = 0
 
-#     for id in p:
-
+    if len(p) != 0:
+        dist=haversine(src,g[p[0]]["pos"],unit="m")
+        distance+=dist
+        time+=dist/WALKING_SPEED
+        dist=haversine(g[p[len(p)-1]]["pos"],dst,unit="m")
+        distance+=dist
+        time+=dist/WALKING_SPEED
+        n1 = p[0]
+    for id in p[1:]:
+        distance+=g.edges[(n1,id)]["distance"]
+        time+=g.edges[(n1,id)]["travel_time"]
+    return distance,time
 
 def show(g: CityGraph) -> None:
     '''Shows the CityGraph g in a interative window'''

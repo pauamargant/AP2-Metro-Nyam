@@ -97,6 +97,20 @@ def find(query: str, restaurants: Restaurants) -> Restaurants:
     return nlargest(12, restaurants, key=lambda res: importance(query, res))
 
 
+def read_operator(expression: str):
+    op = ""
+    i = 0
+    while(expression[i] != "(" and i < len(expression)-1):
+        op += expression[i]
+    expression_dict = {"and":"&", "or":"|","not":"!"}
+    return expression_dict.get(op)
+
+
+def recursive_search(query: str, restaurants: Restaurants) -> Restaurants:
+    stack = []
+    stack
+
+
 def importance(query: str, res: Restaurant):
     '''
     Returns a value which determines the relevance of a restaurant
