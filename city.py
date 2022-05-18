@@ -33,7 +33,7 @@ def get_osmnx_graph() -> OsmnxGraph:
     '''
     Downloads and returns the OsmnxGraph of Barcelona.
     It removes unnecessary information and deletes selfloops.
-    It adds pos, type and travel time attributes 
+    It adds pos, type and travel time attributes
 
     Returns
     -------
@@ -49,21 +49,22 @@ def get_osmnx_graph() -> OsmnxGraph:
             for node in graph.nodes():
                 graph.nodes[node]["pos"] = (
                     graph.nodes[node]["x"], graph.nodes[node]["y"])
+                graph.nodes[node]["type"] = "street_intersection"
 
             # graph.remove_edges_from(nx.selfloop_edges(graph)) #creo que no hace falta esta linea
 
             for edge in graph.edges:
-                distance = walking_street_distance(graph, edge[0], edge[1])
+                distance = haversine(graph.nodes[edge[0]]["pos"],
+                                     graph.nodes[edge[1]]["pos"], unit="m")
                 graph.edges[edge]["distance"] = distance
                 graph.edges[edge]["travel_time"] = distance/WALKING_SPEED
                 graph.edges[edge]["type"] = 'street'
 
             save_osmnx_graph(graph, PICKLE_FILENAME)
             return graph
-
         else:
-            graph = load_osmnx_graph(PICKLE_FILENAME)
-            return graph
+            return load_osmnx_graph(PICKLE_FILENAME)
+
     except Exception:
         print("Could not retrieve the graph")
 
@@ -116,12 +117,9 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[int], List[int],
     return nodes, nearest, distances
 
 
-def walking_street_distance(g: OsmnxGraph, orig_id: int, dest_id: int) -> float:
-    d: float = haversine(g.nodes[orig_id]["pos"],
-                         g.nodes[dest_id]["pos"], unit="m")
-    time: float = d
-
-    return time
+# def walking_street_distance(g: OsmnxGraph, orig_id: int, dest_id: int) -> float:
+#     return haversine(g.nodes[orig_id]["pos"],
+#                      g.nodes[dest_id]["pos"], unit="m")
 
 
 def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
@@ -171,18 +169,21 @@ def plot(g: MetroGraph, filename: str) -> None:
     '''
     # color for each set of edges, blue is the default
 
-    colorEdges = {(None, None): 'yellow', (None, 'access'): 'orange',
-                  (None, 'station'): 'orange'}
-    colorNodes = {'station': 'red', 'access': 'black', None: 'green'}
+    colorEdges = {'line': 'blue', 'street': 'yellow',
+                  'transfer': 'orange', 'Street': 'orange', 'access': 'blue'}
+    colorNodes = {'station': 'red', 'access': 'black',
+                  'street_intersection': 'green'}
     map: StaticMap = StaticMap(
         SIZE_X, SIZE_Y, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     for u, node in g.nodes(data=True):
         map.add_marker(CircleMarker(node.get('pos'),
-                       colorNodes.get(node.get('type')), 4))
-    for edge in g.edges:
+                       colorNodes.get(node.get('type'), 'green'), 4))
+    edgetypes = set()
+    for edge in g.edges(data=True):
+        edgetypes.add(edge[2].get('type'))
         n0, n1 = g.nodes[edge[0]], g.nodes[edge[1]]
-        map.add_line(Line([n0['pos'], n1['pos']], colorEdges.get(
-            (n0.get('type'), n1.get('type')), 'blue'), 2))
+        map.add_line(Line([n0['pos'], n1['pos']],
+                     colorEdges[edge[2]['type']], 2))
     image = map.render()
     image.save(filename)
 
@@ -247,12 +248,15 @@ def test():
     g2 = metro.get_metro_graph()
     g1 = get_osmnx_graph()
     city = build_city_graph(g1, g2)
-    orig = (41.388606, 2.112741)
-    dest = (41.413816960390676, 2.1814567039217905)
+    # orig = (41.388606, 2.112741)
+    # dest = (41.413816960390676, 2.1814567039217905)
     t1 = time.time()
-    p: Path = find_path(g1, city, orig, dest)
-    print(time.time()-t1)
-    print(path_time_dist(city, p, orig, dest))
+    # p: Path = find_path(g1, city, orig, dest)
+    # print(path_time_dist(city, p, orig, dest))
     # show(city)
-    plot_path(city, p, "path.png",  orig, dest)
-    # plot(city, 'cityTest.png')
+    # plot_path(city, p, "path.png",  orig, dest)
+    plot(city, 'cityTest.png')
+    print(time.time()-t1)
+
+
+test()
