@@ -1,7 +1,6 @@
-# from tkinter.messagebox import NO
-from lib2to3.pytree import Node
 import metro
 
+import time  # temporal, solo para medir tiempos de ejecuciones
 import pandas as pd
 import osmnx as ox
 import networkx as nx
@@ -51,7 +50,7 @@ def get_osmnx_graph() -> OsmnxGraph:
                 graph.nodes[node]["pos"] = (
                     graph.nodes[node]["x"], graph.nodes[node]["y"])
 
-            graph.remove_edges_from(nx.selfloop_edges(graph))
+            # graph.remove_edges_from(nx.selfloop_edges(graph)) #creo que no hace falta esta linea
 
             for edge in graph.edges:
                 distance = walking_street_distance(graph, edge[0], edge[1])
@@ -146,13 +145,19 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     # We convert g1 from Multidigraph to graph
     g1 = nx.Graph(g1)
     city = nx.union(g1, g2)
-    for i in range(len(distances)):
-        distances[i] = distances[i]/WALKING_SPEED
-    city.add_edges_from(zip(nearest, nodes), type="Street", distance=distances)
+    distances = [distance/WALKING_SPEED for distance in distances]
+    for e1, e2, d in zip(nodes, nearest, distances):
+        city.add_edge(e1, e2, type="Street", distance=d,
+                      travel_time=d/WALKING_SPEED)
     return city
 
 
 def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
+    '''
+    Given a CityGraph g, a starting point src and a destination point dst we
+    generate the shortest path (in travel time) between the two positions and
+    we return the path
+    '''
     src_node: NodeID = ox.distance.nearest_nodes(ox_g, src[1], src[0])
     dst_node: NodeID = ox.distance.nearest_nodes(ox_g, dst[1], dst[0])
     p: Path = nx.shortest_path(g, src_node, dst_node, weight='travel_time')
@@ -202,14 +207,15 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
 
     map: StaticMap = StaticMap(
         SIZE_X, SIZE_Y, padding_x=PADDING, padding_y=PADDING, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
-    prev_node: NodeID = p[0]
-    for node in p:
-        map.add_line(Line([g.nodes[prev_node]['pos'], g.nodes[node]['pos']],
-                     edge_color(g, prev_node, node), 2))
-        prev_node = node
+    if p:
+        prev_node: NodeID = p[0]
+        for node in p:
+            map.add_line(Line([g.nodes[prev_node]['pos'], g.nodes[node]['pos']],
+                              edge_color(g, prev_node, node), 2))
+            prev_node = node
 
-    map.add_marker(CircleMarker(g.nodes[p[0]]['pos'], 'blue', 10))
-    map.add_marker(CircleMarker(g.nodes[p[-1]]['pos'], 'red', 10))
+        map.add_marker(CircleMarker(g.nodes[p[0]]['pos'], 'blue', 10))
+        map.add_marker(CircleMarker(g.nodes[p[-1]]['pos'], 'red', 10))
 
     image = map.render()
     image.save(filename)
@@ -217,20 +223,17 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
 
 def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float, int]:
     '''Returns time and distance for a path'''
-    time = 0
-
-    if len(p) != 0:
-        dist = haversine(src, g[p[0]]["pos"], unit="m")
-        distance += dist
-        time += dist/WALKING_SPEED
-        dist = haversine(g[p[len(p)-1]]["pos"], dst, unit="m")
-        distance += dist
-        time += dist/WALKING_SPEED
-        n1 = p[0]
-    for id in p[1:]:
-        distance += g.edges[(n1, id)]["distance"]
-        time += g.edges[(n1, id)]["travel_time"]
-    return distance, time
+    if not p:
+        return 0, 0
+    # per alguna raó les coordenades del graph estan al reves
+    src = (src[1], src[0])
+    dst = (dst[1], dst[0])
+    dist = haversine(src, g.nodes[p[0]]["pos"], unit="m")
+    time = dist/WALKING_SPEED
+    for id0, id1 in zip(p, p[1:]):
+        dist += g.edges[(id0, id1)]["distance"]
+        time += g.edges[(id0, id1)]["travel_time"]
+    return time, dist
 
 
 def show(g: CityGraph) -> None:
@@ -246,7 +249,10 @@ def test():
     city = build_city_graph(g1, g2)
     orig = (41.388606, 2.112741)
     dest = (41.413816960390676, 2.1814567039217905)
+    t1 = time.time()
     p: Path = find_path(g1, city, orig, dest)
+    print(time.time()-t1)
+    print(path_time_dist(city, p, orig, dest))
     # show(city)
     plot_path(city, p, "path.png",  orig, dest)
     # plot(city, 'cityTest.png')

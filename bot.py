@@ -52,9 +52,13 @@ def exception_handler(func):
         except KeyError as e:
             print('KeyError:', e)
             if e.args[0] == "user":
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text='Unexisting user, you need to be registered to use the bot\nUse command /start to register')
+                register_user(update, context)
+                func(*args)
+                # context.bot.send_message(
+                #     chat_id=update.effective_chat.id,
+                #     text='Unexisting user, you need to be registered to use the bot\nUse command /start to register')
+            else:
+                print(traceback.format_exc())
 
         except TypeError as e:
             print('TypeError:', e)
@@ -65,7 +69,7 @@ def exception_handler(func):
             elif not context.user_data["user"].location:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"/{func.__name__} function needs to acces your location\nSend your location in order to use it")
+                    text=f"/{func.__name__} function needs to acces your location\nShare your location in order to use it")
 
         except ValueError as e:
             print('ValueError', e)
@@ -96,9 +100,17 @@ def exception_handler(func):
     return custom_exception
 
 
+# ES MEJOR REGISTRAR AL USUARIO EN VEZ DE DAR ERROR?
+def register_user(update, context) -> User:
+    """registers a new user and returns the user"""
+    context.user_data["user"] = User(
+        None, None, update['message']['chat']['first_name'])
+    return context.user_data["user"]
+
+
 def start(update, context):
-    current_user = User(None, None, update['message']['chat']['first_name'])
-    context.user_data["user"] = current_user
+    if context.user_data.get("user") is None:
+        current_user = register_user(update, context)
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Hi {current_user.name}, welcome to Nyam Bot\nType /help to see al the avaliable commands.")
@@ -117,6 +129,7 @@ def author(update, context):
     )
 
 
+@exception_handler
 def where(update, context):
     lat, lon = update.message.location.latitude, update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
@@ -156,9 +169,9 @@ def info(update, context):
         context.args) == 1, f"/info command must have an argument between 0 and {len(search)-1}"
     restaurant = context.user_data['user'].current_search[int(
         context.args[0])]
-    message = f"*Name*: {restaurant.name}\n*Adress*: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\n*Neighborhood*: {restaurant.adress.nb_name}\n*District*: {restaurant.adress.dist_name}\n*Phone*: {restaurant.tlf}"
+    message = f"Name: {restaurant.name}\nAdress: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nNeighborhood: {restaurant.adress.nb_name}\nDistrict: {restaurant.adress.dist_name}\nPhone: {restaurant.tlf}"
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text=message, parse_mode='Markdown')
+        chat_id=update.effective_chat.id, text=message)
 
 
 @exception_handler
@@ -174,10 +187,21 @@ def guide(update, context):
         chat_id=update.effective_chat.id,
         photo=open(file, 'rb'))
     os.remove(file)
-    # time = city.path_time(city_graph, Path, src, dst)
-    # context.bot.send_message(
-    #     chat_id=update.effective_chat.id, text="Temps estimat és "+str(time))
+
+    time, dist = city.path_time_dist(city_graph, Path, src, dst)
+    # temps en minuts i distancia en m
+    time, dist = round(time/60), round(dist)
+    time_txt = f"{time//60} h {time%60} min" if time > 60 else f"{time} min"
+    dist_txt = f"{round(dist/1000, 1)} km" if dist > 1000 else f"{dist} m"
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, text=f"El temps estimat és de {time_txt}\nDistancia: {dist_txt}")
     print("enviat")
+
+
+@exception_handler
+def default_location(update, context):
+    """localización de la uni, función de debugging"""
+    context.user_data['user'].location = (41.388492, 2.113043)
 
 
 def main():
@@ -194,6 +218,7 @@ def main():
     dispatcher.add_handler(CommandHandler('find', find))
     dispatcher.add_handler(CommandHandler('info', info))
     dispatcher.add_handler(CommandHandler('guide', guide))
+    dispatcher.add_handler(CommandHandler('default', default_location))
 
     # engega el bot
     updater.start_polling()
