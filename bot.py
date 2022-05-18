@@ -1,17 +1,17 @@
 # importa l'API de Telegram
 from dataclasses import dataclass
 import sys
-import metro
-import city
+import os
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
 from dataclasses import dataclass
 from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
-import os.path
 import traceback
 
+import metro
+import city
 import restaurants
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -29,10 +29,10 @@ except IOError:
 
 # INICIALITZACIÓ:
 
-metro_graph = metro.get_metro_graph()
+metro_graph: metro.MetroGraph = metro.get_metro_graph()
 city_osmnx = city.get_osmnx_graph()
-city_graph = city.build_city_graph(city_osmnx, metro_graph)
-rest = restaurants.read()
+city_graph: city.CityGraph = city.build_city_graph(city_osmnx, metro_graph)
+rest: restaurants.Restaurants = restaurants.read()
 
 
 @dataclass
@@ -141,13 +141,11 @@ def find(update, context):
     assert len(query) != 0, '/find needs to have at least one argument'
     print(query)
     search = restaurants.find(query, rest)
-    message = ""
-    for i, res in enumerate(search):
-        message += str(i)+". "+res.name+"\n"
+    msg = "".join([str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
     context.user_data['user'].current_search = search
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=message
+        text=msg
     )
 
 
@@ -155,12 +153,12 @@ def find(update, context):
 def info(update, context):
     search = context.user_data['user'].current_search
     assert len(
-        context.args) == 1, f"Ha de tenir un argument entre 0 i {len(search)-1}"
+        context.args) == 1, f"/info command must have an argument between 0 and {len(search)-1}"
     restaurant = context.user_data['user'].current_search[int(
         context.args[0])]
-    message = restaurant.name
+    message = f"*Name*: {restaurant.name}\n*Adress*: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\n*Neighborhood*: {restaurant.adress.nb_name}\n*District*: {restaurant.adress.dist_name}\n*Phone*: {restaurant.tlf}"
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text=message)
+        chat_id=update.effective_chat.id, text=message, parse_mode='Markdown')
 
 
 @exception_handler
