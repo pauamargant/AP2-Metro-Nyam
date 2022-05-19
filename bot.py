@@ -188,13 +188,21 @@ def guide(update, context):
         photo=open(file, 'rb'))
     os.remove(file)
 
-    time, dist = city.path_time_dist(city_graph, Path, src, dst)
+    w_time, w_dist, s_time, s_dist = city.path_stats(
+        city_graph, Path, src, dst)
     # temps en minuts i distancia en m
-    time, dist = round(time/60), round(dist)
+    w_time, w_dist, s_time, s_dist = round(
+        w_time/60), round(w_dist), round(s_time/60), round(s_dist)
+    time = w_time+s_time
+    dist = w_dist+w_dist
     time_txt = f"{time//60} h {time%60} min" if time > 60 else f"{time} min"
     dist_txt = f"{round(dist/1000, 1)} km" if dist > 1000 else f"{dist} m"
+    w_time_txt = f"{w_time//60} h {w_time%60} min" if w_time > 60 else f"{w_time} min"
+    w_dist_txt = f"{round(w_dist/1000, 1)} km" if w_dist > 1000 else f"{w_dist} m"
+    s_time_txt = f"{s_time//60} h {s_time%60} min" if s_time > 60 else f"{s_time} min"
+    s_dist_txt = f"{round(s_dist/1000, 1)} km" if s_dist > 1000 else f"{s_dist} m"
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text=f"El temps estimat és de {time_txt}\nDistancia: {dist_txt}")
+        chat_id=update.effective_chat.id, text=f"El temps total estimat és de {time_txt}\nDistancia: {dist_txt}\n El temps caminat estimat és de {w_time_txt}\nDistancia: {w_dist_txt}\n El temps en metro estimat és de {s_time_txt}\nDistancia: {s_dist_txt}")
     print("enviat")
 
 

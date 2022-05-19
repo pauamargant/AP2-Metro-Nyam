@@ -58,7 +58,7 @@ def get_osmnx_graph() -> OsmnxGraph:
                                      graph.nodes[edge[1]]["pos"], unit="m")
                 graph.edges[edge]["distance"] = distance
                 graph.edges[edge]["travel_time"] = distance/WALKING_SPEED
-                graph.edges[edge]["type"] = 'street'
+                graph.edges[edge]["type"] = "street"
 
             save_osmnx_graph(graph, PICKLE_FILENAME)
             return graph
@@ -222,19 +222,45 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
     image.save(filename)
 
 
-def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float, int]:
-    '''Returns time and distance for a path'''
+def path_stats(g: CityGraph, p: Path, src: Coord, dst: Coord):
+    '''Return stats of the path, such as walking time, subway time, etc'''
+    walk_time = 0
+    walk_distance = 0
+    subway_time = 0
+    subway_distance = 0
     if not p:
         return 0, 0
     # per alguna raó les coordenades del graph estan al reves
     src = (src[1], src[0])
     dst = (dst[1], dst[0])
-    dist = haversine(src, g.nodes[p[0]]["pos"], unit="m")
-    time = dist/WALKING_SPEED
+    walk_distance += haversine(src, g.nodes[p[0]]["pos"], unit="m")
+    walk_time = walk_distance/WALKING_SPEED
     for id0, id1 in zip(p, p[1:]):
-        dist += g.edges[(id0, id1)]["distance"]
-        time += g.edges[(id0, id1)]["travel_time"]
-    return time, dist
+        if g.edges[(id0, id1)]["type"] in ("street", "access", "transfer"):
+            walk_distance += g.edges[(id0, id1)]["distance"]
+            walk_time += g.edges[(id0, id1)]["travel_time"]
+        else:
+            subway_distance += g.edges[(id0, id1)]["distance"]
+            subway_time += g.edges[(id0, id1)]["travel_time"]
+
+    return walk_time,walk_distance,subway_time,subway_distance
+
+
+def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float, int]:
+    '''Returns time and distance for a path'''
+    # if not p:
+    #     return 0, 0
+    # # per alguna raó les coordenades del graph estan al reves
+    # src = (src[1], src[0])
+    # dst = (dst[1], dst[0])
+    # dist = haversine(src, g.nodes[p[0]]["pos"], unit="m")
+    # time = dist/WALKING_SPEED
+    # for id0, id1 in zip(p, p[1:]):
+    #     dist += g.edges[(id0, id1)]["distance"]
+    #     time += g.edges[(id0, id1)]["travel_time"]
+    # return time,dist
+    wt,wd,st,sd = path_stats(g, p, src, dst)
+    return wt+st,wd+sd
 
 
 def show(g: CityGraph) -> None:
@@ -244,19 +270,21 @@ def show(g: CityGraph) -> None:
     plt.show()
 
 
-def test():
+def main():
     g2 = metro.get_metro_graph()
     g1 = get_osmnx_graph()
     city = build_city_graph(g1, g2)
-    # orig = (41.388606, 2.112741)
-    # dest = (41.413816960390676, 2.1814567039217905)
+    orig = (41.388606, 2.112741)
+    dest = (41.413816960390676, 2.1814567039217905)
     t1 = time.time()
-    # p: Path = find_path(g1, city, orig, dest)
-    # print(path_time_dist(city, p, orig, dest))
+    p: Path = find_path(g1, city, orig, dest)
+    print(path_stats(city, p, orig, dest))
+    print(path_time_dist(city, p, orig, dest))
     # show(city)
     # plot_path(city, p, "path.png",  orig, dest)
     plot(city, 'cityTest.png')
     print(time.time()-t1)
 
 
-test()
+if __name__ == "__main__":
+    main()
