@@ -10,7 +10,7 @@ import pandas as pd
 # PREGUNTAR SI PODEM FER SERVIR; ES ESTANDARD
 import difflib
 from heapq import nlargest
-
+from constants import *
 # PROVES REQUESTS
 import requests
 import json
@@ -43,6 +43,9 @@ class Restaurant:
     def __eq__(self, other) -> bool:
         return self.id == other.id
 
+    def __hash__(self) -> int:
+        return self.id
+
 
 Restaurants: TypeAlias = List[Restaurant]
 
@@ -74,20 +77,26 @@ def create_restaurant(row) -> Optional[Restaurant]:
 def read() -> Restaurants:
     """Reads the open data and returns a list of all restaurants in barcelona """
     rest_data = pd.read_csv(
-        "https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv")
+        "data/restaurants.csv")  # https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv")
     rest_lst: Restaurants = []
     for index, row in rest_data.iterrows():
         if not rest_lst or row['register_id'] != rest_lst[-1].id:
-            res = create_restaurant(row)
+            res: Optional[Restaurant] = create_restaurant(row)
             if res is not None:
-                rest_lst.append(create_restaurant(row))
+                rest_lst.append(res)
     return rest_lst  # mirar lo de los acentos en nombres
 
 
 def interesting(query: str, res: Restaurant) -> bool:
     """returns if the restaurant is interesting according to the query"""
     # comenzamos con búsqueda básica, a mejorar más adelante
-    return query in res.name + res.adress.dist_name + res.adress.nb_name + res.adress.road_name
+    query = normalize_str(query)
+    terms = [res.name, res.adress.nb_name,
+             res.adress.dist_name, res.adress.road_name]
+    for t in terms:
+        if len(find_near_matches(query, normalize_str(t), max_l_dist=MAX_L)) > 0:
+            return True
+    return False
 
 
 def normalize_str(string):
@@ -104,11 +113,8 @@ def normalize_str(string):
 
 
 def find(query: str, restaurants: Restaurants) -> Restaurants:
-    # Original implementation
-    # return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
 
-    # Retornem els 12 elements amb més "importancia"
-    return [rst for rst in nlargest(12, restaurants, key=lambda res: importance(query, res)) if importance(query, rst) > 0]
+    return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
 
 
 def is_operator(expression: str) -> bool:
@@ -135,16 +141,16 @@ def perform_operation(rests: Restaurants, current_operator: str, current_operand
         return list(set(search_1).union(search_2))
     if current_operator == "not":
         return list(set(rests) - set(search_1))
+    return
 
 
-def search(query: str, restaurants: Restaurants) -> Restaurants:
+def search(query: str, rst: Restaurants) -> Restaurants:
     # Dividim el query en els operadors i operants
-    query = [op for op in re.split('[,)()]', query) if op != ""]
-
-    stack = []
-    current_operator = ""
-    rst = Restaurants
-    for w in reversed(query):
+    list_of_query: List[str] = [
+        op for op in re.split('[,)()]', query) if op != ""]
+    stack = []  # FALTA TYPING
+    current_operator = ""  # FALTA TYPING
+    for w in reversed(list_of_query):
         if is_operator(w):
             current_operator = w
             if w == "not":
@@ -155,24 +161,10 @@ def search(query: str, restaurants: Restaurants) -> Restaurants:
                 rst, current_operator, current_operands))
         else:
             stack.append(w)
-
-
-def importance(query: str, res: Restaurant):
-    '''
-    Returns a value which determines the relevance of a restaurant
-    '''
-
-    value = 0
-    query = normalize_str(query)
-    for q in query.split():
-        match = find_near_matches(q, normalize_str(res.name), max_l_dist=1)
-        if match:
-            value += 2*(2-match[0].dist)
-        match = find_near_matches(q, normalize_str(
-            res.adress.nb_name), max_l_dist=1)
-        if match:
-            value += (2-match[0].dist)
-    return value
+    if isinstance(stack[0], str):
+        return find(stack[0], rst)
+    else:
+        return stack[0]
 
 
 def yelp_info(rst: Restaurant):
@@ -187,10 +179,16 @@ def yelp_info(rst: Restaurant):
             print(info_rst[0])
 
 
-def test(query):
+def main(query):
     lst = read()
     x = find(query, lst)
     for res in x:
         print(res.name)
     rst = x[0]
     print(yelp_info(rst))
+
+
+def test(query):
+    lst = read()
+    for r in search(query, lst):
+        print(r.name)

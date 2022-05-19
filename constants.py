@@ -8,5 +8,5 @@ STREET_COLOR = 'black'
 ACCESS_COLOR = 'grey'
 
 PADDING = 50
-
+MAX_L = 1
 INF = 999999999
