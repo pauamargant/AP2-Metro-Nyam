@@ -193,16 +193,19 @@ def find(query: str, rst: Restaurants) -> Optional[Restaurants]:
         return stack[0]
 
 
-def yelp_info(rst: Restaurant):
-    params = {'term': rst.name,
-              'location': 'Barcelona'}
-    req = requests.get(url, params=params, headers=headers)
-    print('The status code is {}'.format(req.status_code))
-    if(req.status_code == 200):
-        parsed = json.loads(req.text)
-        info_rst = parsed["businesses"]
-        if len(info_rst) > 0:
-            print(info_rst[0])
+def yelp_info(rst: Restaurant) -> Dict[str, str]:
+    try:
+        params = {'term': rst.name,
+                  'location': 'Barcelona'}
+        req = requests.get(url, params=params, headers=headers)
+        print('Request made with code {}'.format(req.status_code))
+        if(req.status_code == 200):
+            parsed = json.loads(req.text)
+            info_rst = parsed["businesses"]
+            if len(info_rst) > 0:
+                return info_rst[0]
+    except Exception as e:
+        print("Error al realizar la request a l'API de YELP")
 
 
 def main(query):
