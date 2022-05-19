@@ -209,11 +209,9 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
     map: StaticMap = StaticMap(
         SIZE_X, SIZE_Y, padding_x=PADDING, padding_y=PADDING, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     if p:
-        prev_node: NodeID = p[0]
-        for node in p:
+        for prev_node, node in zip(p, p[1:]):
             map.add_line(Line([g.nodes[prev_node]['pos'], g.nodes[node]['pos']],
                               edge_color(g, prev_node, node), 2))
-            prev_node = node
 
         map.add_marker(CircleMarker(g.nodes[p[0]]['pos'], 'blue', 10))
         map.add_marker(CircleMarker(g.nodes[p[-1]]['pos'], 'red', 10))

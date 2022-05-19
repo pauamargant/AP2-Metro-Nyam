@@ -8,4 +8,3 @@ python_telegram_bot==13.11
 staticmap==0.5.5
 telegram==0.0.1
 typing_extensions==4.2.0
-scikit-learn==1.1.0 #me ha hecho falta instalar esto para que compile la función nearest_nodes
