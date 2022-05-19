@@ -10,6 +10,13 @@ import pandas as pd
 import difflib
 from heapq import nlargest
 
+# PROVES REQUESTS
+import requests
+import json
+api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
+headers = {'Authorization': 'Bearer %s' % api_key}
+url = 'https://api.yelp.com/v3/businesses/search'
+
 
 @dataclass
 class Adress:
@@ -151,8 +158,22 @@ def importance(query: str, res: Restaurant):
     return value
 
 
+def yelp_info(rst: Restaurant):
+    params = {'term': rst.name,
+              'location': 'Barcelona'}
+    req = requests.get(url, params=params, headers=headers)
+    print('The status code is {}'.format(req.status_code))
+    if(req.status_code == 200):
+        parsed = json.loads(req.text)
+        info_rst = parsed["businesses"]
+        if len(info_rst) > 0:
+            print(info_rst[0])
+
+
 def test(query):
     lst = read()
-    x = find(query, lst)
+    x = find("konig", lst)
     for res in x:
         print(res.name)
+    rst = x[0]
+    print(yelp_info(rst))
