@@ -5,13 +5,11 @@ from typing_extensions import TypeAlias
 import math
 import re
 from fuzzysearch import find_near_matches
-from numpy import isin
 import pandas as pd
-# PREGUNTAR SI PODEM FER SERVIR; ES ESTANDARD
-import difflib
-from heapq import nlargest
 from constants import *
-# PROVES REQUESTS
+
+
+# Informació extra api YELP
 import requests
 import json
 api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
@@ -53,25 +51,27 @@ Restaurants: TypeAlias = List[Restaurant]
 def create_restaurant(row) -> Optional[Restaurant]:
     """Creates a restaurant from a row of the read data, returns None if the
     restaurant data is invalid"""
-    try:
-        adress = Adress(int(row['addresses_road_id']),
-                        str(row['addresses_road_name']),
-                        int(row['addresses_start_street_number']),
-                        int(row['addresses_neighborhood_id']),
-                        str(row['addresses_neighborhood_name']),
-                        int(row['addresses_district_id']),
-                        str(row['addresses_district_name']),
-                        int(row['addresses_zip_code']))
-        if not math.isnan(row['addresses_end_street_number']):
-            adress.street_n = (int(row['addresses_start_street_number']),
-                               int(row['addresses_end_street_number']))
-        return Restaurant(int(row['register_id'][1:]),
-                          str(row['name']),
-                          adress,
-                          str(row['values_value']),
-                          (float(row['geo_epgs_4326_x']), float(row['geo_epgs_4326_y'])))
-    except Exception:  # the restaurant's data is incomplete
-        return None
+    if math.isnan(row['addresses_start_street_number']):
+        if 'Notícia' in row['name']:
+            return None  # no es un restaurant
+        row['addresses_start_street_number'] = -1
+
+    adress = Adress(int(row['addresses_road_id']),
+                    str(row['addresses_road_name']),
+                    int(row['addresses_start_street_number']),
+                    int(row['addresses_neighborhood_id']),
+                    str(row['addresses_neighborhood_name']),
+                    int(row['addresses_district_id']),
+                    str(row['addresses_district_name']),
+                    int(row['addresses_zip_code']))
+    if not math.isnan(row['addresses_end_street_number']):
+        adress.street_n = (int(row['addresses_start_street_number']),
+                           int(row['addresses_end_street_number']))
+    return Restaurant(int(row['register_id'][1:]),
+                      str(row['name']),
+                      adress,
+                      str(row['values_value']),
+                      (float(row['geo_epgs_4326_x']), float(row['geo_epgs_4326_y'])))
 
 
 def read() -> Restaurants:
@@ -112,7 +112,7 @@ def normalize_str(string):
     return string.lower().translate(str.maketrans(normalMap))
 
 
-def find(query: str, restaurants: Restaurants) -> Restaurants:
+def search_in_rst(query: str, restaurants: Restaurants) -> Restaurants:
 
     return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
 
@@ -124,18 +124,18 @@ def is_operator(expression: str) -> bool:
 
 def perform_operation(rests: Restaurants, current_operator: str, current_operands) -> Restaurants:
     if isinstance(current_operands[0], str):
-        search_1 = find(current_operands[0], rests)
+        search_1 = search_in_rst(current_operands[0], rests)
     else:
         search_1 = current_operands[0]
     if current_operator == "and":
         if isinstance(current_operands[1], str):
-            search_2 = find(current_operands[1], rests)
+            search_2 = search_in_rst(current_operands[1], rests)
         else:
             search_2 = current_operands[1]
         return list(set(search_1).intersection(search_2))
     if current_operator == "or":
         if isinstance(current_operands[1], str):
-            search_2 = find(current_operands[1], rests)
+            search_2 = search_in_rst(current_operands[1], rests)
         else:
             search_2 = current_operands[1]
         return list(set(search_1).union(search_2))
@@ -150,19 +150,21 @@ def multiword_search(query, rst) -> Restaurants:
         print(w)
     results: Restaurants = rst
     for q in query:
-        results = list(set(results).intersection(find(q, rst)))
+        results = list(set(results).intersection(search_in_rst(q, rst)))
     return results
 
 
-def search(query: str, rst: Restaurants) -> Restaurants:
+def find(query: str, rst: Restaurants) -> Restaurants:
+    '''Searchs restaurants based on a query which is a logical expression. If the query is a set of 
+    words separated by spaces, it is interpreted as ands'''
     # Dividim el query en els operadors i operants
     list_of_query: List[str] = [
         op for op in re.split('[,)()]', query) if op != ""]
     # Comprovem si la query no conte operadors logic i esta formada per varies paraules sep per espais. En aquest cas ho
     # interpretem com "ands"
-    if(len(list_of_query) == 1 and len(list_of_query[0].split()) > 1):
-        list_of_query = list_of_query[0].split()
-        multiword_search(list_of_query, rst)
+    # if(len(list_of_query) == 1 and len(list_of_query[0].split()) > 1):
+    #     list_of_query = list_of_query[0].split()
+    #     return multiword_search(list_of_query, rst)
     stack = []  # FALTA TYPING
     current_operator = ""  # FALTA TYPING
     for w in reversed(list_of_query):
@@ -177,7 +179,7 @@ def search(query: str, rst: Restaurants) -> Restaurants:
         else:
             stack.append(w)
     if isinstance(stack[0], str):
-        return find(stack[0], rst)
+        return search_in_rst(stack[0], rst)
     else:
         return stack[0]
 
@@ -205,5 +207,5 @@ def main(query):
 
 def test(query):
     lst = read()
-    for r in search(query, lst):
+    for r in search_in_rst(query, lst):
         print(r.name)
