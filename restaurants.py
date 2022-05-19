@@ -162,16 +162,16 @@ def find(query: str, rst: Restaurants) -> Restaurants:
         op for op in re.split('[,)()]', query) if op != ""]
     # Comprovem si la query no conte operadors logic i esta formada per varies paraules sep per espais. En aquest cas ho
     # interpretem com "ands"
-    # if(len(list_of_query) == 1 and len(list_of_query[0].split()) > 1):
-    #     list_of_query = list_of_query[0].split()
-    #     return multiword_search(list_of_query, rst)
+    if(len(list_of_query) == 1 and len(list_of_query[0].split()) > 1):
+        list_of_query = list_of_query[0].split()
+        return multiword_search(list_of_query, rst)
     stack = []  # FALTA TYPING
     current_operator = ""  # FALTA TYPING
     for w in reversed(list_of_query):
         if is_operator(w):
             current_operator = w
             if w == "not":
-                current_operands = stack.pop()
+                current_operands = stack.pop(), None
             else:
                 current_operands = stack.pop(), stack.pop()
             stack.append(perform_operation(
