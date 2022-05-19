@@ -193,7 +193,13 @@ def get_metro_graph() -> MetroGraph:
         # We create the station node
         Metro.add_node(station.id, pos=station.position, type="station", name=station.name,
                        accessibility=station.accessibility, line=station.line_id)
+        # We create a ghost station and connect it to the "main" one
+        # ES BONA IDEA??
 
+        # Metro.add_node(-10*station.id, pos=station.position,
+        #                type="ghost_station")
+        # Metro.add_edge(station.id, -10*station.id,
+        #                type="ghost_edge", travel_time=SUBWAY_WAITING)
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
             distance: float = line_distance(Metro, prev_id, station.id)
@@ -213,8 +219,10 @@ def get_metro_graph() -> MetroGraph:
         Metro.add_node(access.code, pos=access.position, type="access")
         distance: float = walking_metro_distance(
             Metro, access.code, access.station_id)
+        acc_travel_time = distance / \
+            WALKING_SPEED if access.accessibility == "Accessible" else INF
         Metro.add_edge(access.code, access.station_id, type="access", distance=distance,
-                       travel_time=distance/WALKING_SPEED)
+                       travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
     # We connect stations which are in the same station group but are of a different line
 
     # PODEM FERHO MILLOR??????????????????????????????????????
@@ -223,9 +231,13 @@ def get_metro_graph() -> MetroGraph:
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
                     distance: float = walking_metro_distance(
-                        Metro, access.code, access.station_id)
+                        Metro, i1, i2)
+                    if (Metro.nodes[i1]["accessibility"] == "Accessible" and Metro.nodes[i2]["accessibility"] == "Accessible"):
+                        acc_travel_time = distance/WALKING_SPEED
+                    else:
+                        acc_travel_time = INF
                     Metro.add_edge(
-                        i1, i2, type="transfer", distance=distance, travel_time=distance/WALKING_SPEED)
+                        i1, i2, type="transfer", distance=distance, travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
 
     return Metro
 
@@ -237,7 +249,7 @@ def plot(g: MetroGraph, filename: str) -> None:
     '''
 
     map: StaticMap = StaticMap(
-        SIZE_X, SIZE_Y, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
+        HD_SIZE_X, HD_SIZE_Y, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     for pos in nx.get_node_attributes(g, "pos").values():
         map.add_marker(CircleMarker(pos, 'red', 6))
     for edge in g.edges:
@@ -255,5 +267,4 @@ def show(g: MetroGraph) -> None:
     nx.draw(g, pos=positions, font_size=10,
             node_color="blue",
             node_size=50,)
-    # plt.show()
-    plt.savefig('plot.svg')
+    plt.show()

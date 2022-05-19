@@ -57,7 +57,7 @@ def get_osmnx_graph() -> OsmnxGraph:
                 distance = haversine(graph.nodes[edge[0]]["pos"],
                                      graph.nodes[edge[1]]["pos"], unit="m")
                 graph.edges[edge]["distance"] = distance
-                graph.edges[edge]["travel_time"] = distance/WALKING_SPEED
+                graph.edges[edge]["accesstravel_time"] = distance/WALKING_SPEED
                 graph.edges[edge]["type"] = "street"
 
             save_osmnx_graph(graph, PICKLE_FILENAME)
@@ -150,7 +150,7 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     return city
 
 
-def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
+def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord, accessibility: bool = False) -> Path:
     '''
     Given a CityGraph g, a starting point src and a destination point dst we
     generate the shortest path (in travel time) between the two positions and
@@ -158,7 +158,8 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord) -> Path:
     '''
     src_node: NodeID = ox.distance.nearest_nodes(ox_g, src[1], src[0])
     dst_node: NodeID = ox.distance.nearest_nodes(ox_g, dst[1], dst[0])
-    p: Path = nx.shortest_path(g, src_node, dst_node, weight='travel_time')
+    weight_parameter = 'acc_travel_time' if accessibility else 'travel_time'
+    p: Path = nx.shortest_path(g, src_node, dst_node, weight=weight_parameter)
     return p
 
 
