@@ -90,10 +90,11 @@ def exception_handler(func):
             if not context.args:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"/{func.__name__} command needs arguments")
+                    text=f"/{func.__name__} requires extra arguments arguments\nLook in /help for more information")
 
         except Exception as e:
             print('General exception:', e)
+            print(traceback.format_exc())
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text='💣')
@@ -120,7 +121,7 @@ def start(update, context):
 def help(update, context):
     with open('help_msg.txt', 'r') as msg:
         context.bot.send_message(
-            chat_id=update.effective_chat.id, text=msg.read(), parse_mode='Markdown'
+            chat_id=update.effective_chat.id, text=msg.read()
         )
 
 
@@ -152,7 +153,7 @@ def plot_metro(update, context):
 @exception_handler
 def find(update, context):
     query = update.message.text[6:]
-    assert len(query) != 0, '/find needs to have at least one argument'
+    assert query, '/find needs to have at least one argument'
     print(query)
     search = restaurants.find(query, rest)
     msg = "".join([str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
@@ -166,10 +167,10 @@ def find(update, context):
 @exception_handler
 def info(update, context):
     search = context.user_data['user'].current_search
-    assert (len(context.args) == 1,
-            f"/info command must have an argument between 0 and {len(search)-1}")
-    restaurant = context.user_data['user'].current_search[int(
-        context.args[0])]
+    num = int(context.args[0])
+    assert 0 <= num < len(
+        search), f"/info command must have an argument between 0 and {len(search)-1}"
+    restaurant = context.user_data['user'].current_search[num]
     message = f"Name: {restaurant.name}\nAdress: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nNeighborhood: {restaurant.adress.nb_name}\nDistrict: {restaurant.adress.dist_name}\nPhone: {restaurant.tlf}"
     context.bot.send_message(
         chat_id=update.effective_chat.id, text=message)
@@ -217,6 +218,8 @@ def guide(update, context):
 def default_location(update, context):
     """localización de la uni, función de debugging"""
     context.user_data['user'].location = (41.388492, 2.113043)
+    context.bot.send_message(
+        chat_id=update.effective_chat.id, text="Default ubication set: UPC")
 
 
 def main():
