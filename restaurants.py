@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from turtle import st
 from typing import Optional, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import math
+import re
 from fuzzysearch import find_near_matches
 import pandas as pd
 # PREGUNTAR SI PODEM FER SERVIR; ES ESTANDARD
@@ -28,6 +30,10 @@ class Restaurant:
     adress: Adress
     tlf: str
     coords: Tuple[float, float]
+    # Usat a la cerca (POTSER??)
+
+    # def __eq__(self, other: Restaurant) -> bool:
+    #     return self.id == other.id
 
 
 Restaurants: TypeAlias = List[Restaurant]
@@ -94,21 +100,37 @@ def find(query: str, restaurants: Restaurants) -> Restaurants:
     # return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
 
     # Retornem els 12 elements amb més "importancia"
-    return nlargest(12, restaurants, key=lambda res: importance(query, res))
+    return [rst for rst in nlargest(12, restaurants, key=lambda res: importance(query, res)) if importance(query, rst) > 0]
 
 
-def read_operator(expression: str):
-    op = ""
-    i = 0
-    while(expression[i] != "(" and i < len(expression)-1):
-        op += expression[i]
-    expression_dict = {"and":"&", "or":"|","not":"!"}
-    return expression_dict.get(op)
+# def is_operator(expression: str) -> bool:
+#     expression_dict = {"and": True, "or": True, "not": True}
+#     return expression_dict.get(expression, False)
 
 
-def recursive_search(query: str, restaurants: Restaurants) -> Restaurants:
-    stack = []
-    stack
+# def perform_operation(rst, current_operator: str, current_operands: Tuple[str]) -> Restaurants:
+#     if current_operator == "and":
+#         search_1, search_2 = find(current_operands[0], restaurants), find(
+#             current_operands[1], restaurants)
+#         return list(set(search_1).intersection(search_2))
+#     if current_operator == "or":
+
+
+# def search(query: str, restaurants: Restaurants) -> Restaurants:
+#     # Dividim el query en els operadors i operants
+#     query = [op for op in re.split('[,)()]', query) if op != ""]
+
+#     stack = []
+#     current_operator = ""
+#     rst = Restaurants
+#     for w in query:
+#         if is_operator(w):
+#             current_operator = w
+#             current_operands = stack.pop(), stack.pop()
+#             stack.append(perform_operation(
+#                 rst, current_operator, current_operands))
+#         else:
+#             stack.append(w)
 
 
 def importance(query: str, res: Restaurant):
@@ -117,6 +139,7 @@ def importance(query: str, res: Restaurant):
     '''
 
     value = 0
+    query = normalize_str(query)
     for q in query.split():
         match = find_near_matches(q, normalize_str(res.name), max_l_dist=1)
         if match:
