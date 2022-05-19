@@ -144,10 +144,25 @@ def perform_operation(rests: Restaurants, current_operator: str, current_operand
     return
 
 
+def multiword_search(query, rst) -> Restaurants:
+    print("ENTREM")
+    for w in query:
+        print(w)
+    results: Restaurants = rst
+    for q in query:
+        results = list(set(results).intersection(find(q, rst)))
+    return results
+
+
 def search(query: str, rst: Restaurants) -> Restaurants:
     # Dividim el query en els operadors i operants
     list_of_query: List[str] = [
         op for op in re.split('[,)()]', query) if op != ""]
+    # Comprovem si la query no conte operadors logic i esta formada per varies paraules sep per espais. En aquest cas ho
+    # interpretem com "ands"
+    if(len(list_of_query) == 1 and len(list_of_query[0].split()) > 1):
+        list_of_query = list_of_query[0].split()
+        multiword_search(list_of_query, rst)
     stack = []  # FALTA TYPING
     current_operator = ""  # FALTA TYPING
     for w in reversed(list_of_query):
