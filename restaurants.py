@@ -4,13 +4,13 @@ from typing import Optional, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import math
 import re
-from fuzzysearch import find_near_matches
-import pandas as pd
+from fuzzysearch import find_near_matches  # type: ignore
+import pandas as pd  # type: ignore
 from constants import *
 
 
 # Informació extra api YELP
-import requests
+import requests  # type: ignore
 import json
 api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
 headers = {'Authorization': 'Bearer %s' % api_key}
@@ -46,6 +46,7 @@ class Restaurant:
 
 
 Restaurants: TypeAlias = List[Restaurant]
+Operand: TypeAlias = Optional[Union[str, Restaurants]]
 
 
 def create_restaurant(row) -> Optional[Restaurant]:
@@ -112,74 +113,82 @@ def normalize_str(string):
     return string.lower().translate(str.maketrans(normalMap))
 
 
-def search_in_rst(query: str, restaurants: Restaurants) -> Restaurants:
-
+def search_in_rests(query: str, restaurants: Restaurants) -> Restaurants:
+    '''
+    Given a query and a list of restaurants returns a list of the restaurants which are "interesting"
+    according to the query
+    '''
     return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
 
 
 def is_operator(expression: str) -> bool:
+    '''
+    Given a string checks if it's a valid operator. 
+    The following operators are accepted: "and","or","not"
+    '''
     expression_dict = {"and": True, "or": True, "not": True}
     return expression_dict.get(expression, False)
 
 
-def perform_operation(rests: Restaurants, current_operator: str, current_operands) -> Restaurants:
-    if isinstance(current_operands[0], str):
-        search_1 = search_in_rst(current_operands[0], rests)
-    else:
-        search_1 = current_operands[0]
+def perform_operation(rests: Restaurants, current_operator: str, operand_1: Operand, operand_2: Operand) -> Restaurants:
+    '''
+        Given an operator and one/two operands performs the operation on the opperand/s.
+    '''
+    # The operands can be either a query (string) or a list of restaurants. If it's a query, we solve it and s
+    # substitute it by the according list of restaurants
+
+    if (operand_1 and isinstance(operand_1, str)):
+        operand_1 = search_in_rests(operand_1, rests)
+    if (operand_2 and isinstance(operand_2, str)):
+        operand_2 = search_in_rests(operand_2, rests)
     if current_operator == "and":
-        if isinstance(current_operands[1], str):
-            search_2 = search_in_rst(current_operands[1], rests)
-        else:
-            search_2 = current_operands[1]
-        return list(set(search_1).intersection(search_2))
+        return list(set(operand_1).intersection(operand_2))
     if current_operator == "or":
-        if isinstance(current_operands[1], str):
-            search_2 = search_in_rst(current_operands[1], rests)
-        else:
-            search_2 = current_operands[1]
-        return list(set(search_1).union(search_2))
+        return list(set(operand_1).union(operand_2))
     if current_operator == "not":
-        return list(set(rests) - set(search_1))
-    return
+        return list(set(rests) - set(operand_1))
+    return []
 
 
-def multiword_search(query, rst) -> Restaurants:
-    print("ENTREM")
-    for w in query:
-        print(w)
+def multiword_search(query_list, rst) -> Restaurants:
+    '''
+        Given a list of queries, performs the intersection of the results of 
+        all the queries.
+    '''
     results: Restaurants = rst
-    for q in query:
-        results = list(set(results).intersection(search_in_rst(q, rst)))
+    for q in query_list:
+        results = list(set(results).intersection(search_in_rests(q, rst)))
     return results
 
 
-def find(query: str, rst: Restaurants) -> Restaurants:
+def find(query: str, rst: Restaurants) -> Optional[Restaurants]:
     '''Searchs restaurants based on a query which is a logical expression. If the query is a set of 
     words separated by spaces, it is interpreted as ands'''
     # Dividim el query en els operadors i operants
     list_of_query: List[str] = [
         op for op in re.split('[,)()]', query) if op != ""]
-    # Comprovem si la query no conte operadors logic i esta formada per varies paraules sep per espais. En aquest cas ho
-    # interpretem com "ands"
+    # Comprovem si la query no conte operadors logic i per tant no s'ha separat i a més a més
+    # esta formada per varies paraules sep per espais. Ho interpretem com la interseccio de totes les
+    # paraules
+
     if(len(list_of_query) == 1 and len(list_of_query[0].split()) > 1):
-        list_of_query = list_of_query[0].split()
-        return multiword_search(list_of_query, rst)
-    stack = []  # FALTA TYPING
-    current_operator = ""  # FALTA TYPING
+        return multiword_search(list_of_query[0].split(), rst)
+    stack: List[Operand] = []
+    operand_1: Operand
+    operand_2: Operand
     for w in reversed(list_of_query):
         if is_operator(w):
-            current_operator = w
             if w == "not":
-                current_operands = stack.pop(), None
+                operand_1, operand_2 = stack.pop(), None
             else:
-                current_operands = stack.pop(), stack.pop()
+                operand_1, operand_2 = stack.pop(), stack.pop()
             stack.append(perform_operation(
-                rst, current_operator, current_operands))
+                rst, w, operand_1, operand_2))
         else:
             stack.append(w)
+
     if isinstance(stack[0], str):
-        return search_in_rst(stack[0], rst)
+        return search_in_rests(stack[0], rst)
     else:
         return stack[0]
 
@@ -207,5 +216,5 @@ def main(query):
 
 def test(query):
     lst = read()
-    for r in search_in_rst(query, lst):
+    for r in search_in_rests(query, lst):
         print(r.name)
