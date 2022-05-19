@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import sys
 import os
+import time as tiempo  # para que no se solape con nombres de variables
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
@@ -165,8 +166,8 @@ def find(update, context):
 @exception_handler
 def info(update, context):
     search = context.user_data['user'].current_search
-    assert len(
-        context.args) == 1, f"/info command must have an argument between 0 and {len(search)-1}"
+    assert (len(context.args) == 1,
+            f"/info command must have an argument between 0 and {len(search)-1}")
     restaurant = context.user_data['user'].current_search[int(
         context.args[0])]
     message = f"Name: {restaurant.name}\nAdress: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nNeighborhood: {restaurant.adress.nb_name}\nDistrict: {restaurant.adress.dist_name}\nPhone: {restaurant.tlf}"
@@ -176,17 +177,22 @@ def info(update, context):
 
 @exception_handler
 def guide(update, context):
+    t1 = tiempo.time()
     file = "%d.png" % random.randint(1000000, 9999999)
     src: Coord = context.user_data['user'].location
     dst: Coord = context.user_data['user'].current_search[int(
         context.args[0])].coords
+    print('antes de path:', tiempo.time()-t1)
     Path = city.find_path(city_osmnx, city_graph, src, dst)
     print("path trobat")
+    print(tiempo.time()-t1)
     city.plot_path(city_graph, Path, file, src, dst)
+    print('path plotted', tiempo.time()-t1)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(file, 'rb'))
     os.remove(file)
+    print('foto enviada:', tiempo.time()-t1)
 
     w_time, w_dist, s_time, s_dist = city.path_stats(
         city_graph, Path, src, dst)
@@ -204,9 +210,10 @@ def guide(update, context):
     context.bot.send_message(
         chat_id=update.effective_chat.id, text=f"El temps total estimat és de {time_txt}\nDistancia: {dist_txt}\n El temps caminat estimat és de {w_time_txt}\nDistancia: {w_dist_txt}\n El temps en metro estimat és de {s_time_txt}\nDistancia: {s_dist_txt}")
     print("enviat")
+    print('acabado en', (tiempo.time()-t1))
 
 
-@exception_handler
+@ exception_handler
 def default_location(update, context):
     """localización de la uni, función de debugging"""
     context.user_data['user'].location = (41.388492, 2.113043)

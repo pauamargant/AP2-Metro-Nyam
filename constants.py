@@ -1,7 +1,7 @@
 SIZE_X: int = 1500
 SIZE_Y: int = 1500
-WALKING_SPEED: float = 1.42
-SUBWAY_SPEED: float = 7.22222222
+WALKING_SPEED: float = 1.42  # m/s
+SUBWAY_SPEED: float = 7.22222222  # m/s
 
 TRANSFER_COLOR = 'red'
 STREET_COLOR = 'black'
