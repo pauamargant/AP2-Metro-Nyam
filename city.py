@@ -221,6 +221,11 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
     image = map.render()
     image.save(filename)
 
+# def build_accessible_city(g: CityGraph)->CityGraph:
+#     #PROBLEMES DE SHALLOW COPY?
+#     g_acc: CityGraph = nx.Graph()
+#     acc_nodes = [n for n,v in G.nodes(data=True) if v['Accessible'] == 'Accessible']
+
 
 def path_stats(g: CityGraph, p: Path, src: Coord, dst: Coord):
     '''Return stats of the path, such as walking time, subway time, etc'''
@@ -243,7 +248,7 @@ def path_stats(g: CityGraph, p: Path, src: Coord, dst: Coord):
             subway_distance += g.edges[(id0, id1)]["distance"]
             subway_time += g.edges[(id0, id1)]["travel_time"]
 
-    return walk_time,walk_distance,subway_time,subway_distance
+    return walk_time, walk_distance, subway_time, subway_distance
 
 
 def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float, int]:
@@ -259,8 +264,8 @@ def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float
     #     dist += g.edges[(id0, id1)]["distance"]
     #     time += g.edges[(id0, id1)]["travel_time"]
     # return time,dist
-    wt,wd,st,sd = path_stats(g, p, src, dst)
-    return wt+st,wd+sd
+    wt, wd, st, sd = path_stats(g, p, src, dst)
+    return wt+st, wd+sd
 
 
 def show(g: CityGraph) -> None:

@@ -172,7 +172,7 @@ def yelp_info(rst: Restaurant):
 
 def test(query):
     lst = read()
-    x = find("konig", lst)
+    x = find(query, lst)
     for res in x:
         print(res.name)
     rst = x[0]
