@@ -5,6 +5,7 @@ from typing_extensions import TypeAlias
 import math
 import re
 from fuzzysearch import find_near_matches
+from numpy import isin
 import pandas as pd
 # PREGUNTAR SI PODEM FER SERVIR; ES ESTANDARD
 import difflib
@@ -39,8 +40,8 @@ class Restaurant:
     coords: Tuple[float, float]
     # Usat a la cerca (POTSER??)
 
-    # def __eq__(self, other: Restaurant) -> bool:
-    #     return self.id == other.id
+    def __eq__(self, other) -> bool:
+        return self.id == other.id
 
 
 Restaurants: TypeAlias = List[Restaurant]
@@ -110,34 +111,50 @@ def find(query: str, restaurants: Restaurants) -> Restaurants:
     return [rst for rst in nlargest(12, restaurants, key=lambda res: importance(query, res)) if importance(query, rst) > 0]
 
 
-# def is_operator(expression: str) -> bool:
-#     expression_dict = {"and": True, "or": True, "not": True}
-#     return expression_dict.get(expression, False)
+def is_operator(expression: str) -> bool:
+    expression_dict = {"and": True, "or": True, "not": True}
+    return expression_dict.get(expression, False)
 
 
-# def perform_operation(rst, current_operator: str, current_operands: Tuple[str]) -> Restaurants:
-#     if current_operator == "and":
-#         search_1, search_2 = find(current_operands[0], restaurants), find(
-#             current_operands[1], restaurants)
-#         return list(set(search_1).intersection(search_2))
-#     if current_operator == "or":
+def perform_operation(rests: Restaurants, current_operator: str, current_operands) -> Restaurants:
+    if isinstance(current_operands[0], str):
+        search_1 = find(current_operands[0], rests)
+    else:
+        search_1 = current_operands[0]
+    if current_operator == "and":
+        if isinstance(current_operands[1], str):
+            search_2 = find(current_operands[1], rests)
+        else:
+            search_2 = current_operands[1]
+        return list(set(search_1).intersection(search_2))
+    if current_operator == "or":
+        if isinstance(current_operands[1], str):
+            search_2 = find(current_operands[1], rests)
+        else:
+            search_2 = current_operands[1]
+        return list(set(search_1).union(search_2))
+    if current_operator == "not":
+        return list(set(rests) - set(search_1))
 
 
-# def search(query: str, restaurants: Restaurants) -> Restaurants:
-#     # Dividim el query en els operadors i operants
-#     query = [op for op in re.split('[,)()]', query) if op != ""]
+def search(query: str, restaurants: Restaurants) -> Restaurants:
+    # Dividim el query en els operadors i operants
+    query = [op for op in re.split('[,)()]', query) if op != ""]
 
-#     stack = []
-#     current_operator = ""
-#     rst = Restaurants
-#     for w in query:
-#         if is_operator(w):
-#             current_operator = w
-#             current_operands = stack.pop(), stack.pop()
-#             stack.append(perform_operation(
-#                 rst, current_operator, current_operands))
-#         else:
-#             stack.append(w)
+    stack = []
+    current_operator = ""
+    rst = Restaurants
+    for w in reversed(query):
+        if is_operator(w):
+            current_operator = w
+            if w == "not":
+                current_operands = stack.pop()
+            else:
+                current_operands = stack.pop(), stack.pop()
+            stack.append(perform_operation(
+                rst, current_operator, current_operands))
+        else:
+            stack.append(w)
 
 
 def importance(query: str, res: Restaurant):
