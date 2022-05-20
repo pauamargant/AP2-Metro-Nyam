@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from turtle import st
 from typing import Optional, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import math
@@ -77,8 +76,8 @@ def create_restaurant(row) -> Optional[Restaurant]:
 
 def read() -> Restaurants:
     """Reads the open data and returns a list of all restaurants in barcelona """
-    rest_data = pd.read_csv(
-        "data/restaurants.csv")  # https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv")
+    # https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv")
+    rest_data = pd.read_csv("data/restaurants.csv")
     rest_lst: Restaurants = []
     for index, row in rest_data.iterrows():
         if not rest_lst or row['register_id'] != rest_lst[-1].id:

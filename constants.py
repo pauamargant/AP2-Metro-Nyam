@@ -10,10 +10,10 @@ ACCESS_COLOR = 'grey'
 
 PADDING = 50
 MAX_L = 1
-INF = 9999999999
+INF = 2147483647  # maximo de un int de 8 bits, quizás es más eficiente de cara a los cálculos
 
 # PER AFEGIR WAITING TIMES PODRIEM USAR "GHOST STATION NODES" es a dir, que donaada una estacio, aquesta no estigui
 # conectada a la linia de metro sino que es connecti a una "ghost station" situada a la mateixa pisicio amb una aresta
 # amb pes temps d'espera i que sigui la ghost station la connectada a la linia demetro
 
-SUBWAY_WAITING=60#segons
+SUBWAY_WAITING = 60  # segons

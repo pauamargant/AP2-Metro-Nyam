@@ -2,7 +2,8 @@
 from dataclasses import dataclass
 import sys
 import os
-import time as tiempo  # para que no se solape con nombres de variables
+import time
+from sklearn.metrics import homogeneity_completeness_v_measure
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
@@ -29,14 +30,26 @@ except IOError:
     sys.exit()
 
 # INICIALITZACIÓ:
-
+t1 = time.time()
 metro_graph: metro.MetroGraph = metro.get_metro_graph()
+print('get_metro_graph time:', time.time() - t1)
+t2 = time.time()
 city_osmnx = city.get_osmnx_graph()
+print('get_osmnx_graph time:', time.time() - t2)
+t2 = time.time()
 city_graph: city.CityGraph = city.build_city_graph(city_osmnx, metro_graph)
+print('build_city_graph time:', time.time() - t2)
+t2 = time.time()
 rest: restaurants.Restaurants = restaurants.read()
+print('restaurants.read time:', time.time() - t2)
+print('initialization time:', time.time() - t1)
+
+help_txt = {}
+with open('help_msg.txt', 'r') as msg:
+    help_txt = {line.split()[0][1:].replace(':', ''): line for line in msg}
 
 
-@dataclass
+@ dataclass
 class User:
     location: Coord
     current_search: restaurants.Restaurants
@@ -102,7 +115,16 @@ def exception_handler(func):
     return custom_exception
 
 
+def time_function(func):
+    def temp_func(*args):
+        t1 = time.time()
+        func(*args)
+        print(f"{func.__name__} time is: {time.time() - t1}")
+    return temp_func
+
 # ES MEJOR REGISTRAR AL USUARIO EN VEZ DE DAR ERROR?
+
+
 def register_user(update, context) -> User:
     """registers a new user and returns the user"""
     context.user_data["user"] = User(
@@ -110,6 +132,8 @@ def register_user(update, context) -> User:
     return context.user_data["user"]
 
 
+@ exception_handler
+@ time_function
 def start(update, context):
     if context.user_data.get("user") is None:
         current_user = register_user(update, context)
@@ -118,11 +142,19 @@ def start(update, context):
         text=f"Hi {current_user.name}, welcome to Nyam Bot\nType /help to see al the avaliable commands.")
 
 
+@ exception_handler
+@ time_function
 def help(update, context):
-    with open('help_msg.txt', 'r') as msg:
-        context.bot.send_message(
-            chat_id=update.effective_chat.id, text=msg.read()
-        )
+    help_msg = ""
+    if not context.args:
+        help_msg = "".join([line+'\n' for line in help_txt.values()])
+    else:
+        help_msg = help_txt.get(context.args[0])
+        if help_msg is None:
+            help_msg = f"{context.args[0]} is not a valid command, use /help to see a list of all the avaliable commands :)"
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=help_msg)
 
 
 def author(update, context):
@@ -131,7 +163,8 @@ def author(update, context):
     )
 
 
-@exception_handler
+@ exception_handler
+@ time_function
 def where(update, context):
     lat, lon = update.message.location.latitude, update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
@@ -140,7 +173,8 @@ def where(update, context):
         text='Updated location 📍')
 
 
-@exception_handler
+@ exception_handler
+@ time_function
 def plot_metro(update, context):
     file = "%d.png" % random.randint(1000000, 9999999)
     metro.plot(metro_graph, file)
@@ -150,13 +184,15 @@ def plot_metro(update, context):
     os.remove(file)
 
 
-@exception_handler
+@ exception_handler
+@ time_function
 def find(update, context):
     query = update.message.text[6:]
     assert query, '/find needs to have at least one argument'
     print(query)
     search = restaurants.find(query, rest)
     msg = "".join([str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
+    print(msg)
     context.user_data['user'].current_search = search
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -164,7 +200,8 @@ def find(update, context):
     )
 
 
-@exception_handler
+@ exception_handler
+@ time_function
 def info(update, context):
     search = context.user_data['user'].current_search
     num = int(context.args[0])
@@ -176,33 +213,34 @@ def info(update, context):
         chat_id=update.effective_chat.id, text=message)
 
 
-@exception_handler
+@ exception_handler
+@ time_function
 def guide(update, context):
-    t1 = tiempo.time()
+    t1 = time.time()
     file = "%d.png" % random.randint(1000000, 9999999)
     src: Coord = context.user_data['user'].location
     dst: Coord = context.user_data['user'].current_search[int(
         context.args[0])].coords
-    print('antes de path:', tiempo.time()-t1)
+    print('antes de path:', time.time()-t1)
     Path = city.find_path(city_osmnx, city_graph, src, dst)
     print("path trobat")
-    print(tiempo.time()-t1)
+    print(time.time()-t1)
     city.plot_path(city_graph, Path, file, src, dst)
-    print('path plotted', tiempo.time()-t1)
+    print('path plotted', time.time()-t1)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(file, 'rb'))
     os.remove(file)
-    print('foto enviada:', tiempo.time()-t1)
+    print('foto enviada:', time.time()-t1)
 
     w_time, w_dist, s_time, s_dist = city.path_stats(
         city_graph, Path, src, dst)
     # temps en minuts i distancia en m
     w_time, w_dist, s_time, s_dist = round(
         w_time/60), round(w_dist), round(s_time/60), round(s_dist)
-    time = w_time+s_time
+    tot_time = w_time+s_time
     dist = w_dist+w_dist
-    time_txt = f"{time//60} h {time%60} min" if time > 60 else f"{time} min"
+    time_txt = f"{tot_time//60} h {tot_time%60} min" if tot_time > 60 else f"{tot_time} min"
     dist_txt = f"{round(dist/1000, 1)} km" if dist > 1000 else f"{dist} m"
     w_time_txt = f"{w_time//60} h {w_time%60} min" if w_time > 60 else f"{w_time} min"
     w_dist_txt = f"{round(w_dist/1000, 1)} km" if w_dist > 1000 else f"{w_dist} m"
@@ -211,10 +249,10 @@ def guide(update, context):
     context.bot.send_message(
         chat_id=update.effective_chat.id, text=f"El temps total estimat és de {time_txt}\nDistancia: {dist_txt}\n El temps caminat estimat és de {w_time_txt}\nDistancia: {w_dist_txt}\n El temps en metro estimat és de {s_time_txt}\nDistancia: {s_dist_txt}")
     print("enviat")
-    print('acabado en', (tiempo.time()-t1))
 
 
 @ exception_handler
+@ time_function
 def default_location(update, context):
     """localización de la uni, función de debugging"""
     context.user_data['user'].location = (41.388492, 2.113043)
