@@ -27,6 +27,7 @@ class Station:
     line_id: int
     line_order: int
     line_colour: str
+    line_dest: str
     accessibility: str
     position: Coord
     # list of the ids of the stations connected in the same line
@@ -91,9 +92,11 @@ def create_station(row: pd.Series) -> Station:
 
     '''
     try:
-        return Station(row["CODI_ESTACIO"], row["CODI_GRUP_ESTACIO"], row["NOM_ESTACIO"],
-                       row["NOM_LINIA"], row["ID_LINIA"], row["ORDRE_LINIA"], row["COLOR_LINIA"],
-                       row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]), [], [], [])
+        return Station(row["CODI_ESTACIO"], row["CODI_GRUP_ESTACIO"],
+                       row["NOM_ESTACIO"], row["NOM_LINIA"], row["ID_LINIA"],
+                       row["ORDRE_LINIA"], row["COLOR_LINIA"],
+                       row["DESTI_SERVEI"], row["NOM_TIPUS_ACCESSIBILITAT"],
+                       string_to_point(row["GEOMETRY"]), [], [], [])
     except Exception:
         print("station row has the wrong format or incomplete data")
 
@@ -103,7 +106,7 @@ def read_stations() -> Stations:
     Reads all the stations from the estations.csv file and returns a list of Stations
     '''
     # AL FINAL CANVIAR DE ON SE AGAFA?
-    stations_df = pd.read_csv("data/estacions.csv", encoding='latin1')
+    stations_df = pd.read_csv("data/estacions.csv")
     station_list: Stations = []
     for index, row in stations_df.iterrows():
         station_list.append(create_station(row))
@@ -134,8 +137,8 @@ def read_accesses() -> Accesses:
     '''
     Reads all the accesses in the file ###NOM### and returns a list of Accesses.
     '''
-    accesses_df = pd.read_csv(
-        "data/accessos.csv", encoding='latin1')  # CANVIAR!
+    # amb encoding "latin1" els accents surten malament
+    accesses_df = pd.read_csv("data/accessos.csv")
     access_list: Accesses = []
     for index, row in accesses_df.iterrows():
 
@@ -179,20 +182,23 @@ def get_metro_graph() -> MetroGraph:
     # in order to be more efficient
     line_transfers: Dict[int, List[int]] = dict()
 
-    # In order to connect subway lines we take adavantadge of the fact that they are
-    # stored in order
-    # We add the first station of the list before iterating through the others
+    # In order to connect subway lines we take adavantadge of the fact that
+    # they are stored in order
+    # We add the first station of the list before iterating through the rest
     s1 = station_list[0]
     prev_id: Optional[int] = s1.id
     prev_line: Optional[int] = s1.line_id
     Metro.add_node(s1.id, pos=s1.position, type="station", name=s1.name,
-                   accessibility=s1.accessibility, line=s1.line_id)
+                   accessibility=s1.accessibility, line=s1.line_id,
+                   line_name=s1.line_name, line_dest=s1.line_dest)
     line_transfers[s1.group_code] = [s1.id]
 
     for station in station_list[1:]:
         # We create the station node
-        Metro.add_node(station.id, pos=station.position, type="station", name=station.name,
-                       accessibility=station.accessibility, line=station.line_id)
+        Metro.add_node(station.id, pos=station.position, type="station",
+                       name=station.name, accessibility=station.accessibility,
+                       line=station.line_id, line_name=station.line_name,
+                       line_dest=station.line_dest)
         # We create a ghost station and connect it to the "main" one
         # ES BONA IDEA??
 
@@ -204,7 +210,10 @@ def get_metro_graph() -> MetroGraph:
         if(station.line_id == prev_line):
             distance: float = line_distance(Metro, prev_id, station.id)
             Metro.add_edge(prev_id, station.id, type="line",
-                           line_name=station.line_name, line_colour=station.line_colour, distance=distance, travel_time=distance/SUBWAY_SPEED)
+                           line_name=station.line_name,
+                           line_colour=station.line_colour,
+                           distance=distance,
+                           travel_time=distance/SUBWAY_SPEED)
         prev_id, prev_line = station.id, station.line_id
 
         # If we have previously read a station in the same group we append the current

@@ -11,6 +11,7 @@ from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
+from datetime import datetime
 from haversine import haversine, Unit
 from constants import *
 
@@ -226,6 +227,19 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
 #     acc_nodes = [n for n,v in G.nodes(data=True) if v['Accessible'] == 'Accessible']
 
 
+def print_path(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
+    """generates a text of the resumed path"""
+    now = datetime.now().strftime(" % H: % M")
+    path_txt = f"{now}: 🔵 La teva ubicació\n"
+    i: int = 0
+    while i < len(p):
+        pass
+
+    # for pos in p:
+    #     if(g.nodes[pos]['type'] == 'station'):
+    #         print(g.nodes[pos])
+
+
 def path_stats(g: CityGraph, p: Path, src: Coord, dst: Coord):
     '''Return stats of the path, such as walking time, subway time, etc'''
     walk_time = 0
@@ -282,12 +296,13 @@ def main():
     dest = (41.413816960390676, 2.1814567039217905)
     t1 = time.time()
     p: Path = find_path(g1, city, orig, dest)
-    print(path_stats(city, p, orig, dest))
-    print(path_time_dist(city, p, orig, dest))
-    # show(city)
-    # plot_path(city, p, "path.png",  orig, dest)
-    plot(city, 'cityTest.png')
-    print(time.time()-t1)
+    # print(path_stats(city, p, orig, dest))
+    # print(path_time_dist(city, p, orig, dest))
+    # # show(city)
+    # # plot_path(city, p, "path.png",  orig, dest)
+    # plot(city, 'cityTest.png')
+    # print(time.time()-t1)
+    print_path(city, p)
 
 
 if __name__ == "__main__":

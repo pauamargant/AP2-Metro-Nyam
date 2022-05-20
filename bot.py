@@ -136,11 +136,12 @@ def register_user(update, context) -> User:
 @ exception_handler
 @ time_function
 def start(update, context):
-    if context.user_data.get("user") is None:
-        current_user = register_user(update, context)
+    if not "user" in context.user_data:
+        register_user(update, context)
+    current_user = context.user_data["user"]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"Hi {current_user.name}, welcome to Nyam Bot\nType /help to see al the avaliable commands.")
+        text=f"Hola {current_user.name} 🖖, benvingut a Nyam Bot\nUtilitza /help per veure totes les comandes disponibles :)")
 
 
 @ exception_handler
@@ -152,7 +153,7 @@ def help(update, context):
     else:
         help_msg = help_txt.get(context.args[0].replace('/', ''))
         if help_msg is None:
-            help_msg = f"{context.args[0]} is not a valid command, use /help to see a list of all the avaliable commands :)"
+            help_msg = f"la comanda {context.args[0]} no existeix, utilitza /help per veure una llista de totes les comandes disponibles :)"
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=help_msg)
@@ -189,11 +190,11 @@ def plot_metro(update, context):
 @ time_function
 def find(update, context):
     query = update.message.text[6:]
-    assert query, '/find needs to have at least one argument'
+    assert query, '/find ha de tenir al menys un argument 🤨'
     print(query)
-    search = restaurants.find(query, rest)
+    search = restaurants.find(query, rest)[:12]
     msg = "".join([str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
-    print(msg)
+    assert msg, f"no s'han pogut trobar restaurants amb la cerca: {query} 🤷‍♂️"
     context.user_data['user'].current_search = search
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -207,11 +208,15 @@ def info(update, context):
     search = context.user_data['user'].current_search
     num = int(context.args[0])
     assert 0 <= num < len(
-        search), f"/info command must have an argument between 0 and {len(search)-1}"
+        search), f"/info ha de tenir com argument un enter entre 0 i {len(search)-1} 😬"
     restaurant = context.user_data['user'].current_search[num]
-    message = f"Name: {restaurant.name}\nAdress: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nNeighborhood: {restaurant.adress.nb_name}\nDistrict: {restaurant.adress.dist_name}\nPhone: {restaurant.tlf}"
+    message = f"Nom: {restaurant.name}\nAdreça: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nBarri: {restaurant.adress.nb_name}\nDistricte: {restaurant.adress.dist_name}\nTelèfon: {restaurant.tlf}"
     context.bot.send_message(
         chat_id=update.effective_chat.id, text=message)
+
+
+def print_path(update, context):
+    pass  # en proceso de poner algo
 
 
 @ exception_handler
