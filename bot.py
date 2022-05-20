@@ -54,6 +54,7 @@ class User:
     location: Coord
     current_search: restaurants.Restaurants
     name: str
+    disabled: bool
 
 
 def exception_handler(func):
@@ -128,7 +129,7 @@ def time_function(func):
 def register_user(update, context) -> User:
     """registers a new user and returns the user"""
     context.user_data["user"] = User(
-        None, None, update['message']['chat']['first_name'])
+        None, None, update['message']['chat']['first_name'], False)
     return context.user_data["user"]
 
 
@@ -149,7 +150,7 @@ def help(update, context):
     if not context.args:
         help_msg = "".join([line+'\n' for line in help_txt.values()])
     else:
-        help_msg = help_txt.get(context.args[0])
+        help_msg = help_txt.get(context.args[0].replace('/', ''))
         if help_msg is None:
             help_msg = f"{context.args[0]} is not a valid command, use /help to see a list of all the avaliable commands :)"
     context.bot.send_message(
@@ -218,11 +219,11 @@ def info(update, context):
 def guide(update, context):
     t1 = time.time()
     file = "%d.png" % random.randint(1000000, 9999999)
-    src: Coord = context.user_data['user'].location
-    dst: Coord = context.user_data['user'].current_search[int(
-        context.args[0])].coords
+    user: User = context.user_data['user']
+    src: Coord = user.location
+    dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
-    Path = city.find_path(city_osmnx, city_graph, src, dst)
+    Path = city.find_path(city_osmnx, city_graph, src, dst, user.disabled)
     print("path trobat")
     print(time.time()-t1)
     city.plot_path(city_graph, Path, file, src, dst)
