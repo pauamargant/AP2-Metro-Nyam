@@ -7,6 +7,11 @@ from fuzzysearch import find_near_matches  # type: ignore
 import pandas as pd  # type: ignore
 from constants import *
 
+# PER TESTOS
+##
+###
+import numpy as np  # TREUREEEEEEEEEEDÑFKLAÑJKLFDÑJKLFSDÑJKLF
+
 
 # Informació extra api YELP
 import requests  # type: ignore
@@ -192,6 +197,21 @@ def find(query: str, rst: Restaurants) -> Optional[Restaurants]:
         return stack[0]
 
 
+def count_yelp():
+    list = read()
+    n = 100
+    count = 0
+    for i in range(n):
+        test = yelp_info(np.random.choice(list))
+        # randomly selects a single item
+        if test is not None and len(test) > 0:
+            count += 1
+            print("Match nº"+str(count)+" nom:"+test["alias"])
+            if(test["alias"] is None):
+                print(test)
+    return count
+
+
 def yelp_info(rst: Restaurant) -> Dict[str, str]:
     try:
         params = {'term': rst.name,
@@ -205,6 +225,7 @@ def yelp_info(rst: Restaurant) -> Dict[str, str]:
                 return info_rst[0]
     except Exception as e:
         print("Error al realizar la request a l'API de YELP")
+        return None
 
 
 def main(query):
