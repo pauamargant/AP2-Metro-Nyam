@@ -1,3 +1,4 @@
+from ast import Raise
 import metro
 
 import time  # temporal, solo para medir tiempos de ejecuciones
@@ -52,13 +53,14 @@ def get_osmnx_graph() -> OsmnxGraph:
                     graph.nodes[node]["x"], graph.nodes[node]["y"])
                 graph.nodes[node]["type"] = "street_intersection"
 
-            # graph.remove_edges_from(nx.selfloop_edges(graph)) #creo que no hace falta esta linea
+            graph.remove_edges_from(nx.selfloop_edges(graph))
 
             for edge in graph.edges:
                 distance = haversine(graph.nodes[edge[0]]["pos"],
                                      graph.nodes[edge[1]]["pos"], unit="m")
                 graph.edges[edge]["distance"] = distance
-                graph.edges[edge]["accesstravel_time"] = distance/WALKING_SPEED
+                graph.edges[edge]["travel_time"] = distance/WALKING_SPEED
+                graph.edges[edge]["acc_travel_time"] = distance/WALKING_SPEED
                 graph.edges[edge]["type"] = "street"
 
             save_osmnx_graph(graph, PICKLE_FILENAME)
@@ -74,10 +76,15 @@ def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
     '''
         Saves the OsmnxGraph g as Filename to the current directory
     '''
+    if not isinstance(g, OsmnxGraph):
+        raise TypeError("g has to be an OsmnxGraph")
 
-    pickle_out = open(filename, "wb")
-    pkl.dump(g, pickle_out)
-    pickle_out.close()
+    try:
+        pickle_out = open(filename, "wb")
+        pkl.dump(g, pickle_out)
+        pickle_out.close()
+    except Exception as error:
+        print("Error while saving osmnx_graph".format(error))
 
 
 def load_osmnx_graph(filename: str) -> OsmnxGraph:
@@ -96,8 +103,11 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
     if not os.path.exists(filename):
         raise ValueError("filename does not exist")
     else:
-        pickle_in = open(filename, "rb")
-        return pkl.load(pickle_in)
+        try:
+            pickle_in = open(filename, "rb")
+            return pkl.load(pickle_in)
+        except Exception as error:
+            print("Could not retrieve osmnx graph".format(error))
 
 
 def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[int], List[int], List[float]]:
@@ -106,6 +116,10 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[int], List[int],
     a list with the nearest node in g1 to each access node in g2 tohether with a list which contains the corresponding
     distances
     '''
+    if not isinstance(g1, OsmnxGraph):
+        raise TypeError("g1 must be an OsmnxGraph")
+    if not isinstance(g2, MetroGraph):
+        raise TypeError("g2 must be a MetroGraph")
     nodes = []
     X, Y = [], []
     for node, value in g2.nodes(data=True):
@@ -147,7 +161,7 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     distances = [distance/WALKING_SPEED for distance in distances]
     for e1, e2, d in zip(nodes, nearest, distances):
         city.add_edge(e1, e2, type="Street", distance=d,
-                      travel_time=d/WALKING_SPEED)
+                      travel_time=d/WALKING_SPEED, acc_travel_time=d/WALKING_SPEED)
     return city
 
 
