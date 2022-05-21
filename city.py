@@ -288,22 +288,22 @@ def show(g: CityGraph) -> None:
     plt.show()
 
 
-def main():
-    g2 = metro.get_metro_graph()
-    g1 = get_osmnx_graph()
-    city = build_city_graph(g1, g2)
-    orig = (41.388606, 2.112741)
-    dest = (41.413816960390676, 2.1814567039217905)
-    t1 = time.time()
-    p: Path = find_path(g1, city, orig, dest)
-    # print(path_stats(city, p, orig, dest))
-    # print(path_time_dist(city, p, orig, dest))
-    # # show(city)
-    # # plot_path(city, p, "path.png",  orig, dest)
-    # plot(city, 'cityTest.png')
-    # print(time.time()-t1)
-    print_path(city, p)
+# def main():
+#     g2 = metro.get_metro_graph()
+#     g1 = get_osmnx_graph()
+#     city = build_city_graph(g1, g2)
+#     orig = (41.388606, 2.112741)
+#     dest = (41.413816960390676, 2.1814567039217905)
+#     t1 = time.time()
+#     p: Path = find_path(g1, city, orig, dest)
+#     # print(path_stats(city, p, orig, dest))
+#     # print(path_time_dist(city, p, orig, dest))
+#     # # show(city)
+#     # # plot_path(city, p, "path.png",  orig, dest)
+#     # plot(city, 'cityTest.png')
+#     # print(time.time()-t1)
+#     print_path(city, p)
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     # main()

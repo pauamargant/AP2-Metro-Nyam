@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<!-- saved from url=(0088)https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html -->
+<html class="writer-html5" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Managing environments — conda dev documentation</title>
+      <link rel="stylesheet" href="./Managing environments — conda dev documentation_files/pygments.css" type="text/css">
+      <link rel="stylesheet" href="./Managing environments — conda dev documentation_files/custom.css" type="text/css">
+      <link rel="stylesheet" href="./Managing environments — conda dev documentation_files/graphviz.css" type="text/css">
+      <link rel="stylesheet" href="./Managing environments — conda dev documentation_files/jspanel.css" type="text/css">
+    <link rel="shortcut icon" href="https://docs.conda.io/projects/conda/en/latest/_static/conda-logo.png">
+    <link rel="canonical" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html">
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script async="" src="./Managing environments — conda dev documentation_files/analytics.js.descargar"></script><script data-url_root="../../" id="documentation_options" src="./Managing environments — conda dev documentation_files/documentation_options.js.descargar"></script>
+        <script src="./Managing environments — conda dev documentation_files/jquery.js.descargar"></script>
+        <script src="./Managing environments — conda dev documentation_files/underscore.js.descargar"></script>
+        <script src="./Managing environments — conda dev documentation_files/doctools.js.descargar"></script>
+        <script async="async" src="./Managing environments — conda dev documentation_files/readthedocs-doc-embed.js.descargar"></script>
+        <script src="./Managing environments — conda dev documentation_files/jspanel.js.descargar"></script>
+        <script src="./Managing environments — conda dev documentation_files/jspanel.modal.js.descargar"></script>
+        <script src="./Managing environments — conda dev documentation_files/panzoom.min.js.descargar"></script>
+        <script src="./Managing environments — conda dev documentation_files/panzoom.js.descargar"></script>
+    <script src="./Managing environments — conda dev documentation_files/theme.js.descargar"></script>
+    <link rel="index" title="Index" href="https://docs.conda.io/projects/conda/en/latest/genindex.html">
+    <link rel="search" title="Search" href="https://docs.conda.io/projects/conda/en/latest/search.html">
+    <link rel="next" title="Managing channels" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-channels.html">
+    <link rel="prev" title="Managing conda" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-conda.html"> 
+
+<!-- RTD Extra Head -->
+
+<link rel="stylesheet" href="./Managing environments — conda dev documentation_files/readthedocs-doc-embed.css" type="text/css">
+
+<script type="application/json" id="READTHEDOCS_DATA">{"ad_free": false, "api_host": "https://readthedocs.com", "build_date": "2022-05-19T16:58:19Z", "builder": "sphinx", "canonical_url": null, "commit": "e126a09d", "docroot": "/docs/source/", "features": {"docsearch_disabled": false}, "global_analytics_code": "UA-17997319-2", "language": "en", "page": "user-guide/tasks/manage-environments", "programming_language": "py", "project": "continuumio-conda", "proxied_api_host": "/_", "source_suffix": ".rst", "subprojects": {}, "theme": "sphinx_rtd_theme", "user_analytics_code": "UA-143852910-1", "version": "latest"}</script>
+
+<!--
+Using this variable directly instead of using `JSON.parse` is deprecated.
+The READTHEDOCS_DATA global variable will be removed in the future.
+-->
+<script type="text/javascript">
+READTHEDOCS_DATA = JSON.parse(document.getElementById('READTHEDOCS_DATA').innerHTML);
+</script>
+
+<script type="text/javascript" src="./Managing environments — conda dev documentation_files/readthedocs-analytics.js.descargar" async="async"></script>
+
+<!-- end RTD <extrahead> -->
+<link rel="preconnect" href="https://fonts.googleapis.com/" crossorigin="true"><link rel="preconnect" href="https://fonts.gstatic.com/"><link rel="stylesheet" href="./Managing environments — conda dev documentation_files/css2"></head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+            <a href="https://docs.conda.io/projects/conda/en/latest/index.html" class="icon icon-home"> conda
+          </a>
+              <div class="version">
+                latest
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="https://docs.conda.io/projects/conda/en/latest/search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs">
+    <input type="hidden" name="check_keywords" value="yes">
+    <input type="hidden" name="area" value="default">
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current" aria-expanded="true">
+<li class="toctree-l1 current" aria-expanded="true"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/index.html"><button class="toctree-expand" title="Open/close menu"></button>User guide</a><ul class="" aria-expanded="false">
+<li class="toctree-l2"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/index.html">Concepts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html">Getting started with conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/index.html">Configuration</a></li>
+<li class="toctree-l2 current" aria-expanded="true"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/index.html"><button class="toctree-expand" title="Open/close menu"></button>Tasks</a><ul class="" aria-expanded="false">
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-conda.html">Managing conda</a></li>
+<li class="toctree-l3 current" aria-expanded="true"><a class="reference internal current" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#" aria-expanded="true"><button class="toctree-expand" title="Open/close menu"></button>Managing environments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands">Creating an environment with commands</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file">Creating an environment from an environment.yml file</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#specifying-a-location-for-an-environment">Specifying a location for an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#updating-an-environment">Updating an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#cloning-an-environment">Cloning an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#building-identical-conda-environments">Building identical conda environments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#activating-an-environment">Activating an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#deactivating-an-environment">Deactivating an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#determining-your-current-environment">Determining your current environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#viewing-a-list-of-your-environments">Viewing a list of your environments</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#viewing-a-list-of-the-packages-in-an-environment">Viewing a list of the packages in an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment">Using pip in an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables">Setting environment variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#saving-environment-variables">Saving environment variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#sharing-an-environment">Sharing an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#restoring-an-environment">Restoring an environment</a></li>
+<li class="toctree-l4"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#removing-an-environment">Removing an environment</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-channels.html">Managing channels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/create-custom-channels.html">Creating custom channels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html">Managing packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-python.html">Managing Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-virtual.html">Managing virtual packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html">Using conda with Travis CI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/view-command-line-help.html">Viewing command-line help</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html">Cheat sheet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/troubleshooting.html">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/configuration.html">Conda configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/api/index.html">Conda Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/commands.html">Command reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/dev-guide/index.html">Developer guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/release-notes.html">Release notes</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="https://docs.conda.io/projects/conda/en/latest/index.html">conda</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="https://docs.conda.io/projects/conda/en/latest/index.html" class="icon icon-home"></a> »</li>
+          <li><a href="https://docs.conda.io/projects/conda/en/latest/user-guide/index.html">User guide</a> »</li>
+          <li><a href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/index.html">Tasks</a> »</li>
+      <li>Managing environments</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/conda/conda/blob/master/docs/source/user-guide/tasks/manage-environments.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="managing-environments">
+<h1>Managing environments<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#managing-environments" title="Permalink to this headline"></a></h1>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands" id="id1">Creating an environment with commands</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file" id="id2">Creating an environment from an environment.yml file</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#specifying-a-location-for-an-environment" id="id3">Specifying a location for an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#updating-an-environment" id="id4">Updating an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#cloning-an-environment" id="id5">Cloning an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#building-identical-conda-environments" id="id6">Building identical conda environments</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#activating-an-environment" id="id7">Activating an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#deactivating-an-environment" id="id8">Deactivating an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#determining-your-current-environment" id="id9">Determining your current environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#viewing-a-list-of-your-environments" id="id10">Viewing a list of your environments</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#viewing-a-list-of-the-packages-in-an-environment" id="id11">Viewing a list of the packages in an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment" id="id12">Using pip in an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables" id="id13">Setting environment variables</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#saving-environment-variables" id="id14">Saving environment variables</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#sharing-an-environment" id="id15">Sharing an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#restoring-an-environment" id="id16">Restoring an environment</a></p></li>
+<li><p><a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#removing-an-environment" id="id17">Removing an environment</a></p></li>
+</ul>
+</div>
+<p>With conda, you can create, export, list, remove, and update
+environments that have different versions of Python and/or
+packages installed in them. Switching or moving between
+environments is called activating the environment. You can also
+share an environment file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are many options available for the commands described
+on this page. For details, see <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/commands.html"><span class="doc">Command reference</span></a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span></code> and <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">deactivate</span></code> only work on conda 4.6 and later versions.
+For conda versions prior to 4.6, run:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Windows: <code class="docutils literal notranslate"><span class="pre">activate</span></code> or <code class="docutils literal notranslate"><span class="pre">deactivate</span></code></p></li>
+<li><p>Linux and macOS: <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">activate</span></code> or <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">deactivate</span></code></p></li>
+</ul>
+</div></blockquote>
+</div>
+<section id="creating-an-environment-with-commands">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id1">Creating an environment with commands</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands" title="Permalink to this headline"></a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>By default, environments are installed into the <code class="docutils literal notranslate"><span class="pre">envs</span></code>
+directory in your conda directory. See <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#specifying-location"><span class="std std-ref">Specifying a location for an environment</span></a>
+or run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">--help</span></code> for information on specifying
+a different path.</p>
+</div>
+<p>Use the terminal or an Anaconda Prompt for the following steps:</p>
+<ol class="arabic">
+<li><p>To create an environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">myenv</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">myenv</span></code> with the environment name.</p>
+</div>
+</li>
+<li><p>When conda asks you to proceed, type <code class="docutils literal notranslate"><span class="pre">y</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>proceed ([y]/n)?
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div><p>This creates the myenv environment in <code class="docutils literal notranslate"><span class="pre">/envs/</span></code>. No
+packages will be installed in this environment.</p>
+</div></blockquote>
+<ol class="arabic" start="3">
+<li><p>To create an environment with a specific version of Python:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n myenv <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9
+</pre></div>
+</div>
+</li>
+<li><p>To create an environment with a specific package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n myenv scipy
+</pre></div>
+</div>
+<p>OR:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n myenv python
+conda install -n myenv scipy
+</pre></div>
+</div>
+</li>
+<li><p>To create an environment with a specific version of a package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n myenv <span class="nv">scipy</span><span class="o">=</span><span class="m">0</span>.17.3
+</pre></div>
+</div>
+<p>OR:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n myenv python
+conda install -n myenv <span class="nv">scipy</span><span class="o">=</span><span class="m">0</span>.17.3
+</pre></div>
+</div>
+</li>
+<li><p>To create an environment with a specific version of Python and
+multiple packages:</p></li>
+</ol>
+<blockquote>
+<div><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create -n myenv <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9 <span class="nv">scipy</span><span class="o">=</span><span class="m">0</span>.17.3 astroid babel
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Install all the programs that you want in this environment
+at the same time. Installing 1 program at a time can lead to
+dependency conflicts.</p>
+</div>
+</div></blockquote>
+<p>To automatically install pip or another program every time a new
+environment is created, add the default programs to the
+<a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#config-add-default-pkgs"><span class="std std-ref">create_default_packages</span></a> section
+of your <code class="docutils literal notranslate"><span class="pre">.condarc</span></code> configuration file. The default packages are
+installed every time you create a new environment. If you do not
+want the default packages installed in a particular environment,
+use the <code class="docutils literal notranslate"><span class="pre">--no-default-packages</span></code> flag:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --no-default-packages -n myenv python
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You can add much more to the <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span></code> command.
+For details, run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">--help</span></code>.</p>
+</div>
+</section>
+<section id="creating-an-environment-from-an-environment-yml-file">
+<span id="create-env-from-file"></span><h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id2">Creating an environment from an environment.yml file</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-from-an-environment-yml-file" title="Permalink to this headline"></a></h2>
+<p>Use the terminal or an Anaconda Prompt for the following steps:</p>
+<ol class="arabic">
+<li><p>Create the environment from the <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<p>The first line of the <code class="docutils literal notranslate"><span class="pre">yml</span></code> file sets the new environment's
+name. For details see <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#create-env-file-manually"><span class="std std-ref">Creating an environment file manually</span></a>.</p>
+</li>
+<li><p>Activate the new environment: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">myenv</span></code></p></li>
+<li><p>Verify that the new environment was installed correctly:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="nb">list</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<blockquote>
+<div><p>You can also use <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">--envs</span></code>.</p>
+</div></blockquote>
+</section>
+<section id="specifying-a-location-for-an-environment">
+<span id="specifying-location"></span><h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id3">Specifying a location for an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#specifying-a-location-for-an-environment" title="Permalink to this headline"></a></h2>
+<p>You can control where a conda environment lives by providing a path
+to a target directory when creating the environment. For example,
+the following command will create a new environment in a subdirectory
+of the current working directory called <code class="docutils literal notranslate"><span class="pre">envs</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">prefix</span> <span class="o">./</span><span class="n">envs</span> <span class="n">jupyterlab</span><span class="o">=</span><span class="mf">3.2</span> <span class="n">matplotlib</span><span class="o">=</span><span class="mf">3.5</span> <span class="n">numpy</span><span class="o">=</span><span class="mf">1.21</span>
+</pre></div>
+</div>
+<p>You then activate an environment created with a prefix using the same
+command used to activate environments created by name:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="o">./</span><span class="n">envs</span>
+</pre></div>
+</div>
+<p>Specifying a path to a subdirectory of your project directory when
+creating an environment has the following benefits:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>It makes it easy to tell if your project uses an isolated environment
+by including the environment as a subdirectory.</p></li>
+<li><p>It makes your project more self-contained as everything, including
+the required software, is contained in a single project directory.</p></li>
+</ul>
+</div></blockquote>
+<p>An additional benefit of creating your project’s environment inside a
+subdirectory is that you can then use the same name for all your
+environments. If you keep all of your environments in your <code class="docutils literal notranslate"><span class="pre">envs</span></code>
+folder, you’ll have to give each environment a different name.</p>
+<p>There are a few things to be aware of when placing conda environments
+outside of the default <code class="docutils literal notranslate"><span class="pre">envs</span></code> folder.</p>
+<ol class="arabic simple">
+<li><p>Conda can no longer find your environment with the <code class="docutils literal notranslate"><span class="pre">--name</span></code> flag.
+You’ll generally need to pass the <code class="docutils literal notranslate"><span class="pre">--prefix</span></code> flag along with the
+environment’s full path to find the environment.</p></li>
+<li><p>Specifying an install path when creating your conda environments
+makes it so that your command prompt is now prefixed with the active
+environment’s absolute path rather than the environment’s name.</p></li>
+</ol>
+<p>After activating an environment using its prefix, your prompt will
+look similar to the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(/absolute/path/to/envs) $
+</pre></div>
+</div>
+<p>This can result in long prefixes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(/Users/USER_NAME/research/data-science/PROJECT_NAME/envs) $
+</pre></div>
+</div>
+<p>To remove this long prefix in your shell prompt, modify the env_prompt
+setting in your <code class="docutils literal notranslate"><span class="pre">.condarc</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda config --set env_prompt '({name})'
+</pre></div>
+</div>
+<p>This will edit your <code class="docutils literal notranslate"><span class="pre">.condarc</span></code> file if you already have one
+or create a <code class="docutils literal notranslate"><span class="pre">.condarc</span></code> file if you do not.</p>
+<p>Now your command prompt will display the active environment’s
+generic name, which is the name of the environment's root folder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd project-directory
+$ conda activate ./env
+(env) project-directory $
+</pre></div>
+</div>
+</section>
+<section id="updating-an-environment">
+<span id="update-env"></span><h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id4">Updating an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#updating-an-environment" title="Permalink to this headline"></a></h2>
+<p>You may need to update your environment for a variety of reasons.
+For example, it may be the case that:</p>
+<ul class="simple">
+<li><p>one of your core dependencies just released a new version
+(dependency version number update).</p></li>
+<li><p>you need an additional package for data analysis
+(add a new dependency).</p></li>
+<li><p>you have found a better package and no longer need the older
+package (add new dependency and remove old dependency).</p></li>
+</ul>
+<p>If any of these occur, all you need to do is update the contents of
+your <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> file accordingly and then run the following
+command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ conda env update --prefix ./env --file environment.yml  --prune
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">--prune</span></code> option causes conda to remove any dependencies
+that are no longer required from the environment.</p>
+</div>
+</section>
+<section id="cloning-an-environment">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id5">Cloning an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#cloning-an-environment" title="Permalink to this headline"></a></h2>
+<p>Use the terminal or an Anaconda Prompt for the following steps:</p>
+<p>You can make an exact copy of an environment by creating a clone
+of it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">myclone</span> <span class="o">--</span><span class="n">clone</span> <span class="n">myenv</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">myclone</span></code> with the name of the new environment.
+Replace <code class="docutils literal notranslate"><span class="pre">myenv</span></code> with the name of the existing environment that
+you want to copy.</p>
+</div>
+<p>To verify that the copy was made:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">info</span> <span class="o">--</span><span class="n">envs</span>
+</pre></div>
+</div>
+<p>In the environments list that displays, you should see both the
+source environment and the new copy.</p>
+</section>
+<section id="building-identical-conda-environments">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id6">Building identical conda environments</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#building-identical-conda-environments" title="Permalink to this headline"></a></h2>
+<p>You can use explicit specification files to build an identical
+conda environment on the same operating system platform, either
+on the same machine or on a different machine.</p>
+<p>Use the terminal or an Anaconda Prompt for the following steps:</p>
+<ol class="arabic">
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">list</span> <span class="pre">--explicit</span></code> to produce a spec list such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># This file may be used to create an environment using:</span>
+<span class="c1"># $ conda create --name &lt;env&gt; --file &lt;this file&gt;</span>
+<span class="c1"># platform: osx-64</span>
+<span class="nd">@EXPLICIT</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">mkl</span><span class="o">-</span><span class="mf">11.3.3</span><span class="o">-</span><span class="mf">0.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">numpy</span><span class="o">-</span><span class="mf">1.11.1</span><span class="o">-</span><span class="n">py35_0</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">openssl</span><span class="o">-</span><span class="mf">1.0.2</span><span class="n">h</span><span class="o">-</span><span class="mf">1.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">pip</span><span class="o">-</span><span class="mf">8.1.2</span><span class="o">-</span><span class="n">py35_0</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">python</span><span class="o">-</span><span class="mf">3.5.2</span><span class="o">-</span><span class="mf">0.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">readline</span><span class="o">-</span><span class="mf">6.2</span><span class="o">-</span><span class="mf">2.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">setuptools</span><span class="o">-</span><span class="mf">25.1.6</span><span class="o">-</span><span class="n">py35_0</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">sqlite</span><span class="o">-</span><span class="mf">3.13.0</span><span class="o">-</span><span class="mf">0.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">tk</span><span class="o">-</span><span class="mf">8.5.18</span><span class="o">-</span><span class="mf">0.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">wheel</span><span class="o">-</span><span class="mf">0.29.0</span><span class="o">-</span><span class="n">py35_0</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">xz</span><span class="o">-</span><span class="mf">5.2.2</span><span class="o">-</span><span class="mf">0.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">repo</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pkgs</span><span class="o">/</span><span class="n">free</span><span class="o">/</span><span class="n">osx</span><span class="o">-</span><span class="mi">64</span><span class="o">/</span><span class="n">zlib</span><span class="o">-</span><span class="mf">1.2.8</span><span class="o">-</span><span class="mf">3.</span><span class="n">tar</span><span class="o">.</span><span class="n">bz2</span>
+</pre></div>
+</div>
+</li>
+<li><p>To create this spec list as a file in the current working
+directory, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="nb">list</span> <span class="o">--</span><span class="n">explicit</span> <span class="o">&gt;</span> <span class="n">spec</span><span class="o">-</span><span class="n">file</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can use <code class="docutils literal notranslate"><span class="pre">spec-file.txt</span></code> as the filename or replace
+it with a filename of your choice.</p>
+</div>
+<p>An explicit spec file is not usually cross platform, and
+therefore has a comment at the top such as <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">platform:</span> <span class="pre">osx-64</span></code>
+showing the platform where it was created. This platform is the
+one where this spec file is known to work. On other platforms,
+the packages specified might not be available or dependencies
+might be missing for some of the key packages already in the
+spec.</p>
+<p>To use the spec file to create an identical environment on the
+same machine or another machine:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">myenv</span> <span class="o">--</span><span class="n">file</span> <span class="n">spec</span><span class="o">-</span><span class="n">file</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>To use the spec file to install its listed packages into an
+existing environment:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">--</span><span class="n">name</span> <span class="n">myenv</span> <span class="o">--</span><span class="n">file</span> <span class="n">spec</span><span class="o">-</span><span class="n">file</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>Conda does not check architecture or dependencies when installing
+from a spec file. To ensure that the packages work correctly,
+make sure that the file was created from a working environment,
+and use it on the same architecture, operating system, and
+platform, such as linux-64 or osx-64.</p>
+</li>
+</ol>
+</section>
+<section id="activating-an-environment">
+<span id="activate-env"></span><h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id7">Activating an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#activating-an-environment" title="Permalink to this headline"></a></h2>
+<p>Activating environments is essential to making the software in the environments
+work well. Activation entails two primary functions: adding entries to PATH for
+the environment and running any activation scripts that the environment may
+contain. These activation scripts are how packages can set arbitrary
+environment variables that may be necessary for their operation. You can also
+<a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#set-env-vars"><span class="std std-ref">use the config API to set environment variables</span></a>.</p>
+<p>When <a class="reference external" href="http://docs.anaconda.com/anaconda/install.html">installing Anaconda</a>,
+you have the option to “Add Anaconda
+to my PATH environment variable.” This is not recommended because the
+add to PATH option appends Anaconda to PATH. When the installer appends
+to PATH, it does not call the activation scripts.</p>
+<p>On Windows, PATH is composed of two parts, the system PATH and the
+user PATH. The system PATH always comes first. When you install
+Anaconda for Just Me, we add it to the user PATH. When you install
+for All Users, we add it to the system PATH. In the former case,
+you can end up with system PATH values taking precedence over
+our entries. In the latter case, you do not. We do not recommend
+<a class="reference external" href="https://docs.anaconda.com/anaconda/install/multi-user/">multi-user installs</a>.</p>
+<p>Activation prepends to PATH. This only takes effect
+when you have the environment active so it is local to a terminal session,
+not global.</p>
+<p>To activate an environment: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">myenv</span></code></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">myenv</span></code> with the environment name or directory path.</p>
+</div>
+<p>Conda prepends the path name <code class="docutils literal notranslate"><span class="pre">myenv</span></code> onto your system command.</p>
+<p>You may receive a warning message if you have not activated your environment:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="ne">Warning</span><span class="p">:</span>
+<span class="n">This</span> <span class="n">Python</span> <span class="n">interpreter</span> <span class="ow">is</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">conda</span> <span class="n">environment</span><span class="p">,</span> <span class="n">but</span> <span class="n">the</span> <span class="n">environment</span> <span class="n">has</span>
+<span class="ow">not</span> <span class="n">been</span> <span class="n">activated</span><span class="o">.</span> <span class="n">Libraries</span> <span class="n">may</span> <span class="n">fail</span> <span class="n">to</span> <span class="n">load</span><span class="o">.</span> <span class="n">To</span> <span class="n">activate</span> <span class="n">this</span> <span class="n">environment</span>
+<span class="n">please</span> <span class="n">see</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">activation</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>If you receive this warning, you need to activate your environment. To do
+so on Windows, run: <code class="docutils literal notranslate"><span class="pre">c:\Anaconda3\Scripts\activate</span> <span class="pre">base</span></code> in
+Anaconda Prompt.</p>
+<p>Windows is extremely sensitive to proper activation. This is because
+the Windows library loader does not support the concept of libraries
+and executables that know where to search for their dependencies
+(RPATH). Instead, Windows relies on a <a class="reference external" href="https://docs.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order">dynamic-link library search order</a>.</p>
+<p>If environments are not active, libraries won't be found and there
+will be lots of errors. HTTP or SSL errors are common errors when the
+Python in a child environment can't find the necessary OpenSSL library.</p>
+<p>Conda itself includes some special workarounds to add its necessary PATH
+entries. This makes it so that it can be called without activation or
+with any child environment active. In general, calling any executable in
+an environment without first activating that environment will likely not work.
+For the ability to run executables in activated environments, you may be
+interested in the <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">run</span></code> command.</p>
+<p>If you experience errors with PATH, review our <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/troubleshooting.html#path-error"><span class="std std-ref">troubleshooting</span></a>.</p>
+<section id="conda-init">
+<h3>Conda init<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#conda-init" title="Permalink to this headline"></a></h3>
+<p>Earlier versions of conda introduced scripts to make activation
+behavior uniform across operating systems. Conda 4.4 allowed
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">myenv</span></code>. Conda 4.6 added extensive initialization
+support so that conda works faster and less disruptively on
+a wide variety of shells (bash, zsh, csh, fish, xonsh, and more).
+Now these shells can use the <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span></code> command.
+Removing the need to modify PATH makes conda less disruptive to
+other software on your system. For more information, read the
+output from <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">init</span> <span class="pre">--help</span></code>.</p>
+<p>One setting may be useful to you when using <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">init</span></code> is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">auto_activate_base</span><span class="p">:</span> <span class="nb">bool</span>
+</pre></div>
+</div>
+<p>This setting controls whether or not conda activates your base
+environment when it first starts up. You'll have the <code class="docutils literal notranslate"><span class="pre">conda</span></code>
+command available either way, but without activating the environment,
+none of the other programs in the environment will be available until
+the environment is activated with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">base</span></code>. People
+sometimes choose this setting to speed up the time their shell takes
+to start up or to keep conda-installed software from automatically
+hiding their other software.</p>
+</section>
+<section id="nested-activation">
+<h3>Nested activation<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#nested-activation" title="Permalink to this headline"></a></h3>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span></code> will deactivate the current environment
+before activating the new environment and reactivate it when
+deactivating the new environment. Sometimes you may want to leave
+the current environment PATH entries in place so that you can continue
+to easily access command-line programs from the first environment.
+This is most commonly encountered when common command-line utilities
+are installed in the base environment. To retain the current environment
+in the PATH, you can activate the new environment using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="o">--</span><span class="n">stack</span> <span class="n">myenv</span>
+</pre></div>
+</div>
+<p>If you wish to always stack when going from the outermost environment,
+which is typically the base environment, you can set the <code class="docutils literal notranslate"><span class="pre">auto_stack</span></code>
+configuration option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="nb">set</span> <span class="n">auto_stack</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>You may specify a larger number for a deeper level of automatic stacking,
+but this is not recommended since deeper levels of stacking are more likely
+to lead to confusion.</p>
+</section>
+<section id="environment-variable-for-dll-loading-verification">
+<h3>Environment variable for DLL loading verification<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#environment-variable-for-dll-loading-verification" title="Permalink to this headline"></a></h3>
+<p>If you don't want to activate your environment and you want Python
+to work for DLL loading verification, then follow the
+<a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/troubleshooting.html#mkl-library"><span class="std std-ref">troubleshooting directions</span></a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you choose not to activate your environment, then
+loading and setting environment variables to activate
+scripts will not happen. We only support activation.</p>
+</div>
+</section>
+</section>
+<section id="deactivating-an-environment">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id8">Deactivating an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#deactivating-an-environment" title="Permalink to this headline"></a></h2>
+<p>To deactivate an environment, type: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">deactivate</span></code></p>
+<p>Conda removes the path name for the currently active environment from
+your system command.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To simply return to the base environment, it's better to call <code class="docutils literal notranslate"><span class="pre">conda</span>
+<span class="pre">activate</span></code> with no environment specified, rather than to try to deactivate. If
+you run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">deactivate</span></code> from your base environment, you may lose the
+ability to run conda at all. Don't worry, that's local to this shell - you can
+start a new one. However, if the environment was activated using <code class="docutils literal notranslate"><span class="pre">--stack</span></code>
+(or was automatically stacked) then it is better to use <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">deactivate</span></code>.</p>
+</div>
+</section>
+<section id="determining-your-current-environment">
+<span id="determine-current-env"></span><h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id9">Determining your current environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#determining-your-current-environment" title="Permalink to this headline"></a></h2>
+<p>Use the terminal or an Anaconda Prompt for the following steps.</p>
+<p>By default, the active environment---the one you are currently
+using---is shown in parentheses () or brackets [] at the
+beginning of your command prompt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(myenv) $
+</pre></div>
+</div>
+<p>If you do not see this, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">info</span> <span class="o">--</span><span class="n">envs</span>
+</pre></div>
+</div>
+<p>In the environments list that displays, your current environment
+is highlighted with an asterisk (*).</p>
+<p>By default, the command prompt is set to show the name of the
+active environment. To disable this option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="nb">set</span> <span class="n">changeps1</span> <span class="n">false</span>
+</pre></div>
+</div>
+<p>To re-enable this option:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="nb">set</span> <span class="n">changeps1</span> <span class="n">true</span>
+</pre></div>
+</div>
+</section>
+<section id="viewing-a-list-of-your-environments">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id10">Viewing a list of your environments</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#viewing-a-list-of-your-environments" title="Permalink to this headline"></a></h2>
+<p>To see a list of all of your environments, in your terminal window or an
+Anaconda Prompt, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">info</span> <span class="o">--</span><span class="n">envs</span>
+</pre></div>
+</div>
+<p>OR</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="nb">list</span>
+</pre></div>
+</div>
+<p>A list similar to the following is displayed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">environments</span><span class="p">:</span>
+<span class="n">myenv</span>                 <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">miniconda</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">myenv</span>
+<span class="n">snowflakes</span>            <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">miniconda</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">snowflakes</span>
+<span class="n">bunnies</span>               <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">miniconda</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">bunnies</span>
+</pre></div>
+</div>
+<p>If this command is run by an administrator, a list of all environments
+belonging to all users will be displayed.</p>
+</section>
+<section id="viewing-a-list-of-the-packages-in-an-environment">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id11">Viewing a list of the packages in an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#viewing-a-list-of-the-packages-in-an-environment" title="Permalink to this headline"></a></h2>
+<p>To see a list of all packages installed in a specific environment:</p>
+<ul>
+<li><p>If the environment is not activated, in your terminal window or an
+Anaconda Prompt, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda list -n myenv
+</pre></div>
+</div>
+</li>
+<li><p>If the environment is activated, in your terminal window or an
+Anaconda Prompt, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda list
+</pre></div>
+</div>
+</li>
+<li><p>To see if a specific package is installed in an environment, in your
+terminal window or an Anaconda Prompt, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda list -n myenv scipy
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="using-pip-in-an-environment">
+<span id="pip-in-env"></span><h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id12">Using pip in an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#using-pip-in-an-environment" title="Permalink to this headline"></a></h2>
+<p>To use pip in your environment, in your terminal window or an
+Anaconda Prompt, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -n myenv pip
+conda activate myenv
+pip &lt;pip_subcommand&gt;
+</pre></div>
+</div>
+<p>Issues may arise when using pip and conda together. When combining conda and pip,
+it is best to use an isolated conda environment. Only after conda has been used to
+install as many packages as possible should pip be used to install any remaining
+software. If modifications are needed to the environment, it is best to create a
+new environment rather than running conda after pip. When appropriate, conda and
+pip requirements should be stored in text files.</p>
+<p>We recommend that you:</p>
+<dl class="simple">
+<dt><strong>Use pip only after conda</strong></dt><dd><ul class="simple">
+<li><p>Install as many requirements as possible with conda then use pip.</p></li>
+<li><p>Pip should be run with <code class="docutils literal notranslate"><span class="pre">--upgrade-strategy</span> <span class="pre">only-if-needed</span></code> (the default).</p></li>
+<li><p>Do not use pip with the <code class="docutils literal notranslate"><span class="pre">--user</span></code> argument, avoid all users installs.</p></li>
+</ul>
+</dd>
+<dt><strong>Use conda environments for isolation</strong></dt><dd><ul class="simple">
+<li><p>Create a conda environment to isolate any changes pip makes.</p></li>
+<li><p>Environments take up little space thanks to hard links.</p></li>
+<li><p>Care should be taken to avoid running pip in the root environment.</p></li>
+</ul>
+</dd>
+<dt><strong>Recreate the environment if changes are needed</strong></dt><dd><ul class="simple">
+<li><p>Once pip has been used, conda will be unaware of the changes.</p></li>
+<li><p>To install additional conda packages, it is best to recreate
+the environment.</p></li>
+</ul>
+</dd>
+<dt><strong>Store conda and pip requirements in text files</strong></dt><dd><ul class="simple">
+<li><p>Package requirements can be passed to conda via the <code class="docutils literal notranslate"><span class="pre">--file</span></code> argument.</p></li>
+<li><p>Pip accepts a list of Python packages with <code class="docutils literal notranslate"><span class="pre">-r</span></code> or <code class="docutils literal notranslate"><span class="pre">--requirements</span></code>.</p></li>
+<li><p>Conda env will export or create environments based on a file with
+conda and pip requirements.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="setting-environment-variables">
+<span id="set-env-vars"></span><h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id13">Setting environment variables</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#setting-environment-variables" title="Permalink to this headline"></a></h2>
+<p>If you want to associate environment variables with an environment,
+you can use the config API. This is recommended as an alternative to
+using activate and deactivate scripts since those are an execution of
+arbitrary code that may not be safe.</p>
+<p>First, create your environment and activate it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">test</span><span class="o">-</span><span class="n">env</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">test</span><span class="o">-</span><span class="n">env</span>
+</pre></div>
+</div>
+<p>To list any variables you may have, run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">config</span> <span class="pre">vars</span> <span class="pre">list</span></code>.</p>
+<p>To set environment variables, run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">config</span> <span class="pre">vars</span> <span class="pre">set</span> <span class="pre">my_var=value</span></code>.</p>
+<p>Once you have set an environment variable, you have to reactivate your environment:
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">test-env</span></code>.</p>
+<p>To check if the environment variable has been set, run
+<code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">$my_var</span></code> (<code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">%my_var%</span></code> on Windows)  or <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">config</span> <span class="pre">vars</span> <span class="pre">list</span></code>.</p>
+<p>When you deactivate your environment, you can use those same commands to see that
+the environment variable goes away.</p>
+<p>You can specify the environment you want to affect using the <code class="docutils literal notranslate"><span class="pre">-n</span></code> and <code class="docutils literal notranslate"><span class="pre">-p</span></code> flags. The <code class="docutils literal notranslate"><span class="pre">-n</span></code> flag allows you to name the environment and <code class="docutils literal notranslate"><span class="pre">-p</span></code> allows you to specify the path to the environment.</p>
+<p>To unset the environment variable, run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">config</span> <span class="pre">vars</span> <span class="pre">unset</span> <span class="pre">my_var</span> <span class="pre">-n</span> <span class="pre">test-env</span></code>.</p>
+<p>When you deactivate your environment, you can see that environment variable goes away by rerunning
+<code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">my_var</span></code> or <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">config</span> <span class="pre">vars</span> <span class="pre">list</span></code> to show that the variable name
+is no longer present.</p>
+<p>Environment variables set using <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">config</span> <span class="pre">vars</span></code> will be retained in the output of
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">export</span></code>. Further, you can declare environment variables in the environment.yml file
+as shown here:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="p">:</span> <span class="n">env</span><span class="o">-</span><span class="n">name</span>
+<span class="n">channels</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+  <span class="o">-</span> <span class="n">defaults</span>
+<span class="n">dependencies</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.7</span>
+  <span class="o">-</span> <span class="n">codecov</span>
+<span class="n">variables</span><span class="p">:</span>
+  <span class="n">VAR1</span><span class="p">:</span> <span class="n">valueA</span>
+  <span class="n">VAR2</span><span class="p">:</span> <span class="n">valueB</span>
+</pre></div>
+</div>
+</section>
+<section id="saving-environment-variables">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id14">Saving environment variables</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#saving-environment-variables" title="Permalink to this headline"></a></h2>
+<p>Conda environments can include saved environment variables.</p>
+<p>Suppose you want an environment "analytics" to store both a
+secret key needed to log in to a server and a path to a
+configuration file. The sections below explain how to write a
+script named <code class="docutils literal notranslate"><span class="pre">env_vars</span></code> to do this on <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#win-save-env-variables"><span class="std std-ref">Windows</span></a> and <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#macos-linux-save-env-variables"><span class="std std-ref">macOS or Linux</span></a>.</p>
+<p>This type of script file can be part of a conda package, in
+which case these environment variables become active when an
+environment containing that package is activated.</p>
+<p>You can name these scripts anything you like. However, multiple
+packages may create script files, so be sure to use descriptive
+names that are not used by other packages. One popular option is
+to give the script a name in the form
+<code class="docutils literal notranslate"><span class="pre">packagename-scriptname.sh</span></code>, or on Windows,
+<code class="docutils literal notranslate"><span class="pre">packagename-scriptname.bat</span></code>.</p>
+<section id="windows">
+<span id="win-save-env-variables"></span><h3>Windows<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#windows" title="Permalink to this headline"></a></h3>
+<ol class="arabic">
+<li><p>Locate the directory for the conda environment in your
+Anaconda Prompt by running in the command shell <code class="docutils literal notranslate"><span class="pre">%CONDA_PREFIX%</span></code>.</p></li>
+<li><p>Enter that directory and create these subdirectories and
+files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">%</span><span class="n">CONDA_PREFIX</span><span class="o">%</span>
+<span class="n">mkdir</span> <span class="o">.</span>\<span class="n">etc</span>\<span class="n">conda</span>\<span class="n">activate</span><span class="o">.</span><span class="n">d</span>
+<span class="n">mkdir</span> <span class="o">.</span>\<span class="n">etc</span>\<span class="n">conda</span>\<span class="n">deactivate</span><span class="o">.</span><span class="n">d</span>
+<span class="nb">type</span> <span class="n">NUL</span> <span class="o">&gt;</span> <span class="o">.</span>\<span class="n">etc</span>\<span class="n">conda</span>\<span class="n">activate</span><span class="o">.</span><span class="n">d</span>\<span class="n">env_vars</span><span class="o">.</span><span class="n">bat</span>
+<span class="nb">type</span> <span class="n">NUL</span> <span class="o">&gt;</span> <span class="o">.</span>\<span class="n">etc</span>\<span class="n">conda</span>\<span class="n">deactivate</span><span class="o">.</span><span class="n">d</span>\<span class="n">env_vars</span><span class="o">.</span><span class="n">bat</span>
+</pre></div>
+</div>
+</li>
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">.\etc\conda\activate.d\env_vars.bat</span></code> as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">MY_KEY</span><span class="o">=</span><span class="s1">'secret-key-value'</span>
+<span class="nb">set</span> <span class="n">MY_FILE</span><span class="o">=</span><span class="n">C</span><span class="p">:</span>\<span class="n">path</span>\<span class="n">to</span>\<span class="n">my</span>\<span class="n">file</span>
+</pre></div>
+</div>
+</li>
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">.\etc\conda\deactivate.d\env_vars.bat</span></code> as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">MY_KEY</span><span class="o">=</span>
+<span class="nb">set</span> <span class="n">MY_FILE</span><span class="o">=</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>When you run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">analytics</span></code>, the environment variables
+<code class="docutils literal notranslate"><span class="pre">MY_KEY</span></code> and <code class="docutils literal notranslate"><span class="pre">MY_FILE</span></code> are set to the values you wrote into the file.
+When you run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">deactivate</span></code>, those variables are erased.</p>
+</section>
+<section id="macos-and-linux">
+<span id="macos-linux-save-env-variables"></span><h3>macOS and Linux<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#macos-and-linux" title="Permalink to this headline"></a></h3>
+<ol class="arabic">
+<li><p>Locate the directory for the conda environment in your terminal window by running in the terminal <code class="docutils literal notranslate"><span class="pre">echo</span> <span class="pre">$CONDA_PREFIX</span></code>.</p></li>
+<li><p>Enter that directory and create these subdirectories and
+files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cd $CONDA_PREFIX
+mkdir -p ./etc/conda/activate.d
+mkdir -p ./etc/conda/deactivate.d
+touch ./etc/conda/activate.d/env_vars.sh
+touch ./etc/conda/deactivate.d/env_vars.sh
+</pre></div>
+</div>
+</li>
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">./etc/conda/activate.d/env_vars.sh</span></code> as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
+
+<span class="n">export</span> <span class="n">MY_KEY</span><span class="o">=</span><span class="s1">'secret-key-value'</span>
+<span class="n">export</span> <span class="n">MY_FILE</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">my</span><span class="o">/</span><span class="n">file</span><span class="o">/</span>
+</pre></div>
+</div>
+</li>
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">./etc/conda/deactivate.d/env_vars.sh</span></code> as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
+
+<span class="n">unset</span> <span class="n">MY_KEY</span>
+<span class="n">unset</span> <span class="n">MY_FILE</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>When you run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">analytics</span></code>, the environment
+variables <code class="docutils literal notranslate"><span class="pre">MY_KEY</span></code> and <code class="docutils literal notranslate"><span class="pre">MY_FILE</span></code> are set to the values you wrote into
+the file. When you run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">deactivate</span></code>, those variables are
+erased.</p>
+</section>
+</section>
+<section id="sharing-an-environment">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id15">Sharing an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#sharing-an-environment" title="Permalink to this headline"></a></h2>
+<p>You may want to share your environment with someone else---for
+example, so they can re-create a test that you have done. To
+allow them to quickly reproduce your environment, with all of its
+packages and versions, give them a copy of your
+<code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> file.</p>
+<section id="exporting-the-environment-yml-file">
+<h3>Exporting the environment.yml file<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#exporting-the-environment-yml-file" title="Permalink to this headline"></a></h3>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you already have an <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> file in your
+current directory, it will be overwritten during this task.</p>
+</div>
+<ol class="arabic">
+<li><p>Activate the environment to export: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">myenv</span></code></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Replace <code class="docutils literal notranslate"><span class="pre">myenv</span></code> with the name of the environment.</p>
+</div>
+</li>
+<li><p>Export your active environment to a new file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="n">export</span> <span class="o">&gt;</span> <span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This file handles both the environment's pip packages
+and conda packages.</p>
+</div>
+</li>
+<li><p>Email or copy the exported <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> file to the
+other person.</p></li>
+</ol>
+</section>
+<section id="exporting-an-environment-file-across-platforms">
+<span id="export-platform"></span><h3>Exporting an environment file across platforms<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#exporting-an-environment-file-across-platforms" title="Permalink to this headline"></a></h3>
+<p>If you want to make your environment file work across platforms,
+you can use the <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">export</span> <span class="pre">--from-history</span></code> flag. This
+will only include packages that you’ve explicitly asked for,
+as opposed to including every package in your environment.</p>
+<p>For example, if you create an environment and install Python and a package:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.7</span> <span class="n">codecov</span>
+</pre></div>
+</div>
+<p>This will download and install numerous additional packages to solve
+for dependencies. This will introduce packages that may not be compatible
+across platforms.</p>
+<p>If you use <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">export</span></code>, it will export all of those packages.
+However, if you use <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">export</span> <span class="pre">--from-history</span></code>, it will
+only export those you specifically chose:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>(env-name) ➜  ~ conda env export --from-history
+name: env-name
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - codecov
+prefix: /Users/username/anaconda3/envs/env-name
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you installed Anaconda 2019.10 on macOS, your prefix may be
+<code class="docutils literal notranslate"><span class="pre">/Users/username/opt/envs/env-name</span></code>.</p>
+</div>
+</section>
+<section id="creating-an-environment-file-manually">
+<span id="create-env-file-manually"></span><h3>Creating an environment file manually<a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-file-manually" title="Permalink to this headline"></a></h3>
+<p>You can create an environment file (<code class="docutils literal notranslate"><span class="pre">environment.yml</span></code>) manually
+to share with others.</p>
+<p>EXAMPLE: A simple environment file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="p">:</span> <span class="n">stats</span>
+<span class="n">dependencies</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">numpy</span>
+  <span class="o">-</span> <span class="n">pandas</span>
+</pre></div>
+</div>
+<p>EXAMPLE: A more complex environment file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="p">:</span> <span class="n">stats2</span>
+<span class="n">channels</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">javascript</span>
+<span class="n">dependencies</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span>
+  <span class="o">-</span> <span class="n">bokeh</span><span class="o">=</span><span class="mf">2.4.2</span>
+  <span class="o">-</span> <span class="n">numpy</span><span class="o">=</span><span class="mf">1.21</span><span class="o">.*</span>
+  <span class="o">-</span> <span class="n">nodejs</span><span class="o">=</span><span class="mf">16.13</span><span class="o">.*</span>
+  <span class="o">-</span> <span class="n">flask</span>
+  <span class="o">-</span> <span class="n">pip</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">Flask</span><span class="o">-</span><span class="n">Testing</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note the use of the wildcard * when defining the patch version
+number. Defining the version number by fixing the major and minor
+version numbers while allowing the patch version number to vary
+allows us to use our environment file to update our environment
+to get any bug fixes whilst still maintaining consistency of
+software environment.</p>
+</div>
+<p>You can exclude the default channels by adding <code class="docutils literal notranslate"><span class="pre">nodefaults</span></code>
+to the channels list.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">channels</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">javascript</span>
+  <span class="o">-</span> <span class="n">nodefaults</span>
+</pre></div>
+</div>
+<p>This is equivalent to passing the <code class="docutils literal notranslate"><span class="pre">--override-channels</span></code> option
+to most <code class="docutils literal notranslate"><span class="pre">conda</span></code> commands.</p>
+<p>Adding <code class="docutils literal notranslate"><span class="pre">nodefaults</span></code> to the channels list in <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code>
+is similar to removing <code class="docutils literal notranslate"><span class="pre">defaults</span></code> from the <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html#config-channels"><span class="std std-ref">channels
+list</span></a> in the <code class="docutils literal notranslate"><span class="pre">.condarc</span></code> file. However,
+changing <code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> affects only one of your conda
+environments while changing <code class="docutils literal notranslate"><span class="pre">.condarc</span></code> affects them all.</p>
+<p>For details on creating an environment from this
+<code class="docutils literal notranslate"><span class="pre">environment.yml</span></code> file, see <a class="reference internal" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#create-env-from-file"><span class="std std-ref">Creating an environment from an environment.yml file</span></a>.</p>
+</section>
+</section>
+<section id="restoring-an-environment">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id16">Restoring an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#restoring-an-environment" title="Permalink to this headline"></a></h2>
+<p>Conda keeps a history of all the changes made to your environment,
+so you can easily "roll back" to a previous version. To list the history of each change to the current environment:
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">list</span> <span class="pre">--revisions</span></code></p>
+<p>To restore environment to a previous revision: <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">--revision=REVNUM</span></code>
+or <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">--rev</span> <span class="pre">REVNUM</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Replace REVNUM with the revision number.</p>
+</div>
+<p>Example:
+If you want to restore your environment to revision 8, run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">--rev</span> <span class="pre">8</span></code>.</p>
+</section>
+<section id="removing-an-environment">
+<h2><a class="toc-backref" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#id17">Removing an environment</a><a class="headerlink" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#removing-an-environment" title="Permalink to this headline"></a></h2>
+<p>To remove an environment, in your terminal window or an
+Anaconda Prompt, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">remove</span> <span class="o">--</span><span class="n">name</span> <span class="n">myenv</span> <span class="o">--</span><span class="nb">all</span>
+</pre></div>
+</div>
+<p>You may instead use <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">remove</span> <span class="pre">--name</span> <span class="pre">myenv</span></code>.</p>
+<p>To verify that the environment was removed, in your terminal window or an
+Anaconda Prompt, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">info</span> <span class="o">--</span><span class="n">envs</span>
+</pre></div>
+</div>
+<p>The environments list that displays should not show the removed
+environment.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-conda.html" class="btn btn-neutral float-left" title="Managing conda" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-channels.html" class="btn btn-neutral float-right" title="Managing channels" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr>
+
+  <div role="contentinfo">
+    <p>© Copyright 2017, Anaconda, Inc.
+      <span class="commit">Revision <code>e126a09d</code>.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org/">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="Versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      <span class="fa fa-book"> Read the Docs</span>
+      v: latest
+      <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions"><!-- Inserted RTD Footer -->
+
+<div class="injected">
+
+  
+
+      
+      
+      
+      <dl>
+        <dt>Versiones</dt>
+        
+        <dd>
+          <a href="https://docs.conda.io/projects/conda/en/master/user-guide/tasks/manage-environments.html">master</a>
+        </dd>
+        
+        <dd class="rtd-current-item">
+          <a href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html">latest</a>
+        </dd>
+        
+        <dd>
+          <a href="https://docs.conda.io/projects/conda/en/4.6.1/user-guide/tasks/manage-environments.html">4.6.1</a>
+        </dd>
+        
+        <dd>
+          <a href="https://docs.conda.io/projects/conda/en/4.6.0/user-guide/tasks/manage-environments.html">4.6.0</a>
+        </dd>
+        
+      </dl>
+      
+      
+
+      
+      
+      
+
+      
+
+  
+      <dl>
+        
+        <!-- These are kept as relative links for internal installs that are http -->
+        <dt>On Read the Docs</dt>
+        <dd>
+          <a href="https://readthedocs.com/projects/continuumio-conda/">Project Home</a>
+        </dd>
+        <dd>
+          <a href="https://readthedocs.com/projects/continuumio-conda/builds/">Compilaciones</a>
+        </dd>
+        <dd>
+          <a href="https://readthedocs.com/projects/continuumio-conda/downloads/">Descargas</a>
+        </dd>
+      </dl>
+      
+
+
+
+      
+
+      
+      <dl>
+        <dt>On GitHub</dt>
+        <dd>
+          <a href="https://github.com/conda/conda/blob/master/docs/source/user-guide/tasks/manage-environments.rst">Vista</a>
+        </dd>
+        
+        <dd>
+          <a href="https://github.com/conda/conda/edit/master/docs/source/user-guide/tasks/manage-environments.rst">Editar</a>
+        </dd>
+        
+      </dl>
+      
+      
+
+      
+
+      <hr>
+
+      
+<div>
+  
+  <div>
+    Documentation hosted by <a href="https://readthedocs.com/">Read the Docs</a>
+  </div>
+</div>
+
+
+      
+
+</div>
+</div>
+  </div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+ 
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-27761864-11', 'auto');
+  ga('set', 'anonymizeIp', true);
+  ga('send', 'pageview');
+
+</script>
+
+
+
+</body></html>
