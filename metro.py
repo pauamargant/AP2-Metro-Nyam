@@ -34,9 +34,6 @@ class Station:
     connections: List[int]
     accesses: List[int]  # List of the accesses id that go to the station
     line_transfers: List[int]  # List of the ids of the "transbords"
-    # Not used:
-    # def __hash__(self):
-    #   return st_id
 
 
 @dataclass

@@ -1,3 +1,5 @@
+import json
+import requests  # type: ignore
 from dataclasses import dataclass
 from typing import Optional, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
@@ -8,9 +10,8 @@ import pandas as pd  # type: ignore
 from constants import *
 
 
+RESTAURANT_FILE = "data/restaurants.csv"
 # Informació extra api YELP
-import requests  # type: ignore
-import json
 api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
 headers = {'Authorization': 'Bearer %s' % api_key}
 url = 'https://api.yelp.com/v3/businesses/search'
@@ -111,9 +112,10 @@ def create_restaurant(row) -> Optional[Restaurant]:
 
 
 def read() -> Restaurants:
-    """Reads data from the open data restaurants.csv file the and returns a list with all the valid Restaurants"""
-    rest_data = pd.read_csv("data/restaurants.csv",
-                            delimiter=",", encoding='latin-1')
+    """
+    Reads data from the open data restaurants.csv file the and returns a list with all the valid Restaurants
+    """
+    rest_data = pd.read_csv(RESTAURANT_FILE, delimiter=",", encoding='latin-1')
     rest_lst: Restaurants = []
     for index, row in rest_data.iterrows():
         if not rest_lst or row['register_id'] != rest_lst[-1].id:
@@ -159,7 +161,7 @@ def normalize_str(string):
     return string.lower().translate(str.maketrans(normalMap))
 
 
-def search_in_rests(query: str, restaurants: Restaurants) -> Restaurants:
+def search_in_rsts(query: str, restaurants: Restaurants) -> Restaurants:
     '''
     Given a query and a list of restaurants returns a list of the restaurants which are "interesting"
     according to the query
@@ -176,22 +178,39 @@ def is_operator(expression: str) -> bool:
     return expression_dict.get(expression, False)
 
 
-def perform_operation(rests: Restaurants, current_operator: str, operand_1: Operand, operand_2: Operand) -> Restaurants:
+def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, operand_2: Operand) -> Restaurants:
     '''
         Given an operator and one/two operands performs the operation on the opperand/s.
+        Given an operator, if it's either "or" or "and" it performs the operation between the two
+        operands. If it's "not" only one operand is needed.
+
+        Operations are performed between lists of restaurants. If an operand is a string (a query) then
+        it is replaced with the according list of restaurants. 
+        The "not" operation is defined as the complement of the operand in set of all restaurants.
+
+        Parameters
+        ----------
+        rests: Restaurants
+        operator: str
+        operand_1: Operand
+        operand_2: Operand
+
+        Returns
+        -------
+        Restaurants
     '''
+
     # The operands can be either a query (string) or a list of restaurants. If it's a query, we solve it and s
     # substitute it by the according list of restaurants
-
     if (operand_1 and isinstance(operand_1, str)):
-        operand_1 = search_in_rests(operand_1, rests)
+        operand_1 = search_in_rsts(operand_1, rests)
     if (operand_2 and isinstance(operand_2, str)):
-        operand_2 = search_in_rests(operand_2, rests)
-    if current_operator == "and":
+        operand_2 = search_in_rsts(operand_2, rests)
+    if operator == "and":
         return list(set(operand_1).intersection(operand_2))
-    if current_operator == "or":
+    if operator == "or":
         return list(set(operand_1).union(operand_2))
-    if current_operator == "not":
+    if operator == "not":
         return list(set(rests) - set(operand_1))
     return []
 
@@ -203,43 +222,63 @@ def multiword_search(query_list, rst) -> Restaurants:
     '''
     results: Restaurants = rst
     for q in query_list:
-        results = list(set(results).intersection(search_in_rests(q, rst)))
+        results = list(set(results).intersection(search_in_rsts(q, rst)))
     return results
 
 
-def find(query: str, rst: Restaurants) -> Optional[Restaurants]:
-    '''Searchs restaurants based on a query which is a logical expression. If the query is a set of 
-    words separated by spaces, it is interpreted as ands'''
-    # Dividim el query en els operadors i operants
+def find(query: str, rsts: Restaurants) -> Optional[Restaurants]:
+    '''
+    Searchs restaurants based on a query which is an expression in a set algebra.
+    If the query is a set of words separated by spaces, it is interpreted as ands.
+
+    Parameters
+    ----------
+    query: str
+    rsts: Restaurants
+
+    Returns
+    -------
+    Optional[Restaurants]
+
+    '''
+    # We first eliminate divide the query in operands and operators
     list_of_query: List[str] = [
         op for op in re.split('[,)()]', query) if op != ""]
-    # Comprovem si la query no conte operadors logic i per tant no s'ha separat i a més a més
-    # esta formada per varies paraules sep per espais. Ho interpretem com la interseccio de totes les
-    # paraules
+    # We check whether the query has any operator and whether it's a set of words separated by spaces.
+    # If it has no operators it is interpeted as "and" between the words in the query
 
-    if(len(list_of_query) == 1 and len(list_of_query[0].split()) > 1):
-        return multiword_search(list_of_query[0].split(), rst)
+    if(len(list_of_query) == 1):
+        return multiword_search(list_of_query[0].split(), rsts)
+
+    # We performs the operations. As the operators are in preorder, we
+    # traverse the list of query in reverse order
     stack: List[Operand] = []
     operand_1: Operand
     operand_2: Operand
     for w in reversed(list_of_query):
+        # If it's an operator we operate the last two elements in the stack
         if is_operator(w):
             if w == "not":
                 operand_1, operand_2 = stack.pop(), None
             else:
                 operand_1, operand_2 = stack.pop(), stack.pop()
             stack.append(perform_operation(
-                rst, w, operand_1, operand_2))
+                rsts, w, operand_1, operand_2))
+        # If it is an operand we add it to the stack
         else:
             stack.append(w)
 
     if isinstance(stack[0], str):
-        return search_in_rests(stack[0], rst)
+        return search_in_rsts(stack[0], rsts)
     else:
         return stack[0]
 
 
 def yelp_info(rst: Restaurant) -> Dict[str, str]:
+    '''
+        If possible find information about a restaurant using the Yelp API
+        (OPTIONAL FEATURE)    
+    '''
     try:
         params = {'term': rst.name,
                   'location': 'Barcelona'}
@@ -266,5 +305,5 @@ def main(query):
 
 def test(query):
     lst = read()
-    for r in search_in_rests(query, lst):
+    for r in search_in_rsts(query, lst):
         print(r.name)
