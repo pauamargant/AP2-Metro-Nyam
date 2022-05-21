@@ -10,6 +10,7 @@ ACCESS_COLOR = 'grey'
 
 PADDING = 50
 MAX_L = 1
+MAX_DEL = 5
 INF = 2147483647  # maximo de un int de 8 bits, quizás es más eficiente de cara a los cálculos
 
 # PER AFEGIR WAITING TIMES PODRIEM USAR "GHOST STATION NODES" es a dir, que donaada una estacio, aquesta no estigui

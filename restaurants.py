@@ -18,9 +18,23 @@ url = 'https://api.yelp.com/v3/businesses/search'
 
 @dataclass
 class Adress:
+    '''
+        DataClass used to store adress information
+
+        Attributes
+        ----------
+        road_id: int
+        road_name: str
+        street_n: Union[int,Tuple[int,int]]     It stores either a number or a tuple of street numbers
+        nb_id: int
+        nb_name: str
+        dist_id: int
+        dist_name: str
+        zip_code: int
+    '''
     road_id: int
     road_name: str
-    street_n: Union[int, Tuple[int, int]]  # si es un rang guarda el rang
+    street_n: Union[int, Tuple[int, int]]
     nb_id: int  # Id del barri
     nb_name: str  # nom del barri
     dist_id: int
@@ -30,12 +44,22 @@ class Adress:
 
 @dataclass
 class Restaurant:
+    '''
+        Class used to store restaurants
+
+        Attributes
+        ----------
+        id: int
+        name: str
+        adress: Adress
+        tlf: str
+        coords: Tuple[float,float]
+    '''
     id: int
     name: str
     adress: Adress
     tlf: str
     coords: Tuple[float, float]
-    # Usat a la cerca (POTSER??)
 
     def __eq__(self, other) -> bool:
         return self.id == other.id
@@ -50,12 +74,24 @@ Operand: TypeAlias = Optional[Union[str, Restaurants]]
 
 def create_restaurant(row) -> Optional[Restaurant]:
     """Creates a restaurant from a row of the read data, returns None if the
-    restaurant data is invalid"""
+    restaurant data is invalid
+
+    Parameters
+    ----------
+    row: row in a dataframe of containing restaurant data
+
+    Returns
+    -------
+    Optional[Restaurant]
+        If possible Restaurant created from row data, else None 
+    """
+
     if math.isnan(row['addresses_start_street_number']):
         if 'Notícia' in row['name']:
-            return None  # no es un restaurant
+            return None  # It is not a restaurant
         row['addresses_start_street_number'] = -1
-
+    # We create an Adress, taking a different approach depending on the
+    # data available.
     adress = Adress(int(row['addresses_road_id']),
                     str(row['addresses_road_name']),
                     int(row['addresses_start_street_number']),
@@ -75,26 +111,37 @@ def create_restaurant(row) -> Optional[Restaurant]:
 
 
 def read() -> Restaurants:
-    """Reads the open data and returns a list of all restaurants in barcelona """
-    # https://raw.githubusercontent.com/jordi-petit/ap2-metro-nyam-2022/main/data/restaurants.csv")
-    rest_data = pd.read_csv("data/restaurants.csv")
+    """Reads data from the open data restaurants.csv file the and returns a list with all the valid Restaurants"""
+    rest_data = pd.read_csv("data/restaurants.csv",
+                            delimiter=",", encoding='latin-1')
     rest_lst: Restaurants = []
     for index, row in rest_data.iterrows():
         if not rest_lst or row['register_id'] != rest_lst[-1].id:
             res: Optional[Restaurant] = create_restaurant(row)
             if res is not None:
                 rest_lst.append(res)
-    return rest_lst  # mirar lo de los acentos en nombres
+    return rest_lst
 
 
-def interesting(query: str, res: Restaurant) -> bool:
-    """returns if the restaurant is interesting according to the query"""
-    # comenzamos con búsqueda básica, a mejorar más adelante
-    query = normalize_str(query)
-    terms = [res.name, res.adress.nb_name,
-             res.adress.dist_name, res.adress.road_name]
-    for t in terms:
-        if len(find_near_matches(query, normalize_str(t), max_l_dist=MAX_L)) > 0:
+def is_interesting(query: str, res: Restaurant) -> bool:
+    """
+    Returns whether a restaurant is interesting according to the query
+
+    Parameters
+    ----------
+    query:str
+    res: Restaurant
+
+    Returns
+    -------
+    bool
+    """
+
+    query = normalize_str(query)  # We normalize the query to improve results
+    terms_of_interest = [res.name, res.adress.nb_name,
+                         res.adress.dist_name, res.adress.road_name]
+    for t in terms_of_interest:
+        if len(find_near_matches(query, normalize_str(t), max_l_dist=MAX_L, max_deletions=MAX_DEL)) > 0:
             return True
     return False
 
@@ -117,7 +164,7 @@ def search_in_rests(query: str, restaurants: Restaurants) -> Restaurants:
     Given a query and a list of restaurants returns a list of the restaurants which are "interesting"
     according to the query
     '''
-    return [restaurant for restaurant in restaurants if interesting(query, restaurant)]
+    return [restaurant for restaurant in restaurants if is_interesting(query, restaurant)]
 
 
 def is_operator(expression: str) -> bool:
@@ -205,6 +252,7 @@ def yelp_info(rst: Restaurant) -> Dict[str, str]:
                 return info_rst[0]
     except Exception as e:
         print("Error al realizar la request a l'API de YELP")
+        return None
 
 
 def main(query):
