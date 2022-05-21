@@ -223,7 +223,8 @@ def print_path(update, context):
 @ time_function
 def guide(update, context):
     t1 = time.time()
-    file = "%d.png" % random.randint(1000000, 9999999)
+    # flags = context.args
+    # file = "%d.png" % random.randint(1000000, 9999999)
     user: User = context.user_data['user']
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords

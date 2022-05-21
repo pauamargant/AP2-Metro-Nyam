@@ -10,7 +10,7 @@ import pandas as pd  # type: ignore
 from constants import *
 
 
-RESTAURANT_FILE = "data/restaurants.csv"
+RESTAURANT_FILE = "restaurants.csv"
 # Informació extra api YELP
 api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
 headers = {'Authorization': 'Bearer %s' % api_key}

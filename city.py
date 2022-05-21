@@ -245,8 +245,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
     path_txt = f"🔵 La teva ubicació\n"
     i, n = 1, len(p)
     street_types = ['street', 'Street', 'access']
-    # for x in zip(p, p[1:]):
-    #     print(g.edges[x])
+    for x in zip(p, p[1:]):
+        print(g.edges[x]['type'])
     while i < n:
         edge = g.edges[p[i-1], p[i]]
         dist, t = 0, 0
@@ -264,8 +264,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
             now += timedelta(seconds=t)
             dist, t = 0, 0
 
+        fst_edge, stops = edge, 0
         if edge['type'] == 'line':
-            fst_edge, stops = edge, 0
             path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció {edge['line_dest']}\n"
             while edge['type'] == 'line':
                 dist += edge['distance']
@@ -344,8 +344,8 @@ def main():
     g2 = metro.get_metro_graph()
     g1 = get_osmnx_graph()
     city = build_city_graph(g1, g2)
-    orig = (41.388606, 2.112741)
-    dest = (41.413816960390676, 2.1814567039217905)
+    orig = (41.388492, 2.113043)
+    dest = (41.3733898465379, 2.136240845303527)
     t1 = time.time()
     p: Path = find_path(g1, city, orig, dest)
     # print(path_stats(city, p, orig, dest))
@@ -354,8 +354,9 @@ def main():
     # # plot_path(city, p, "path.png",  orig, dest)
     # plot(city, 'cityTest.png')
     # print(time.time()-t1)
+    plot_path(city, p, 'borrame.png', orig, dest)
     print(path_txt(city, p, orig, dest))
 
 
-# if __name__ == "__main__":
-#     # main()
+if __name__ == "__main__":
+    main()

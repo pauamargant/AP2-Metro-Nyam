@@ -12,7 +12,7 @@ from haversine import haversine, Unit
 from constants import *
 
 STATION_FILE: str = "estacions.csv"
-ACCESS_FILE:str = "eaccessos.csv"
+ACCESS_FILE: str = "accessos.csv"
 
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
@@ -229,8 +229,9 @@ def get_metro_graph() -> MetroGraph:
             Metro, access.code, access.station_id)
         acc_travel_time = distance / \
             WALKING_SPEED if access.accessibility == "Accessible" else INF
-        Metro.add_edge(access.code, access.station_id, type="access", distance=distance,
-                       travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
+        for i in line_transfers[access.group_code]:
+            Metro.add_edge(access.code, i, type="access", distance=distance,
+                           travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
     # We connect stations which are in the same station group but are of a different line
 
     # PODEM FERHO MILLOR??????????????????????????????????????
