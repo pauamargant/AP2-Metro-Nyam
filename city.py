@@ -11,7 +11,7 @@ from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
-from datetime import datetime
+from datetime import datetime, timedelta
 from haversine import haversine, Unit
 from constants import *
 
@@ -227,13 +227,65 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
 #     acc_nodes = [n for n,v in G.nodes(data=True) if v['Accessible'] == 'Accessible']
 
 
-def print_path(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
+def time_txt(t: float) -> str:
+    """generates a text with the correct format from the time in seconds"""
+    t = round(t/60)  # en minuts
+    return f"{t} min" if t <= 60 else f"{t//60} h {t%60} min"
+
+
+def dist_txt(dist: float) -> str:
+    """generates a text with the correct format from the distance in meters"""
+    dist = round(dist)
+    return f"{dist} m" if dist < 1000 else f"{dist//1000} km {dist%1000} m"
+
+
+def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
     """generates a text of the resumed path"""
-    now = datetime.now().strftime(" % H: % M")
-    path_txt = f"{now}: 🔵 La teva ubicació\n"
-    i: int = 0
-    while i < len(p):
-        pass
+    now = datetime.now()
+    path_txt = f"🔵 La teva ubicació\n"
+    i, n = 1, len(p)
+    street_types = ['street', 'Street', 'access']
+    # for x in zip(p, p[1:]):
+    #     print(g.edges[x])
+    while i < n:
+        edge = g.edges[p[i-1], p[i]]
+        dist, t = 0, 0
+        if edge['type'] in street_types:
+            while edge['type'] in street_types:
+                dist += edge['distance']
+                t += edge['travel_time']
+
+                i += 1
+                if i >= n:
+                    break
+                edge = g.edges[p[i-1], p[i]]
+            # we update the message
+            path_txt += f"🚶‍ {now.strftime('%H:%M')} | Camina {time_txt(t)} ({dist_txt(dist)})\n"
+            now += timedelta(seconds=t)
+            dist, t = 0, 0
+
+        if edge['type'] == 'line':
+            fst_edge, stops = edge, 0
+            path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció {edge['line_dest']}\n"
+            while edge['type'] == 'line':
+                dist += edge['distance']
+                t += edge['travel_time']
+                i += 1
+                stops += 1
+                if i >= n:
+                    break
+                edge = g.edges[p[i-1], p[i]]
+            # we update the message
+            now += timedelta(seconds=t)
+            path_txt += f"🚊 Espera't {stops} parades ({time_txt(t)}) i baixa't a {g.nodes[p[i-1]]['name']}\n"
+
+        if edge['type'] == 'transfer':
+            i += 1
+            edge = g.edges[p[i-1], p[i]]
+            path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
+            now += timedelta(seconds=edge['travel_time'])
+
+    return path_txt + f"📍 {now.strftime('%H:%M')}"
 
     # for pos in p:
     #     if(g.nodes[pos]['type'] == 'station'):
@@ -302,7 +354,7 @@ def main():
     # # plot_path(city, p, "path.png",  orig, dest)
     # plot(city, 'cityTest.png')
     # print(time.time()-t1)
-    print_path(city, p)
+    print(path_txt(city, p, orig, dest))
 
 
 if __name__ == "__main__":

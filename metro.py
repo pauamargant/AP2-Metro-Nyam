@@ -197,8 +197,7 @@ def get_metro_graph() -> MetroGraph:
         # We create the station node
         Metro.add_node(station.id, pos=station.position, type="station",
                        name=station.name, accessibility=station.accessibility,
-                       line=station.line_id, line_name=station.line_name,
-                       line_dest=station.line_dest)
+                       line=station.line_id, line_name=station.line_name,)
         # We create a ghost station and connect it to the "main" one
         # ES BONA IDEA??
 
@@ -212,7 +211,7 @@ def get_metro_graph() -> MetroGraph:
             Metro.add_edge(prev_id, station.id, type="line",
                            line_name=station.line_name,
                            line_colour=station.line_colour,
-                           distance=distance,
+                           distance=distance, line_dest=station.line_dest,
                            travel_time=distance/SUBWAY_SPEED)
         prev_id, prev_line = station.id, station.line_id
 
