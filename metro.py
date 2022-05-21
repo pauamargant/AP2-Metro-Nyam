@@ -11,6 +11,9 @@ from typing_extensions import TypeAlias
 from haversine import haversine, Unit
 from constants import *
 
+STATION_FILE: str = "estacions.csv"
+ACCESS_FILE:str = "eaccessos.csv"
+
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
 
@@ -103,7 +106,7 @@ def read_stations() -> Stations:
     Reads all the stations from the estations.csv file and returns a list of Stations
     '''
     # AL FINAL CANVIAR DE ON SE AGAFA?
-    stations_df = pd.read_csv("data/estacions.csv")
+    stations_df = pd.read_csv(STATION_FILE)
     station_list: Stations = []
     for index, row in stations_df.iterrows():
         station_list.append(create_station(row))
@@ -135,7 +138,7 @@ def read_accesses() -> Accesses:
     Reads all the accesses in the file ###NOM### and returns a list of Accesses.
     '''
     # amb encoding "latin1" els accents surten malament
-    accesses_df = pd.read_csv("data/accessos.csv")
+    accesses_df = pd.read_csv(ACCESS_FILE)
     access_list: Accesses = []
     for index, row in accesses_df.iterrows():
 
