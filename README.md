@@ -25,8 +25,10 @@ The bot offers the following commands
 - `/info <number>` show additional information about a restaurant, specifying the number which is showed in the results when using `/find`.
 - `/guide <number>` show a map and information of the shortest path from your location to the specified restaurant. Use the number which appears next to the restaurant in the last usage of `/find <query>`. The bot must have received your location.
 
-In order for the bot to work you must send your location.
 #### Search queries
+Search queries can be composed of multiples words such as "Pizzeria Sants". The `/find` command will find restaurants which are a result to all the words in the query.
+
+On the other hand, logican expressions can also be used. The supported operators are `and`, `or` and `not`. Queries have the format `/find and(frankfurt,and(Pedralbes,not(Sants)))`.
 
 ## Deployment
 Fa falta?
