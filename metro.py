@@ -31,7 +31,7 @@ class Station:
     line_order: int
     line_colour: str
     line_dest: str
-    accessibility: str
+    accessibility: int
     position: Coord
     # list of the ids of the stations connected in the same line
     connections: List[int]
@@ -127,7 +127,7 @@ def create_access(row: pd.Series) -> Access:
     '''
     try:
         return Access(row["CODI_ACCES"], row["NOM_ACCES"], row["ID_ESTACIO"], row["NOM_ESTACIO"], row["CODI_GRUP_ESTACIO"],
-                      row["NOM_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]))
+                      row["ID_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]))
     except Exception:
         print("access row has the wrong format or is incomplete")
 
@@ -163,7 +163,7 @@ def get_metro_graph() -> MetroGraph:
     '''
     Reads station and access data from STATION_FILE and ACCESS_FILE and creates a graph with the
     following characteristics:
-    -Stations and accesses are nodes in the graph. 
+    -Stations and accesses are nodes in the graph.
     -There is and edge between each access and its corresponding station
     -Subway lines are represented as edges between contiguous stations in the line.
     -Stations of the same group but different line are connected by an edge.
@@ -207,12 +207,12 @@ def get_metro_graph() -> MetroGraph:
         #                type="ghost_edge", travel_time=SUBWAY_WAITING)
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
-            distance: float = line_distance(Metro, prev_id, station.id)
+            distance: float = line_distance(Metro, prev_id, station.d)
             Metro.add_edge(prev_id, station.id, type="line",
                            line_name=station.line_name,
                            line_colour=station.line_colour,
                            distance=distance, line_dest=station.line_dest,
-                           travel_time=distance/SUBWAY_SPEED)
+                           travel_time=distance/SUBWAY_SPEED, acc_travel_time=distance/SUBWAY_SPEED)
         prev_id, prev_line = station.id, station.line_id
 
         # If we have previously read a station in the same group we append the current
@@ -224,31 +224,35 @@ def get_metro_graph() -> MetroGraph:
 
     # We add the nodes corresponding to the accesses and connect each access with its station
     for access in access_list:
-        Metro.add_node(access.code, pos=access.position, type="access")
+        Metro.add_node(access.code, pos=access.position, station=access.station_name,
+                       accessibility=access.accessibility, type="access")
         distance: float = walking_metro_distance(
             Metro, access.code, access.station_id)
-        acc_travel_time = distance / \
-            WALKING_SPEED if access.accessibility == "Accessible" else INF
-        Metro.add_edge(access.code, access.station_id, type="access",
-                       distance=walking_metro_distance(Metro, access.code, access.station_id))
+
+        if (Metro.nodes[access.code]["accessibility"] == 1 and Metro.nodes[access.station_id]["accessibility"] == 1):
+            acc_travel_time = distance/WALKING_SPEED
+        else:
+            acc_travel_time = INF
+        Metro.add_edge(access.code, access.station_id, type="access", distance=distance,
+                       travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
+        # TO BE REMOVED?
         # for i in line_transfers[access.group_code]:
         #     Metro.add_edge(access.code, i, type="access", distance=distance,
         #                    travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
-    # We connect stations which are in the same station group but are of a different line
 
-    # PODEM FERHO MILLOR??????????????????????????????????????
+    # We connect stations which are in the same station group but are of a different line
     for item in line_transfers.items():
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
                     distance: float = walking_metro_distance(
                         Metro, i1, i2)
-                    if (Metro.nodes[i1]["accessibility"] == "Accessible" and Metro.nodes[i2]["accessibility"] == "Accessible"):
+                    if (Metro.nodes[i1]["accessibility"] == 1 and Metro.nodes[i2]["accessibility"] == 1):
                         acc_travel_time = distance/WALKING_SPEED
                     else:
                         acc_travel_time = INF
                     Metro.add_edge(
-                        i1, i2, type="transfer", distance=distance, travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
+                        i1, i2, type="transfer", line_name=Metro.nodes[i2]["line_name"], distance=distance, travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
 
     return Metro
 
@@ -266,8 +270,11 @@ def plot(g: MetroGraph, filename: str) -> None:
     for edge in g.edges:
         map.add_line(
             Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], 'blue', 3))
-    image = map.render()
-    image.save(filename)
+    try:
+        image = map.render()
+        image.save(filename)
+    except Exception as error:
+        print("Could not render or save image".format(error))
 
 
 def show(g: MetroGraph) -> None:
@@ -275,7 +282,10 @@ def show(g: MetroGraph) -> None:
     Given a MetroGraph g plots it interactively
     '''
     positions: Dict[int, Coord] = nx.get_node_attributes(g, "pos")
-    nx.draw(g, pos=positions, font_size=10,
-            node_color="blue",
-            node_size=50,)
-    plt.show()
+    try:
+        nx.draw(g, pos=positions, font_size=10,
+                node_color="blue",
+                node_size=50,)
+        plt.show()
+    except Exception as error:
+        print("Could not show interactive plot".format(error))

@@ -30,6 +30,7 @@ except IOError:
     sys.exit()
 
 # INICIALITZACIÓ:
+print("Initializing bot\n ----------------")
 t1 = time.time()
 metro_graph: metro.MetroGraph = metro.get_metro_graph()
 print('get_metro_graph time:', time.time() - t1)
@@ -54,7 +55,7 @@ class User:
     location: Coord
     current_search: restaurants.Restaurants
     name: str
-    disabled: bool
+    accessibility: bool = False
 
 
 def exception_handler(func):
@@ -172,7 +173,7 @@ def where(update, context):
     context.user_data['user'].location = (lat, lon)
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text='Updated location 📍')
+        text='Localització actualitzada 📍')
 
 
 @ exception_handler

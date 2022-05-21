@@ -53,7 +53,7 @@ def get_osmnx_graph() -> OsmnxGraph:
                     graph.nodes[node]["x"], graph.nodes[node]["y"])
                 graph.nodes[node]["type"] = "street_intersection"
 
-            graph.remove_edges_from(nx.selfloop_edges(graph))
+            # graph.remove_edges_from(nx.selfloop_edges(graph))
 
             for edge in graph.edges:
                 distance = haversine(graph.nodes[edge[0]]["pos"],
@@ -200,8 +200,11 @@ def plot(g: MetroGraph, filename: str) -> None:
         n0, n1 = g.nodes[edge[0]], g.nodes[edge[1]]
         map.add_line(Line([n0['pos'], n1['pos']],
                      colorEdges[edge[2]['type']], 2))
-    image = map.render()
-    image.save(filename)
+    try:
+        image = map.render()
+        image.save(filename)
+    except Exception as error:
+        print("Could not render or save image".format(error))
 
 
 def edge_color(g: CityGraph, n1: NodeID, n2: NodeID) -> str:
@@ -231,14 +234,11 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
 
         map.add_marker(CircleMarker(g.nodes[p[0]]['pos'], 'blue', 10))
         map.add_marker(CircleMarker(g.nodes[p[-1]]['pos'], 'red', 10))
-
-    image = map.render()
-    image.save(filename)
-
-# def build_accessible_city(g: CityGraph)->CityGraph:
-#     #PROBLEMES DE SHALLOW COPY?
-#     g_acc: CityGraph = nx.Graph()
-#     acc_nodes = [n for n,v in G.nodes(data=True) if v['Accessible'] == 'Accessible']
+    try:
+        image = map.render()
+        image.save(filename)
+    except Exception as error:
+        print("Could not render or save image".format(error))
 
 
 def time_txt(t: float) -> str:
@@ -307,14 +307,13 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
 
 
 def path_stats(g: CityGraph, p: Path, src: Coord, dst: Coord):
-    '''Return stats of the path, such as walking time, subway time, etc'''
+    '''Return stats of the path: walking time and subway time'''
     walk_time = 0
     walk_distance = 0
     subway_time = 0
     subway_distance = 0
     if not p:
         return 0, 0
-    # per alguna raó les coordenades del graph estan al reves
     src = (src[1], src[0])
     dst = (dst[1], dst[0])
     walk_distance += haversine(src, g.nodes[p[0]]["pos"], unit="m")
@@ -331,18 +330,7 @@ def path_stats(g: CityGraph, p: Path, src: Coord, dst: Coord):
 
 
 def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float, int]:
-    '''Returns time and distance for a path'''
-    # if not p:
-    #     return 0, 0
-    # # per alguna raó les coordenades del graph estan al reves
-    # src = (src[1], src[0])
-    # dst = (dst[1], dst[0])
-    # dist = haversine(src, g.nodes[p[0]]["pos"], unit="m")
-    # time = dist/WALKING_SPEED
-    # for id0, id1 in zip(p, p[1:]):
-    #     dist += g.edges[(id0, id1)]["distance"]
-    #     time += g.edges[(id0, id1)]["travel_time"]
-    # return time,dist
+    '''Returns to total time and distance for a path'''
     wt, wd, st, sd = path_stats(g, p, src, dst)
     return wt+st, wd+sd
 
