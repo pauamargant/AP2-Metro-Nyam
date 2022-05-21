@@ -229,9 +229,11 @@ def get_metro_graph() -> MetroGraph:
             Metro, access.code, access.station_id)
         acc_travel_time = distance / \
             WALKING_SPEED if access.accessibility == "Accessible" else INF
-        for i in line_transfers[access.group_code]:
-            Metro.add_edge(access.code, i, type="access", distance=distance,
-                           travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
+        Metro.add_edge(access.code, access.station_id, type="access",
+                       distance=walking_metro_distance(Metro, access.code, access.station_id))
+        # for i in line_transfers[access.group_code]:
+        #     Metro.add_edge(access.code, i, type="access", distance=distance,
+        #                    travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
     # We connect stations which are in the same station group but are of a different line
 
     # PODEM FERHO MILLOR??????????????????????????????????????
