@@ -207,7 +207,7 @@ def get_metro_graph() -> MetroGraph:
         #                type="ghost_edge", travel_time=SUBWAY_WAITING)
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
-            distance: float = line_distance(Metro, prev_id, station.d)
+            distance: float = line_distance(Metro, prev_id, station.id)
             Metro.add_edge(prev_id, station.id, type="line",
                            line_name=station.line_name,
                            line_colour=station.line_colour,

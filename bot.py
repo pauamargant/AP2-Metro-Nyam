@@ -230,7 +230,7 @@ def guide(update, context):
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
-    Path = city.find_path(city_osmnx, city_graph, src, dst, user.disabled)
+    Path = city.find_path(city_osmnx, city_graph, src, dst, user.accessibility)
     print("path trobat")
     print(time.time()-t1)
     city.plot_path(city_graph, Path, file, src, dst)
