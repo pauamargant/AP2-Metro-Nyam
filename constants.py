@@ -3,7 +3,7 @@ SIZE_Y: int = 1500
 HD_SIZE_X: int = 2500
 HD_SIZE_Y: int = 2500
 WALKING_SPEED: float = 1.42  # m/s
-SUBWAY_SPEED: float = 7.22222222  # m/s
+SUBWAY_SPEED: float = 8.61111111  # m/s | 7.22222222
 TRANSFER_COLOR = 'orange'
 STREET_COLOR = 'black'
 ACCESS_COLOR = 'grey'
@@ -18,3 +18,5 @@ INF = 2147483647  # maximo de un int de 8 bits, quizás es más eficiente de car
 # amb pes temps d'espera i que sigui la ghost station la connectada a la linia demetro
 
 SUBWAY_WAITING = 60  # segons
+# tiempo de transfers, temporal, lo podemos remplazar por lo de las ghost stations
+TRANSFER_TIME = 10

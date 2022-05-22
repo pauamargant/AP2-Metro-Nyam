@@ -150,15 +150,8 @@ def read_accesses() -> Accesses:
 
 
 def line_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
-    d: float = haversine(g.nodes[orig_id]["pos"],
-                         g.nodes[dest_id]["pos"], unit="m")
-    return d
-
-
-def walking_metro_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
-    d: float = haversine(g.nodes[orig_id]["pos"],
-                         g.nodes[dest_id]["pos"], unit="m")
-    return d
+    return haversine(g.nodes[orig_id]["pos"],
+                     g.nodes[dest_id]["pos"], unit="m")
 
 
 def accessible_time(Metro: MetroGraph, orig_id: int, dest_id: int, distance: float) -> float:
@@ -168,8 +161,7 @@ def accessible_time(Metro: MetroGraph, orig_id: int, dest_id: int, distance: flo
     '''
     if(Metro.nodes[orig_id]["accessibility"] == 1 and Metro.nodes[dest_id]["accessibility"] == 1):
         return distance/SUBWAY_SPEED
-    else:
-        return INF
+    return INF
 
 
 def get_metro_graph() -> MetroGraph:
@@ -242,7 +234,7 @@ def get_metro_graph() -> MetroGraph:
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, station=access.station_name,
                        accessibility=access.accessibility, type="access")
-        distance: float = walking_metro_distance(
+        distance: float = line_distance(
             Metro, access.code, access.station_id)
 
         Metro.add_edge(access.code, access.station_id, type="access", distance=distance, travel_time=distance/WALKING_SPEED,
@@ -253,11 +245,12 @@ def get_metro_graph() -> MetroGraph:
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
-                    distance: float = walking_metro_distance(
+                    distance: float = line_distance(
                         Metro, i1, i2)
                     Metro.add_edge(
                         i1, i2, type="transfer", line_name=Metro.nodes[i2]["line_name"], distance=distance,
-                        travel_time=distance/WALKING_SPEED, acc_travel_time=accessible_time(Metro, i1, i2, distance))
+                        travel_time=distance/WALKING_SPEED + TRANSFER_TIME,
+                        acc_travel_time=accessible_time(Metro, i1, i2, distance) + TRANSFER_TIME)
 
     return Metro
 
