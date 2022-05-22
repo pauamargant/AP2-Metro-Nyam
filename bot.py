@@ -1,4 +1,5 @@
 # importa l'API de Telegram
+from bdb import effective
 from dataclasses import dataclass
 import sys
 import os
@@ -211,9 +212,18 @@ def info(update, context):
     assert 0 <= num < len(
         search), f"/info ha de tenir com argument un enter entre 0 i {len(search)-1} 😬"
     restaurant = context.user_data['user'].current_search[num]
+
+    # We try to find more information
+    additional_info = restaurants.yelp_info(restaurant)
+    print("additional info:")
+    print(additional_info)
     message = f"Nom: {restaurant.name}\nAdreça: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nBarri: {restaurant.adress.nb_name}\nDistricte: {restaurant.adress.dist_name}\nTelèfon: {restaurant.tlf}"
-    context.bot.send_message(
-        chat_id=update.effective_chat.id, text=message)
+    if additional_info is not None:
+        context.bot.send_photo(
+            chat_id=update.effective_chat.id, photo=additional_info["image_url"], caption=message)
+    else:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id, text=message)
 
 
 def print_path(update, context):
@@ -248,7 +258,7 @@ def guide(update, context):
     w_time_txt, w_dist_txt = city.time_txt(w_time), city.dist_txt(w_dist)
     s_time_txt, s_dist_txt = city.time_txt(s_time), city.dist_txt(s_dist)
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text=f"El temps total estimat és de {time_txt}\nDistancia: {dist_txt}\n El temps caminat estimat és de {w_time_txt}\nDistancia: {w_dist_txt}\n El temps en metro estimat és de {s_time_txt}\nDistancia: {s_dist_txt}")
+        chat_id=update.effective_chat.id, text=f"Temps total {time_txt} i distància {dist_txt}")
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,

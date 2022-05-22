@@ -274,14 +274,14 @@ def find(query: str, rsts: Restaurants) -> Optional[Restaurants]:
         return stack[0]
 
 
-def yelp_info(rst: Restaurant) -> Dict[str, str]:
+def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
     '''
         If possible find information about a restaurant using the Yelp API
         (OPTIONAL FEATURE)    
     '''
     try:
         params = {'term': rst.name,
-                  'location': 'Barcelona'}
+                  'location': "barcelona"}
         req = requests.get(url, params=params, headers=headers)
         print('Request made with code {}'.format(req.status_code))
         if(req.status_code == 200):
@@ -289,8 +289,9 @@ def yelp_info(rst: Restaurant) -> Dict[str, str]:
             info_rst = parsed["businesses"]
             if len(info_rst) > 0:
                 return info_rst[0]
+            return None
     except Exception as e:
-        print("Error al realizar la request a l'API de YELP")
+        print("Error al realizar la request a l'API de YELP".format(e))
         return None
 
 

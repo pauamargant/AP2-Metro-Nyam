@@ -159,6 +159,17 @@ def walking_metro_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
     return d
 
 
+def accessible_time(Metro: MetroGraph, orig_id: int, dest_id: int, distance: float) -> float:
+    '''
+        Given a graph, two station/access nodes and a distance returns the travel time if both stations are accessible,
+        if either of them is not accessible returns INF.
+    '''
+    if(Metro.nodes[orig_id]["accessibility"] == 1 and Metro.nodes[dest_id]["accessibility"] == 1):
+        return distance/SUBWAY_SPEED
+    else:
+        return INF
+
+
 def get_metro_graph() -> MetroGraph:
     '''
     Reads station and access data from STATION_FILE and ACCESS_FILE and creates a graph with the
@@ -229,16 +240,8 @@ def get_metro_graph() -> MetroGraph:
         distance: float = walking_metro_distance(
             Metro, access.code, access.station_id)
 
-        if (Metro.nodes[access.code]["accessibility"] == 1 and Metro.nodes[access.station_id]["accessibility"] == 1):
-            acc_travel_time = distance/WALKING_SPEED
-        else:
-            acc_travel_time = INF
-        Metro.add_edge(access.code, access.station_id, type="access", distance=distance,
-                       travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
-        # TO BE REMOVED?
-        # for i in line_transfers[access.group_code]:
-        #     Metro.add_edge(access.code, i, type="access", distance=distance,
-        #                    travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
+        Metro.add_edge(access.code, access.station_id, type="access", distance=distance, travel_time=distance/WALKING_SPEED,
+                       acc_travel_time=accessible_time(Metro, access.code, access.station_id, distance))
 
     # We connect stations which are in the same station group but are of a different line
     for item in line_transfers.items():
@@ -247,12 +250,9 @@ def get_metro_graph() -> MetroGraph:
                 if(i1 != i2):
                     distance: float = walking_metro_distance(
                         Metro, i1, i2)
-                    if (Metro.nodes[i1]["accessibility"] == 1 and Metro.nodes[i2]["accessibility"] == 1):
-                        acc_travel_time = distance/WALKING_SPEED
-                    else:
-                        acc_travel_time = INF
                     Metro.add_edge(
-                        i1, i2, type="transfer", line_name=Metro.nodes[i2]["line_name"], distance=distance, travel_time=distance/WALKING_SPEED, acc_travel_time=acc_travel_time)
+                        i1, i2, type="transfer", line_name=Metro.nodes[i2]["line_name"], distance=distance,
+                        travel_time=distance/WALKING_SPEED, acc_travel_time=accessible_time(Metro, i1, i2, distance))
 
     return Metro
 
