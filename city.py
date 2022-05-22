@@ -259,8 +259,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
     path_txt = f"🔵 La teva ubicació\n"
     i, n = 1, len(p)
     street_types = ['street', 'Street', 'access']
-    for x in zip(p, p[1:]):
-        print(g.edges[x]['type'])
+    # for x in zip(p, p[1:]):
+    #     print(g.edges[x]['type'])
     while i < n:
         edge = g.edges[p[i-1], p[i]]
         dist, t = 0, 0
@@ -280,7 +280,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
 
         fst_edge, stops = edge, 0
         if edge['type'] == 'line':
-            path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció {edge['line_dest']}\n"
+            path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció "
+            path_txt += f"{edge['line_dest' if edge['orientation'] == (p[i-1], p[i]) else 'line_orig']}\n"
             while edge['type'] == 'line':
                 dist += edge['distance']
                 t += edge['travel_time']
@@ -296,7 +297,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
         if edge['type'] == 'transfer':
             i += 1
             edge = g.edges[p[i-1], p[i]]
-            path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
+            if fst_edge['line_name'] != edge['line_name']:
+                path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
             now += timedelta(seconds=edge['travel_time'])
 
     return path_txt + f"📍 {now.strftime('%H:%M')}"

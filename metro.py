@@ -26,10 +26,11 @@ class Station:
     id: int
     group_code: int
     name: str
-    line_name: str
+    line_name: str  # POTSER ESTARIA BE FER UNA CLASE LINEA SI NO ES MASSA TREBALL?
     line_id: int
     line_order: int
     line_colour: str
+    line_orig: str
     line_dest: str
     accessibility: int
     position: Coord
@@ -95,7 +96,8 @@ def create_station(row: pd.Series) -> Station:
         return Station(row["CODI_ESTACIO"], row["CODI_GRUP_ESTACIO"],
                        row["NOM_ESTACIO"], row["NOM_LINIA"], row["ID_LINIA"],
                        row["ORDRE_LINIA"], row["COLOR_LINIA"],
-                       row["DESTI_SERVEI"], row["NOM_TIPUS_ACCESSIBILITAT"],
+                       row["ORIGEN_SERVEI"], row["DESTI_SERVEI"],
+                       row["NOM_TIPUS_ACCESSIBILITAT"],
                        string_to_point(row["GEOMETRY"]), [], [], [])
     except Exception:
         print("station row has the wrong format or incomplete data")
@@ -222,8 +224,11 @@ def get_metro_graph() -> MetroGraph:
             Metro.add_edge(prev_id, station.id, type="line",
                            line_name=station.line_name,
                            line_colour=station.line_colour,
-                           distance=distance, line_dest=station.line_dest,
-                           travel_time=distance/SUBWAY_SPEED, acc_travel_time=distance/SUBWAY_SPEED)
+                           distance=distance, line_orig=station.line_orig,
+                           line_dest=station.line_dest,
+                           orientation=(prev_id, station.id),
+                           travel_time=distance/SUBWAY_SPEED,
+                           acc_travel_time=distance/SUBWAY_SPEED)
         prev_id, prev_line = station.id, station.line_id
 
         # If we have previously read a station in the same group we append the current
