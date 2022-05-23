@@ -205,6 +205,20 @@ def find(update, context):
 
 
 @ exception_handler
+@time_function
+def accessibility(update, context):
+    old_acc: bool = context.user_data['user'].accessibility
+    context.user_data['user'].accessibility = not old_acc
+    if not old_acc:
+        print("Accessibility enabled")
+        message = "Accessibilitat activada"
+    else:
+        print("Accessibility disabled")
+        message = "Accessiblitat desactivada"
+    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+
+
+@ exception_handler
 @ time_function
 def info(update, context):
     search = context.user_data['user'].current_search
@@ -226,8 +240,8 @@ def info(update, context):
             chat_id=update.effective_chat.id, text=message)
 
 
-def print_path(update, context):
-    pass  # en proceso de poner algo
+# def print_path(update, context):
+    # pass  # en proceso de poner algo
 
 
 @ exception_handler
@@ -290,8 +304,8 @@ def main():
     dispatcher.add_handler(CommandHandler('find', find))
     dispatcher.add_handler(CommandHandler('info', info))
     dispatcher.add_handler(CommandHandler('guide', guide))
+    dispatcher.add_handler(CommandHandler('accessibilitat', accessibility))
     dispatcher.add_handler(CommandHandler('default', default_location))
-
     # engega el bot
     updater.start_polling()
     updater.idle()

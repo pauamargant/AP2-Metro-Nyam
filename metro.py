@@ -97,7 +97,7 @@ def create_station(row: pd.Series) -> Station:
                        row["NOM_ESTACIO"], row["NOM_LINIA"], row["ID_LINIA"],
                        row["ORDRE_LINIA"], row["COLOR_LINIA"],
                        row["ORIGEN_SERVEI"], row["DESTI_SERVEI"],
-                       row["NOM_TIPUS_ACCESSIBILITAT"],
+                       row["ID_TIPUS_ACCESSIBILITAT"],
                        string_to_point(row["GEOMETRY"]), [], [], [])
     except Exception:
         print("station row has the wrong format or incomplete data")
@@ -161,6 +161,7 @@ def accessible_time(Metro: MetroGraph, orig_id: int, dest_id: int, distance: flo
     '''
     if(Metro.nodes[orig_id]["accessibility"] == 1 and Metro.nodes[dest_id]["accessibility"] == 1):
         return distance/SUBWAY_SPEED
+    print("algo va mal")
     return INF
 
 
