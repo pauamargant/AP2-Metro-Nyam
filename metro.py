@@ -161,7 +161,6 @@ def accessible_time(Metro: MetroGraph, orig_id: int, dest_id: int, distance: flo
     '''
     if(Metro.nodes[orig_id]["accessibility"] == 1 and Metro.nodes[dest_id]["accessibility"] == 1):
         return distance/SUBWAY_SPEED
-    print("algo va mal")
     return INF
 
 
