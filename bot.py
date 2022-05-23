@@ -250,9 +250,9 @@ def guide(update, context):
     t1 = time.time()
     # flags = context.args
     file = "%d.png" % random.randint(1000000, 9999999)
-    assert 0 <= context.args[0] < len(
-        user.current_search), f"/info ha de tenir com argument un enter entre 0 i {len(user.current_search)-1} 😬"
     user: User = context.user_data['user']
+    assert 0 <= int(context.args[0]) < len(
+        user.current_search), f"/info ha de tenir com argument un enter entre 0 i {len(user.current_search)-1} 😬"
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
