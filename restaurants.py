@@ -295,6 +295,16 @@ def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
         return None
 
 
+def info_message(rst: Restaurant, additional_info: Optional[Dict[str, str]]) -> str:
+    message: str = f"Nom: {rst.name}\nAdreça: {rst.adress.road_name}, nº{rst.adress.street_n}\nBarri: {rst.adress.nb_name}\nDistricte: {rst.adress.dist_name}\nTelèfon: {rst.tlf}"
+    if additional_info is not None:
+        if additional_info["rating"] is not None:
+            message += f"\n Valoració {additional_info['rating']}"
+        if additional_info["price"] is not None:
+            message += f"\n Preu {additional_info['price']}"
+    return message
+
+
 def main(query):
     lst = read()
     x = find(query, lst)

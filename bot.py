@@ -231,8 +231,11 @@ def info(update, context):
     additional_info = restaurants.yelp_info(restaurant)
     print("additional info:")
     print(additional_info)
+    message = restaurants.info_message(restaurant, additional_info)
     message = f"Nom: {restaurant.name}\nAdreça: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nBarri: {restaurant.adress.nb_name}\nDistricte: {restaurant.adress.dist_name}\nTelèfon: {restaurant.tlf}"
     if additional_info is not None:
+        if additional_info["rating"] is not None:
+            message += f"\n Valoració {additional_info['rating']}"
         context.bot.send_photo(
             chat_id=update.effective_chat.id, photo=additional_info["image_url"], caption=message)
     else:
