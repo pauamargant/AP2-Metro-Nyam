@@ -69,11 +69,11 @@ def exception_handler(func):
         except KeyError as e:
             print('KeyError:', e)
             if e.args[0] == "user":
-                register_user(update, context)
-                func(*args)
-                # context.bot.send_message(
-                #     chat_id=update.effective_chat.id,
-                #     text='Unexisting user, you need to be registered to use the bot\nUse command /start to register')
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text='Unexisting user, you need to be registered to use the bot\nUse command /start to register')
+                # register_user(update, context)
+                # func(*args)
             else:
                 print(traceback.format_exc())
 
@@ -135,8 +135,8 @@ def register_user(update, context) -> User:
     return context.user_data["user"]
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def start(update, context):
     if not "user" in context.user_data:
         register_user(update, context)
@@ -146,8 +146,8 @@ def start(update, context):
         text=f"Hola {current_user.name} 🖖, benvingut a Nyam Bot\nUtilitza /help per veure totes les comandes disponibles :)")
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def help(update, context):
     help_msg = ""
     if not context.args:
@@ -167,8 +167,8 @@ def author(update, context):
     )
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def where(update, context):
     lat, lon = update.message.location.latitude, update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
@@ -177,8 +177,8 @@ def where(update, context):
         text='Localització actualitzada 📍')
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def plot_metro(update, context):
     file = "%d.png" % random.randint(1000000, 9999999)
     metro.plot(metro_graph, file)
@@ -188,8 +188,8 @@ def plot_metro(update, context):
     os.remove(file)
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def find(update, context):
     query = update.message.text[6:]
     assert query, '/find ha de tenir al menys un argument 🤨'
@@ -218,8 +218,8 @@ def accessibility(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def info(update, context):
     search = context.user_data['user'].current_search
     num = int(context.args[0])
@@ -244,12 +244,14 @@ def info(update, context):
     # pass  # en proceso de poner algo
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def guide(update, context):
     t1 = time.time()
     # flags = context.args
     file = "%d.png" % random.randint(1000000, 9999999)
+    assert 0 <= context.args[0] < len(
+        user.current_search), f"/info ha de tenir com argument un enter entre 0 i {len(user.current_search)-1} 😬"
     user: User = context.user_data['user']
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
@@ -281,8 +283,8 @@ def guide(update, context):
     print("enviat")
 
 
-@ exception_handler
 @ time_function
+@ exception_handler
 def default_location(update, context):
     """localización de la uni, función de debugging"""
     context.user_data['user'].location = (41.388492, 2.113043)
