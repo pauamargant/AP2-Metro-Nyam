@@ -174,8 +174,10 @@ def is_operator(expression: str) -> bool:
     Given a string checks if it's a valid operator. 
     The following operators are accepted: "and","or","not"
     '''
-    expression_dict = {"and": True, "or": True, "not": True}
-    return expression_dict.get(expression, False)
+    if isinstance(expression, str):
+        expression_dict = {"and": True, "or": True, "not": True}
+        return expression_dict.get(expression, False)
+    return False
 
 
 def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, operand_2: Operand) -> Restaurants:
@@ -215,12 +217,22 @@ def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, ope
     return []
 
 
-def multiword_search(query_list, rst) -> Restaurants:
+def rec_search(query, rsts):
+    current = query[0]
+    query = query[1:]
+    if is_operator(current):
+        return rec_search((query, rsts), rec_search(query, rsts))
+    return multiword_search(current, rsts)
+
+
+def multiword_search(query, rst) -> Restaurants:
     '''
         Given a list of queries, performs the intersection of the results of 
         all the queries.
     '''
+    query_list = query.split()
     results: Restaurants = rst
+    print(query_list)
     for q in query_list:
         results = list(set(results).intersection(search_in_rsts(q, rst)))
     return results
@@ -243,37 +255,38 @@ def find(query: str, rsts: Restaurants) -> Optional[Restaurants]:
     '''
     # We first eliminate divide the query in operands and operators
     list_of_query: List[str] = [
-        op for op in re.split('[,)(]', query) if op != ""]
+        op for op in re.split('[,)()]', query) if op != ""]
+    return rec_search(list_of_query, rsts)
     # We check whether the query has any operator and whether it's a set of words separated by spaces.
     # If it has no operators it is interpeted as "and" between the words in the query
 
     # We performs the operations. As the operators are in preorder, we
     # traverse the list of query in reverse order
 
-    if(len(list_of_query) == 1):
-        return multiword_search(list_of_query[0].split(), rsts)
+    # if(len(list_of_query) == 1):
+    #     return multiword_search(list_of_query[0].split(), rsts)
 
-    stack: List[Operand] = []
-    operand_1: Operand
-    operand_2: Operand
+    # stack: List[Operand] = []
+    # operand_1: Operand
+    # operand_2: Operand
 
-    for w in reversed(list_of_query):
-        # If it's an operator we operate the last two elements in the stack
-        if is_operator(w):
-            if w == "not":
-                operand_1, operand_2 = stack.pop(), None
-            else:
-                operand_1, operand_2 = stack.pop(), stack.pop()
-            stack.append(perform_operation(
-                rsts, w, operand_1, operand_2))
-        # If it is an operand we add it to the stack
-        else:
-            stack.append(w)
+    # for w in reversed(list_of_query):
+    #     # If it's an operator we operate the last two elements in the stack
+    #     if is_operator(w):
+    #         if w == "not":
+    #             operand_1, operand_2 = stack.pop(), None
+    #         else:
+    #             operand_1, operand_2 = stack.pop(), stack.pop()
+    #         stack.append(perform_operation(
+    #             rsts, w, operand_1, operand_2))
+    #     # If it is an operand we add it to the stack
+    #     else:
+    #         stack.append(w)
 
-    if isinstance(stack[0], str):
-        return search_in_rsts(stack[0], rsts)
-    else:
-        return stack[0]
+    # if isinstance(stack[0], str):
+    #     return search_in_rsts(stack[0], rsts)
+    # else:
+    #     return stack[0]
 
 
 def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
