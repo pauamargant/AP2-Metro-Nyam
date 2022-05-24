@@ -243,18 +243,20 @@ def find(query: str, rsts: Restaurants) -> Optional[Restaurants]:
     '''
     # We first eliminate divide the query in operands and operators
     list_of_query: List[str] = [
-        op for op in re.split('[,)()]', query) if op != ""]
+        op for op in re.split('[,)(]', query) if op != ""]
     # We check whether the query has any operator and whether it's a set of words separated by spaces.
     # If it has no operators it is interpeted as "and" between the words in the query
+
+    # We performs the operations. As the operators are in preorder, we
+    # traverse the list of query in reverse order
 
     if(len(list_of_query) == 1):
         return multiword_search(list_of_query[0].split(), rsts)
 
-    # We performs the operations. As the operators are in preorder, we
-    # traverse the list of query in reverse order
     stack: List[Operand] = []
     operand_1: Operand
     operand_2: Operand
+
     for w in reversed(list_of_query):
         # If it's an operator we operate the last two elements in the stack
         if is_operator(w):

@@ -200,9 +200,13 @@ def get_metro_graph() -> MetroGraph:
 
     for station in station_list[1:]:
         # We create the station node
-        Metro.add_node(station.id, pos=station.position, type="station",
+        id = station.id
+        if Metro.has_node(id):
+            id = -id
+        Metro.add_node(id, pos=station.position, type="station",
                        name=station.name, accessibility=station.accessibility,
                        line=station.line_id, line_name=station.line_name,)
+
         # We create a ghost station and connect it to the "main" one
         # ES BONA IDEA??
 
@@ -212,23 +216,23 @@ def get_metro_graph() -> MetroGraph:
         #                type="ghost_edge", travel_time=SUBWAY_WAITING)
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
-            distance: float = line_distance(Metro, prev_id, station.id)
-            Metro.add_edge(prev_id, station.id, type="line",
+            distance: float = line_distance(Metro, prev_id, id)
+            Metro.add_edge(prev_id, id, type="line",
                            line_name=station.line_name,
                            line_colour=station.line_colour,
                            distance=distance, line_orig=station.line_orig,
                            line_dest=station.line_dest,
-                           orientation=(prev_id, station.id),
+                           orientation=(prev_id, id),
                            travel_time=distance/SUBWAY_SPEED,
                            acc_travel_time=distance/SUBWAY_SPEED)
-        prev_id, prev_line = station.id, station.line_id
+        prev_id, prev_line = id, station.line_id
 
         # If we have previously read a station in the same group we append the current
         # station id to the list of transfers. Otherwise we create a new entry in the dict
         if line_transfers.get(station.group_code) is None:
-            line_transfers[station.group_code] = [station.id]
+            line_transfers[station.group_code] = [id]
         else:
-            line_transfers[station.group_code].append(station.id)
+            line_transfers[station.group_code].append(id)
 
     # We add the nodes corresponding to the accesses and connect each access with its station
     for access in access_list:

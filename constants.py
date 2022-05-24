@@ -8,6 +8,9 @@ TRANSFER_COLOR = 'orange'
 STREET_COLOR = 'black'
 ACCESS_COLOR = 'grey'
 
+ID_OFFSET = 1000000
+
+
 PADDING = 50
 MAX_L = 1
 MAX_DEL = 5
