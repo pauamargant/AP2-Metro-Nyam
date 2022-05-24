@@ -220,8 +220,12 @@ def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, ope
 def rec_search(query, rsts):
     current = query[0]
     query = query[1:]
-    if is_operator(current):
-        return rec_search((query, rsts), rec_search(query, rsts))
+    if current == "and":
+        return list(set(rec_search(query, rsts)).intersection(rec_search(query, rsts)))
+    if current == "or":
+        return list(set(rec_search(query, rsts)).union(rec_search(query, rsts)))
+    if current == "not":
+        return list(set(rsts) - set(rec_search(query, rsts)))
     return multiword_search(current, rsts)
 
 
@@ -232,7 +236,6 @@ def multiword_search(query, rst) -> Restaurants:
     '''
     query_list = query.split()
     results: Restaurants = rst
-    print(query_list)
     for q in query_list:
         results = list(set(results).intersection(search_in_rsts(q, rst)))
     return results
@@ -331,5 +334,7 @@ def main(query):
 
 def test(query):
     lst = read()
-    for r in search_in_rsts(query, lst):
-        print(r.name)
+    print([res.name for res in find(query, lst)])
+
+
+# test("and(pizza,or(pedralbes, not(sants)))")
