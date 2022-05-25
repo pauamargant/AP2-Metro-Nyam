@@ -218,8 +218,7 @@ def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, ope
 
 
 def rec_search(query, rsts):
-    current = query[0]
-    query = query[1:]
+    current = query.pop(0)
     if current == "and":
         return list(set(rec_search(query, rsts)).intersection(rec_search(query, rsts)))
     if current == "or":
