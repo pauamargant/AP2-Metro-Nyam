@@ -1,7 +1,7 @@
 import json
 import requests  # type: ignore
 from dataclasses import dataclass
-from typing import Optional, List, Tuple, Dict, Union
+from typing import Optional, List, Tuple, Dict, Union, Set
 from typing_extensions import TypeAlias
 import math
 import re
@@ -73,7 +73,7 @@ Restaurants: TypeAlias = List[Restaurant]
 Operand: TypeAlias = Optional[Union[str, Restaurants]]
 
 
-def create_restaurant(row) -> Optional[Restaurant]:
+def create_restaurant(row: pd.Series) -> Optional[Restaurant]:
     """Creates a restaurant from a row of the read data, returns None if the
     restaurant data is invalid
 
@@ -217,18 +217,18 @@ def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, ope
     return []
 
 
-def rec_search(query, rsts):
+def rec_search(query: List[str], rsts: Set[Restaurants]) -> Set[Restaurant]:
     current = query.pop(0)
     if current == "and":
-        return list(set(rec_search(query, rsts)).intersection(rec_search(query, rsts)))
+        return rec_search(query, rsts).intersection(rec_search(query, rsts))
     if current == "or":
-        return list(set(rec_search(query, rsts)).union(rec_search(query, rsts)))
+        return rec_search(query, rsts).union(rec_search(query, rsts))
     if current == "not":
-        return list(set(rsts) - set(rec_search(query, rsts)))
-    return multiword_search(current, rsts)
+        return rsts - rec_search(query, rsts)
+    return set(multiword_search(current, rsts))
 
 
-def multiword_search(query, rst) -> Restaurants:
+def multiword_search(query: str, rst: Restaurants) -> Restaurants:
     '''
         Given a list of queries, performs the intersection of the results of 
         all the queries.
@@ -255,40 +255,11 @@ def find(query: str, rsts: Restaurants) -> Optional[Restaurants]:
     Optional[Restaurants]
 
     '''
+
     # We first eliminate divide the query in operands and operators
     list_of_query: List[str] = [
         op for op in re.split('[,)()]', query) if op != ""]
-    return rec_search(list_of_query, rsts)
-    # We check whether the query has any operator and whether it's a set of words separated by spaces.
-    # If it has no operators it is interpeted as "and" between the words in the query
-
-    # We performs the operations. As the operators are in preorder, we
-    # traverse the list of query in reverse order
-
-    # if(len(list_of_query) == 1):
-    #     return multiword_search(list_of_query[0].split(), rsts)
-
-    # stack: List[Operand] = []
-    # operand_1: Operand
-    # operand_2: Operand
-
-    # for w in reversed(list_of_query):
-    #     # If it's an operator we operate the last two elements in the stack
-    #     if is_operator(w):
-    #         if w == "not":
-    #             operand_1, operand_2 = stack.pop(), None
-    #         else:
-    #             operand_1, operand_2 = stack.pop(), stack.pop()
-    #         stack.append(perform_operation(
-    #             rsts, w, operand_1, operand_2))
-    #     # If it is an operand we add it to the stack
-    #     else:
-    #         stack.append(w)
-
-    # if isinstance(stack[0], str):
-    #     return search_in_rsts(stack[0], rsts)
-    # else:
-    #     return stack[0]
+    return list(rec_search(list_of_query, set(rsts)))
 
 
 def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
@@ -312,13 +283,17 @@ def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
         return None
 
 
-def info_message(rst: Restaurant, additional_info: Optional[Dict[str, str]]) -> str:
-    message: str = f"Nom: {rst.name}\nAdreça: {rst.adress.road_name}, nº{rst.adress.street_n}\nBarri: {rst.adress.nb_name}\nDistricte: {rst.adress.dist_name}\nTelèfon: {rst.tlf}"
-    if additional_info is not None:
-        if additional_info["rating"] is not None:
-            message += f"\n Valoració {additional_info['rating']}"
-        if additional_info["price"] is not None:
-            message += f"\n Preu {additional_info['price']}"
+def info_message(rst: Restaurant, extra_info: Optional[Dict[str, str]]) -> str:
+    message: str = f"""Nom: {rst.name}
+    Adreça: {rst.adress.road_name}, nº{rst.adress.street_n}
+    Barri: {rst.adress.nb_name}
+    Districte: {rst.adress.dist_name}
+    Telèfon: {rst.tlf}"""
+    if extra_info is not None:
+        if extra_info.get("rating") is not None:
+            message += f"\nValoració {extra_info['rating']}"
+        if extra_info.get("price") is not None:
+            message += f"\nPreu {extra_info['price']}"
     return message
 
 
@@ -336,4 +311,4 @@ def test(query):
     print([res.name for res in find(query, lst)])
 
 
-# test("and(pizza,or(pedralbes, not(sants)))")
+# test("and(pizza,and(pedralbes,and(girona,and(sants,and(sushi, a)))))")
