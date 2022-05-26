@@ -1,3 +1,4 @@
+from ctypes.wintypes import HLOCAL
 import json
 import requests  # type: ignore
 from dataclasses import dataclass
@@ -11,11 +12,25 @@ from constants import *
 
 
 RESTAURANT_FILE = "restaurants.csv"
-# Informació extra api YELP
+
+
+#   ************************
+#   Additional Functionality
+#   ************************
+#   Without using any external package (only requests which is already) required
+#   by the osmnx package, we use the Yelp (an online restaurant rating platform) and its
+#   API to obtain additional information about restaurants when using /info in the bot.
+#   Not all restaurants can be found in Yelp, therefore if no information is found we use
+#   the information from opendata barcelona.
+
 api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
 headers = {'Authorization': 'Bearer %s' % api_key}
 url = 'https://api.yelp.com/v3/businesses/search'
 
+
+#   *****************
+#   Class definitions
+#   *****************
 
 @dataclass
 class Adress:
@@ -73,6 +88,29 @@ Restaurants: TypeAlias = List[Restaurant]
 Operand: TypeAlias = Optional[Union[str, Restaurants]]
 
 
+def read() -> Restaurants:
+    """
+    Reads data from the open data RESTAURANT_FILE file the and returns a list with all the valid Restaurants
+    We assume that the restaurant file has the expected format and structure 
+    Returns
+    -------
+    Restaurants
+
+    """
+    try:
+        rest_data = pd.read_csv(
+            RESTAURANT_FILE, delimiter=",", encoding='latin-1')
+        rest_lst: Restaurants = []
+        for index, row in rest_data.iterrows():
+            if not rest_lst or row['register_id'] != rest_lst[-1].id:
+                res: Optional[Restaurant] = create_restaurant(row)
+                if res is not None:
+                    rest_lst.append(res)
+        return rest_lst
+    except Exception as e:
+        print("Could not read restaurants from file".format(e))
+
+
 def create_restaurant(row: pd.Series) -> Optional[Restaurant]:
     """Creates a restaurant from a row of the read data, returns None if the
     restaurant data is invalid
@@ -86,43 +124,98 @@ def create_restaurant(row: pd.Series) -> Optional[Restaurant]:
     Optional[Restaurant]
         If possible Restaurant created from row data, else None 
     """
+    try:
+        if math.isnan(row['addresses_start_street_number']):
+            if 'Notícia' in row['name']:
+                return None  # It is not a restaurant
+            row['addresses_start_street_number'] = -1
 
-    if math.isnan(row['addresses_start_street_number']):
-        if 'Notícia' in row['name']:
-            return None  # It is not a restaurant
-        row['addresses_start_street_number'] = -1
-    # We create an Adress, taking a different approach depending on the
-    # data available.
-    adress = Adress(int(row['addresses_road_id']),
-                    str(row['addresses_road_name']),
-                    int(row['addresses_start_street_number']),
-                    int(row['addresses_neighborhood_id']),
-                    str(row['addresses_neighborhood_name']),
-                    int(row['addresses_district_id']),
-                    str(row['addresses_district_name']),
-                    int(row['addresses_zip_code']))
-    if not math.isnan(row['addresses_end_street_number']):
-        adress.street_n = (int(row['addresses_start_street_number']),
-                           int(row['addresses_end_street_number']))
-    return Restaurant(int(row['register_id'][1:]),
-                      str(row['name']),
-                      adress,
-                      str(row['values_value']),
-                      (float(row['geo_epgs_4326_x']), float(row['geo_epgs_4326_y'])))
+        # We create an Adress, taking a different approach depending on the
+        # data available.
+        adress = Adress(int(row['addresses_road_id']),
+                        str(row['addresses_road_name']),
+                        int(row['addresses_start_street_number']),
+                        int(row['addresses_neighborhood_id']),
+                        str(row['addresses_neighborhood_name']),
+                        int(row['addresses_district_id']),
+                        str(row['addresses_district_name']),
+                        int(row['addresses_zip_code']))
+        if not math.isnan(row['addresses_end_street_number']):
+            adress.street_n = (int(row['addresses_start_street_number']),
+                               int(row['addresses_end_street_number']))
+        return Restaurant(int(row['register_id'][1:]),
+                          str(row['name']),
+                          adress,
+                          str(row['values_value']),
+                          (float(row['geo_epgs_4326_x']), float(row['geo_epgs_4326_y'])))
+    except Exception as e:
+        print("Could not create restaurant. Check format of row data".format(e))
 
 
-def read() -> Restaurants:
-    """
-    Reads data from the open data restaurants.csv file the and returns a list with all the valid Restaurants
-    """
-    rest_data = pd.read_csv(RESTAURANT_FILE, delimiter=",", encoding='latin-1')
-    rest_lst: Restaurants = []
-    for index, row in rest_data.iterrows():
-        if not rest_lst or row['register_id'] != rest_lst[-1].id:
-            res: Optional[Restaurant] = create_restaurant(row)
-            if res is not None:
-                rest_lst.append(res)
-    return rest_lst
+def find(query: str, rsts: Restaurants) -> Optional[Restaurants]:
+    '''
+    Searchs restaurants based on a query which is an expression in a set algebra.
+    If the query is a set of words separated by spaces, it is interpreted as ands.
+
+    Parameters
+    ----------
+    query: str
+    rsts: Restaurants
+
+    Returns
+    -------
+    Optional[Restaurants]
+
+    '''
+
+    # We first eliminate divide the query in operands and operators
+    list_of_query: List[str] = [
+        op for op in re.split('[,)()]', query) if op != ""]
+    return list(rec_search(list_of_query, set(rsts)))
+
+
+def rec_search(query: List[str], rsts: Set[Restaurants]) -> Set[Restaurant]:
+    current = query.pop(0)
+    if current == "and":
+        return rec_search(query, rsts).intersection(rec_search(query, rsts))
+    if current == "or":
+        return rec_search(query, rsts).union(rec_search(query, rsts))
+    if current == "not":
+        return rsts - rec_search(query, rsts)
+    return set(multiword_search(current, rsts))
+
+
+def is_operator(expression: str) -> bool:
+    '''
+    Given a string checks if it's a valid operator. 
+    The following operators are accepted: "and","or","not"
+    '''
+    if isinstance(expression, str):
+        expression_dict = {"and": True, "or": True, "not": True}
+        return expression_dict.get(expression, False)
+    return False
+
+
+def multiword_search(query: str, rst: Restaurants) -> Optional[Restaurants]:
+    '''
+
+        Parameters
+        ----------
+        query:str
+        rst: Restaurants
+            Set of restaurants in which to perform the search
+
+        Returns
+        -------
+        Optional[Restaurants]
+            List of restaurants which match the query. None if
+            no restaurants match the query.
+    '''
+    query_list = query.split()
+    results: Restaurants = rst
+    for q in query_list:
+        results = list(set(results).intersection(search_in_rsts(q, rst)))
+    return results
 
 
 def is_interesting(query: str, res: Restaurant) -> bool:
@@ -148,6 +241,14 @@ def is_interesting(query: str, res: Restaurant) -> bool:
     return False
 
 
+def search_in_rsts(query: str, restaurants: Restaurants) -> Restaurants:
+    '''
+    Given a query and a list of restaurants returns a list of the restaurants which are "interesting"
+    according to the query
+    '''
+    return [restaurant for restaurant in restaurants if is_interesting(query, restaurant)]
+
+
 def normalize_str(string):
     '''
     Normalizes a string
@@ -159,107 +260,6 @@ def normalize_str(string):
                  'ú': 'u', 'ü': 'u',
                  }
     return string.lower().translate(str.maketrans(normalMap))
-
-
-def search_in_rsts(query: str, restaurants: Restaurants) -> Restaurants:
-    '''
-    Given a query and a list of restaurants returns a list of the restaurants which are "interesting"
-    according to the query
-    '''
-    return [restaurant for restaurant in restaurants if is_interesting(query, restaurant)]
-
-
-def is_operator(expression: str) -> bool:
-    '''
-    Given a string checks if it's a valid operator. 
-    The following operators are accepted: "and","or","not"
-    '''
-    if isinstance(expression, str):
-        expression_dict = {"and": True, "or": True, "not": True}
-        return expression_dict.get(expression, False)
-    return False
-
-
-def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, operand_2: Operand) -> Restaurants:
-    '''
-        Given an operator and one/two operands performs the operation on the opperand/s.
-        Given an operator, if it's either "or" or "and" it performs the operation between the two
-        operands. If it's "not" only one operand is needed.
-
-        Operations are performed between lists of restaurants. If an operand is a string (a query) then
-        it is replaced with the according list of restaurants. 
-        The "not" operation is defined as the complement of the operand in set of all restaurants.
-
-        Parameters
-        ----------
-        rests: Restaurants
-        operator: str
-        operand_1: Operand
-        operand_2: Operand
-
-        Returns
-        -------
-        Restaurants
-    '''
-
-    # The operands can be either a query (string) or a list of restaurants. If it's a query, we solve it and s
-    # substitute it by the according list of restaurants
-    if (operand_1 and isinstance(operand_1, str)):
-        operand_1 = search_in_rsts(operand_1, rests)
-    if (operand_2 and isinstance(operand_2, str)):
-        operand_2 = search_in_rsts(operand_2, rests)
-    if operator == "and":
-        return list(set(operand_1).intersection(operand_2))
-    if operator == "or":
-        return list(set(operand_1).union(operand_2))
-    if operator == "not":
-        return list(set(rests) - set(operand_1))
-    return []
-
-
-def rec_search(query: List[str], rsts: Set[Restaurants]) -> Set[Restaurant]:
-    current = query.pop(0)
-    if current == "and":
-        return rec_search(query, rsts).intersection(rec_search(query, rsts))
-    if current == "or":
-        return rec_search(query, rsts).union(rec_search(query, rsts))
-    if current == "not":
-        return rsts - rec_search(query, rsts)
-    return set(multiword_search(current, rsts))
-
-
-def multiword_search(query: str, rst: Restaurants) -> Restaurants:
-    '''
-        Given a list of queries, performs the intersection of the results of 
-        all the queries.
-    '''
-    query_list = query.split()
-    results: Restaurants = rst
-    for q in query_list:
-        results = list(set(results).intersection(search_in_rsts(q, rst)))
-    return results
-
-
-def find(query: str, rsts: Restaurants) -> Optional[Restaurants]:
-    '''
-    Searchs restaurants based on a query which is an expression in a set algebra.
-    If the query is a set of words separated by spaces, it is interpreted as ands.
-
-    Parameters
-    ----------
-    query: str
-    rsts: Restaurants
-
-    Returns
-    -------
-    Optional[Restaurants]
-
-    '''
-
-    # We first eliminate divide the query in operands and operators
-    list_of_query: List[str] = [
-        op for op in re.split('[,)()]', query) if op != ""]
-    return list(rec_search(list_of_query, set(rsts)))
 
 
 def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
@@ -283,32 +283,33 @@ def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
         return None
 
 
-def info_message(rst: Restaurant, extra_info: Optional[Dict[str, str]]) -> str:
+def info_message(rst: Restaurant) -> Tuple[str, str]:
+    '''
+        Given a restaurant returns a string with formatted information about the restaurant.
+        If possible tries to find additional informations.
+
+        Parameters
+        ----------
+        rst: Restaurant
+
+        Returns
+        -------
+        str
+            Formatted string with information
+        str
+            Image url
+    '''
     message: str = f"""Nom: {rst.name}
     Adreça: {rst.adress.road_name}, nº{rst.adress.street_n}
     Barri: {rst.adress.nb_name}
     Districte: {rst.adress.dist_name}
     Telèfon: {rst.tlf}"""
+
+    extra_info: Optional[Dict[str, str]] = yelp_info(rst)
     if extra_info is not None:
         if extra_info.get("rating") is not None:
             message += f"\nValoració {extra_info['rating']}"
         if extra_info.get("price") is not None:
             message += f"\nPreu {extra_info['price']}"
-    return message
 
-
-def main(query):
-    lst = read()
-    x = find(query, lst)
-    for res in x:
-        print(res.name)
-    rst = x[0]
-    print(yelp_info(rst))
-
-
-def test(query):
-    lst = read()
-    print([res.name for res in find(query, lst)])
-
-
-# test("and(pizza,and(pedralbes,and(girona,and(sants,and(sushi, a)))))")
+    return message, extra_info["image_url"]

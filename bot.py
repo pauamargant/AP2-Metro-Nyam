@@ -13,9 +13,12 @@ from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import traceback
 
+# We import the base modules
 import metro
 import city
 import restaurants
+
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -23,14 +26,18 @@ Coord: TypeAlias = Tuple[float, float]
 NodeID: TypeAlias = int
 Path: TypeAlias = List[NodeID]
 
-# declara una constant amb el access token que llegeix de token.txt
+
+# We import the token
 try:
     TOKEN = open('token.txt').read().strip()
 except IOError:
     print("Could not read the token.txt file")
     sys.exit()
 
-# INICIALITZACIÓ:
+#   **************
+#   INITIALIZATION
+#   **************
+
 print("Initializing bot\n ----------------")
 t1 = time.time()
 metro_graph: metro.MetroGraph = metro.get_metro_graph()
@@ -46,6 +53,7 @@ rest: restaurants.Restaurants = restaurants.read()
 print('restaurants.read time:', time.time() - t2)
 print('initialization time:', time.time() - t1)
 
+
 help_txt = {}
 with open('help_msg.txt', 'r') as msg:
     help_txt = {line.split()[0][1:].replace(':', ''): line for line in msg}
@@ -60,7 +68,7 @@ class User:
 
 
 def exception_handler(func):
-    """Decorator that handles the exceptions error for the bot functions"""
+    """Decorator that handles the exceptions exceptions of the bot functions"""
     def custom_exception(*args):
         update, context = args[0], args[1]
         try:
@@ -126,6 +134,7 @@ def time_function(func):
     return temp_func
 
 # ES MEJOR REGISTRAR AL USUARIO EN VEZ DE DAR ERROR?
+# PAU: JO CREC QUE SI
 
 
 def register_user(update, context) -> User:
@@ -138,6 +147,9 @@ def register_user(update, context) -> User:
 @ time_function
 @ exception_handler
 def start(update, context):
+    '''
+        Registers (if already registered) a new user and greets him
+    '''
     if not "user" in context.user_data:
         register_user(update, context)
     current_user = context.user_data["user"]
@@ -149,6 +161,9 @@ def start(update, context):
 @ time_function
 @ exception_handler
 def help(update, context):
+    '''
+        Sends help message to the user
+    '''
     help_msg = ""
     if not context.args:
         help_msg = "".join([line+'\n' for line in help_txt.values()])
@@ -162,14 +177,21 @@ def help(update, context):
 
 
 def author(update, context):
+    '''
+        Sends to the user information about the authors and project
+    '''
+    link: str = "<a href='https://github.com/pauamargant/AP2-Metro-Nyam/'>Github</a>"
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Autors: TEXT"
+        chat_id=update.effective_chat.id, text="Autors\n Joel Sole \n Pau Amargant \n Més informació a "+link
     )
 
 
 @ time_function
 @ exception_handler
-def where(update, context):
+def update_location(update, context):
+    '''
+        Saves user location or updates it if already saved
+    '''
     lat, lon = update.message.location.latitude, update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
     context.bot.send_message(
@@ -180,6 +202,9 @@ def where(update, context):
 @ time_function
 @ exception_handler
 def plot_metro(update, context):
+    '''
+        Send metro plot image to the user
+    '''
     file = "%d.png" % random.randint(1000000, 9999999)
     metro.plot(metro_graph, file)
     context.bot.send_photo(
@@ -191,6 +216,9 @@ def plot_metro(update, context):
 @ time_function
 @ exception_handler
 def find(update, context):
+    '''
+        Given a query sends to the user a list of up to 12 restaurants which match the query.
+    '''
     query = update.message.text[6:]
     assert query, '/find ha de tenir al menys un argument 🤨'
     print(query)
@@ -207,6 +235,10 @@ def find(update, context):
 @ exception_handler
 @time_function
 def accessibility(update, context):
+    '''
+        Toggles the accessibility option. If accessibility is enabled the bot will only
+        use subway stations and accesses which are accessible. 
+    '''
     old_acc: bool = context.user_data['user'].accessibility
     context.user_data['user'].accessibility = not old_acc
     if not old_acc:
@@ -221,35 +253,32 @@ def accessibility(update, context):
 @ time_function
 @ exception_handler
 def info(update, context):
+    '''
+        Sends additional information about a given restaurant. The user sends the command
+        with argument a number, which is expected to be a search result number in the results 
+        of a previous use of the /find command.
+    '''
     search = context.user_data['user'].current_search
     num = int(context.args[0])
     assert 0 <= num < len(
         search), f"/info ha de tenir com argument un enter entre 0 i {len(search)-1} 😬"
     restaurant = context.user_data['user'].current_search[num]
 
-    # We try to find more information
-    additional_info = restaurants.yelp_info(restaurant)
-    print("additional info:")
-    print(additional_info)
-    message = restaurants.info_message(restaurant, additional_info)
-    message = f"Nom: {restaurant.name}\nAdreça: {restaurant.adress.road_name}, nº{restaurant.adress.street_n}\nBarri: {restaurant.adress.nb_name}\nDistricte: {restaurant.adress.dist_name}\nTelèfon: {restaurant.tlf}"
-    if additional_info is not None:
-        if additional_info["rating"] is not None:
-            message += f"\n Valoració {additional_info['rating']}"
+    message,photo_url = restaurants.info_message(restaurant)
+    if photo is not None:
         context.bot.send_photo(
-            chat_id=update.effective_chat.id, photo=additional_info["image_url"], caption=message)
+            chat_id=update.effective_chat.id, photo=photo_url, caption=message)
     else:
         context.bot.send_message(
             chat_id=update.effective_chat.id, text=message)
 
 
-# def print_path(update, context):
-    # pass  # en proceso de poner algo
-
-
 @ time_function
 @ exception_handler
 def guide(update, context):
+    '''
+        Guides the user from its location to a restaurant. 
+    '''
     t1 = time.time()
     # flags = context.args
     file = "%d.png" % random.randint(1000000, 9999999)
@@ -304,13 +333,15 @@ def main():
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help))
     dispatcher.add_handler(CommandHandler('author', author))
-    dispatcher.add_handler(MessageHandler(Filters.location, where))
+    dispatcher.add_handler(MessageHandler(Filters.location, update_location))
     dispatcher.add_handler(CommandHandler('plot_metro', plot_metro))
     dispatcher.add_handler(CommandHandler('find', find))
     dispatcher.add_handler(CommandHandler('info', info))
     dispatcher.add_handler(CommandHandler('guide', guide))
     dispatcher.add_handler(CommandHandler('accessibilitat', accessibility))
     dispatcher.add_handler(CommandHandler('default', default_location))
+    dispatcher.add_handler(MessageHandler(Filters.command, help))
+
     # engega el bot
     updater.start_polling()
     updater.idle()
