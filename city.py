@@ -254,13 +254,24 @@ def dist_txt(dist: float) -> str:
 
 
 def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
-    """generates a text of the resumed path"""
+    '''
+        Given a CityGraph and a path
+
+        Parameters
+        ----------
+        g: CityGraph
+        p: Path
+        orig: Coord
+        dest: Coord
+
+        Returns
+        -------
+        A message of the resumed path (street and time)
+    '''
     now = datetime.now()
     path_txt = f"🔵 La teva ubicació\n"
     i, n = 1, len(p)
     street_types = ['street', 'Street', 'access']
-    # for x in zip(p, p[1:]):
-    #     print(g.edges[x]['type'])
     while i < n:
         edge = g.edges[p[i-1], p[i]]
         dist, t = 0, 0
