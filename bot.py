@@ -264,8 +264,8 @@ def info(update, context):
         search), f"/info ha de tenir com argument un enter entre 0 i {len(search)-1} 😬"
     restaurant = context.user_data['user'].current_search[num]
 
-    message,photo_url = restaurants.info_message(restaurant)
-    if photo is not None:
+    message, photo_url = restaurants.info_message(restaurant)
+    if photo_url is not None:
         context.bot.send_photo(
             chat_id=update.effective_chat.id, photo=photo_url, caption=message)
     else:

@@ -91,7 +91,7 @@ Operand: TypeAlias = Optional[Union[str, Restaurants]]
 def read() -> Restaurants:
     """
     Reads data from the open data RESTAURANT_FILE file the and returns a list with all the valid Restaurants
-    We assume that the restaurant file has the expected format and structure 
+    We assume that the restaurant file has the expected format and structure
     Returns
     -------
     Restaurants
@@ -122,7 +122,7 @@ def create_restaurant(row: pd.Series) -> Optional[Restaurant]:
     Returns
     -------
     Optional[Restaurant]
-        If possible Restaurant created from row data, else None 
+        If possible Restaurant created from row data, else None
     """
     try:
         if math.isnan(row['addresses_start_street_number']):
@@ -187,7 +187,7 @@ def rec_search(query: List[str], rsts: Set[Restaurants]) -> Set[Restaurant]:
 
 def is_operator(expression: str) -> bool:
     '''
-    Given a string checks if it's a valid operator. 
+    Given a string checks if it's a valid operator.
     The following operators are accepted: "and","or","not"
     '''
     if isinstance(expression, str):
@@ -265,7 +265,7 @@ def normalize_str(string):
 def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
     '''
         If possible find information about a restaurant using the Yelp API
-        (OPTIONAL FEATURE)    
+        (OPTIONAL FEATURE)
     '''
     try:
         params = {'term': rst.name,
@@ -299,11 +299,7 @@ def info_message(rst: Restaurant) -> Tuple[str, str]:
         str
             Image url
     '''
-    message: str = f"""Nom: {rst.name}
-    Adreça: {rst.adress.road_name}, nº{rst.adress.street_n}
-    Barri: {rst.adress.nb_name}
-    Districte: {rst.adress.dist_name}
-    Telèfon: {rst.tlf}"""
+    message = f"""Nom: {rst.name}\nAdreça: {rst.adress.road_name}, nº{rst.adress.street_n}\nBarri: {rst.adress.nb_name}\nDistricte: {rst.adress.dist_name}\nTelèfon: {rst.tlf}"""
 
     extra_info: Optional[Dict[str, str]] = yelp_info(rst)
     if extra_info is not None:
@@ -311,5 +307,5 @@ def info_message(rst: Restaurant) -> Tuple[str, str]:
             message += f"\nValoració {extra_info['rating']}"
         if extra_info.get("price") is not None:
             message += f"\nPreu {extra_info['price']}"
-
-    return message, extra_info["image_url"]
+        return message, extra_info["image_url"]
+    return message, None

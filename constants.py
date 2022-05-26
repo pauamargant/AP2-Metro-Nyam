@@ -11,7 +11,7 @@ ACCESS_COLOR = 'grey'
 ID_OFFSET = 1000000
 
 
-PADDING = 50
+PADDING = 10
 MAX_L = 1
 MAX_DEL = 5
 INF = 2147483647  # maximo de un int de 8 bits, quizás es más eficiente de cara a los cálculos
