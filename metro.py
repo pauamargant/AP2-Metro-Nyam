@@ -101,6 +101,7 @@ def create_station(row: pd.Series) -> Station:
                        string_to_point(row["GEOMETRY"]), [], [], [])
     except Exception:
         print("station row has the wrong format or incomplete data")
+        assert False  # a fer-ho millor
 
 
 def read_stations() -> Stations:
@@ -132,6 +133,7 @@ def create_access(row: pd.Series) -> Access:
                       row["ID_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]))
     except Exception:
         print("access row has the wrong format or is incomplete")
+        assert False
 
 
 def read_accesses() -> Accesses:
