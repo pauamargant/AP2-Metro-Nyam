@@ -299,15 +299,6 @@ def guide(update, context):
     os.remove(file)
     print('foto enviada:', time.time()-t1)
 
-    w_time, w_dist, s_time, s_dist = city.path_stats(
-        city_graph, Path, src, dst)
-    time_txt, dist_txt = city.time_txt(
-        w_time+s_time), city.dist_txt(w_dist+w_dist)
-    w_time_txt, w_dist_txt = city.time_txt(w_time), city.dist_txt(w_dist)
-    s_time_txt, s_dist_txt = city.time_txt(s_time), city.dist_txt(s_dist)
-    context.bot.send_message(
-        chat_id=update.effective_chat.id, text=f"Temps total {time_txt} i distància {dist_txt}")
-
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"{city.path_txt(city_graph, Path, src, dst)} | Ja has arribat a {user.current_search[int(context.args[0])].name}")

@@ -241,6 +241,30 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
         print("Could not render or save image".format(error))
 
 
+def time_dist_txt(g: CityGraph, p: Path, orig: Coord):
+    '''
+        Given a path and a citygraph calculates the time and distance of the path
+
+        Parameters
+        ----------
+        g: CityGraph
+        p: Path
+        orig: Coord
+
+        Returns
+        -------
+        text: str
+    '''
+    dist: float = haversine(
+        (orig[1], orig[0]), g.nodes[p[0]]["pos"], unit='m')
+    t: float = dist/WALKING_SPEED
+    for id1, id2 in zip(p, p[1:]):
+        dist += g.edges[(id1, id2)]['distance']
+        t += g.edges[(id1, id2)]['travel_time']
+
+    return f"⏳  Temps total {time_txt(t)}, distància {dist_txt(dist)}"
+
+
 def time_txt(t: float) -> str:
     """generates a text with the correct format from the time in seconds"""
     t = round(t/60)  # en minuts
@@ -268,84 +292,57 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
         -------
         A message of the resumed path (street and time)
     '''
-    now = datetime.now()
-    path_txt = f"🔵 La teva ubicació\n"
-    i, n = 1, len(p)
-    street_types = ['street', 'Street', 'access']
-    while i < n:
-        edge = g.edges[p[i-1], p[i]]
-        dist, t = 0, 0
-        if edge['type'] in street_types:
-            while edge['type'] in street_types:
-                dist += edge['distance']
-                t += edge['travel_time']
-
-                i += 1
-                if i >= n:
-                    break
-                edge = g.edges[p[i-1], p[i]]
-            # we update the message
-            path_txt += f"🚶‍ {now.strftime('%H:%M')} | Camina {time_txt(t)} ({dist_txt(dist)})\n"
-            now += timedelta(seconds=t)
-            dist, t = 0, 0
-
-        fst_edge, stops = edge, 0
-        if edge['type'] == 'line':
-            path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció "
-            path_txt += f"{edge['line_dest' if edge['orientation'] == (p[i-1], p[i]) else 'line_orig']}\n"
-            while edge['type'] == 'line':
-                dist += edge['distance']
-                t += edge['travel_time']
-                i += 1
-                stops += 1
-                if i >= n:
-                    break
-                edge = g.edges[p[i-1], p[i]]
-            # we update the message
-            now += timedelta(seconds=t)
-            path_txt += f"🚊 Espera't {stops} parades ({time_txt(t)}) i baixa't a {g.nodes[p[i-1]]['name']}\n"
-
-        if edge['type'] == 'transfer':
-            i += 1
+    try:
+        now = datetime.now()
+        path_txt: str = f"{time_dist_txt(g, p, orig)}\n"
+        path_txt += f"🔵 La teva ubicació\n"
+        i, n = 1, len(p)
+        street_types = ['street', 'Street', 'access']
+        while i < n:
             edge = g.edges[p[i-1], p[i]]
-            if fst_edge['line_name'] != edge['line_name']:
-                path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
-            now += timedelta(seconds=edge['travel_time'])
+            dist, t = 0, 0
+            if edge['type'] in street_types:
+                while edge['type'] in street_types:
+                    dist += edge['distance']
+                    t += edge['travel_time']
 
-    return path_txt + f"📍 {now.strftime('%H:%M')}"
+                    i += 1
+                    if i >= n:
+                        break
+                    edge = g.edges[p[i-1], p[i]]
+                # we update the message
+                path_txt += f"🚶‍ {now.strftime('%H:%M')} | Camina {time_txt(t)} ({dist_txt(dist)})\n"
+                now += timedelta(seconds=t)
+                dist, t = 0, 0
 
-    # for pos in p:
-    #     if(g.nodes[pos]['type'] == 'station'):
-    #         print(g.nodes[pos])
+            fst_edge, stops = edge, 0
+            if edge['type'] == 'line':
+                path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció "
+                path_txt += f"{edge['line_dest' if edge['orientation'] == (p[i-1], p[i]) else 'line_orig']}\n"
+                while edge['type'] == 'line':
+                    dist += edge['distance']
+                    t += edge['travel_time']
+                    i += 1
+                    stops += 1
+                    if i >= n:
+                        break
+                    edge = g.edges[p[i-1], p[i]]
+                # we update the message
+                now += timedelta(seconds=t)
+                path_txt += f"🚊 Espera't {stops} parades ({time_txt(t)}) i baixa't a {g.nodes[p[i-1]]['name']}\n"
 
+            if edge['type'] == 'transfer':
+                i += 1
+                edge = g.edges[p[i-1], p[i]]
+                if fst_edge['line_name'] != edge['line_name']:
+                    path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
+                now += timedelta(seconds=edge['travel_time'])
 
-def path_stats(g: CityGraph, p: Path, src: Coord, dst: Coord):
-    '''Return stats of the path: walking time and subway time'''
-    walk_time = 0
-    walk_distance = 0
-    subway_time = 0
-    subway_distance = 0
-    if not p:
-        return 0, 0
-    src = (src[1], src[0])
-    dst = (dst[1], dst[0])
-    walk_distance += haversine(src, g.nodes[p[0]]["pos"], unit="m")
-    walk_time = walk_distance/WALKING_SPEED
-    for id0, id1 in zip(p, p[1:]):
-        if g.edges[(id0, id1)]["type"] in ("street", "access", "transfer"):
-            walk_distance += g.edges[(id0, id1)]["distance"]
-            walk_time += g.edges[(id0, id1)]["travel_time"]
-        else:
-            subway_distance += g.edges[(id0, id1)]["distance"]
-            subway_time += g.edges[(id0, id1)]["travel_time"]
-
-    return walk_time, walk_distance, subway_time, subway_distance
-
-
-def path_time_dist(g: CityGraph, p: Path, src: Coord, dst: Coord) -> Tuple[float, int]:
-    '''Returns to total time and distance for a path'''
-    wt, wd, st, sd = path_stats(g, p, src, dst)
-    return wt+st, wd+sd
+        return path_txt + f"📍 {now.strftime('%H:%M')}"
+    except Exception as e:
+        print(e)
+        print("Could not create elaborate message, returning simple path message")
+        return time_dist_txt(g, p, orig)
 
 
 def show(g: CityGraph) -> None:
