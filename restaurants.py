@@ -285,8 +285,9 @@ def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
 
 
 def info_message(rst: Restaurant) -> Tuple[str, Optional[str]]:
-    '''
-        Given a restaurant returns a string with formatted information about the restaurant.
+    ''' 
+        Given a restaurant returns a string with formatted
+        information about the restaurant.
         If possible tries to find additional informations.
 
         Parameters
@@ -299,6 +300,7 @@ def info_message(rst: Restaurant) -> Tuple[str, Optional[str]]:
             Formatted string with information
         str
             Image url or None if the url is unexisting
+
     '''
     message = f"""Nom: {rst.name}\nAdreça: {rst.adress.road_name}, nº{rst.adress.street_n}\nBarri: {rst.adress.nb_name}\nDistricte: {rst.adress.dist_name}\nTelèfon: {rst.tlf}"""
 
@@ -310,3 +312,13 @@ def info_message(rst: Restaurant) -> Tuple[str, Optional[str]]:
             message += f"\nPreu {extra_info['price']}"
         return message, extra_info["image_url"]
     return message, None
+
+
+def test(q):
+    r = read()
+    x = find(q, r)
+    print([res.name for res in x])
+
+
+test('barcelona')
+test('and(barcelona,pizza)')
