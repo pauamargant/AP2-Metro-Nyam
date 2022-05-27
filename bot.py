@@ -20,6 +20,9 @@ import metro
 import city
 import restaurants
 
+Restaurant = restaurants.Restaurant
+Restaurants = restaurants.Restaurants
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -39,8 +42,8 @@ except IOError:
 #   **************
 #   INITIALIZATION
 #   **************
-
-print("Initializing bot\n ----------------")
+print("******************************************************")
+print("----------------\n Initializing bot\n ----------------")
 t1 = time.time()
 metro_graph: metro.MetroGraph = metro.get_metro_graph()
 print('get_metro_graph time:', time.time() - t1)
@@ -53,7 +56,8 @@ print('build_city_graph time:', time.time() - t2)
 t2 = time.time()
 rest: restaurants.Restaurants = restaurants.read()
 print('restaurants.read time:', time.time() - t2)
-print('initialization time:', time.time() - t1)
+print('Total initialization time:', time.time() - t1)
+print("******************************************************\n\n")
 
 
 help_txt = {}
@@ -195,7 +199,7 @@ def update_location(update, context):
         Saves user location or updates it if already saved
     '''
     lat: float = update.message.location.latitude
-    long: float = update.message.location.longitude
+    lon: float = update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -208,7 +212,7 @@ def plot_metro(update, context):
     '''
         Send metro plot image to the user
     '''
-    file = "%d.png" % random.randint(1000000, 9999999)
+    file: str = "%d.png" % random.randint(1000000, 9999999)
     metro.plot(metro_graph, file)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
@@ -216,8 +220,8 @@ def plot_metro(update, context):
     os.remove(file)
 
 
-def sort_rsts(rsts, loc, dist=True):
-    if dist:
+def sort_rsts(rsts: Optional[Restaurant], loc: Coord, dist=True) -> Optional[Restaurants]:
+    if (len(rsts) > 0 and dist):
         rsts = [rst for rst in rsts if rst is not None]
         return sorted(rsts, key=lambda rst: haversine((loc[1], loc[0]), (rst.coords[1], rst.coords[0])))
     else:
@@ -230,16 +234,18 @@ def find(update, context):
     '''
         Given a query sends to the user a list of up to 12 restaurants which match the query.
     '''
-    query = update.message.text[6:]
+    query: str = update.message.text[6:]
     assert query, '/find ha de tenir al menys un argument 🤨'
     print(query)
-    search = restaurants.find(query, rest)
+    search: Restaurants = restaurants.find(query, rest)
     user: User = context.user_data['user']
     # If we have the location we sort results by distance
     if (user.location is not None and len(search) > 0):
-        search = sort_rsts(search, user.location)[:12]
+        search = sort_rsts(search, user.location)
+    search = search[:12]
     user.current_search = search
-    msg = "".join([str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
+    msg: str = "".join(
+        [str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
     assert msg, f"no s'han pogut trobar restaurants amb la cerca: {query} 🤷‍♂️"
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -258,10 +264,10 @@ def accessibility(update, context):
     context.user_data['user'].accessibility = not old_acc
     if not old_acc:
         print("Accessibility enabled")
-        message = "Accessibilitat activada"
+        message: str = "Accessibilitat activada"
     else:
         print("Accessibility disabled")
-        message = "Accessiblitat desactivada"
+        message: str = "Accessiblitat desactivada"
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
@@ -273,12 +279,13 @@ def info(update, context):
         with argument a number, which is expected to be a search result number in the results 
         of a previous use of the /find command.
     '''
-    search = context.user_data['user'].current_search
-    num = int(context.args[0])
+    search: Restaurants = context.user_data['user'].current_search
+    num: int = int(context.args[0])
     assert 0 <= num < len(
         search), f"/info ha de tenir com argument un enter entre 0 i {len(search)-1} 😬"
-    restaurant = context.user_data['user'].current_search[num]
-
+    restaurant: Restaurant = context.user_data['user'].current_search[num]
+    message: str
+    photo_url: Optional[str]
     message, photo_url = restaurants.info_message(restaurant)
     if photo_url is not None:
         context.bot.send_photo(
@@ -294,29 +301,30 @@ def guide(update, context):
     '''
         Guides the user from its location to a restaurant. 
     '''
-    t1 = time.time()
+    t1: float = time.time()
     # flags = context.args
-    file = "%d.png" % random.randint(1000000, 9999999)
+    filename: str = "%d.png" % random.randint(1000000, 9999999)
     user: User = context.user_data['user']
     assert 0 <= int(context.args[0]) < len(
         user.current_search), f"/guide ha de tenir com argument un enter entre 0 i {len(user.current_search)-1} 😬"
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
-    Path = city.find_path(city_osmnx, city_graph, src, dst, user.accessibility)
+    path: city.Path = city.find_path(
+        city_osmnx, city_graph, src, dst, user.accessibility)
     print("path trobat")
     print(time.time()-t1)
-    city.plot_path(city_graph, Path, file, src, dst)
+    city.plot_path(city_graph, path, filename, src, dst)
     print('path plotted', time.time()-t1)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
-        photo=open(file, 'rb'))
-    os.remove(file)
+        photo=open(filename, 'rb'))
+    os.remove(filename)
     print('foto enviada:', time.time()-t1)
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"{city.path_txt(city_graph, Path, src, dst)} | Ja has arribat a {user.current_search[int(context.args[0])].name}")
+        text=f"{city.path_txt(city_graph, path, src, dst)} | Ja has arribat a {user.current_search[int(context.args[0])].name}")
 
     print("enviat")
 
@@ -331,10 +339,13 @@ def default_location(update, context):
 
 
 def main():
+
     # crea objectes per treballar amb Telegram
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
-
+    print("-------------")
+    print("Bot is active")
+    print("-------------")
     # indica que quan el bot rebi la comanda /start s'executi la funció start
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help))
