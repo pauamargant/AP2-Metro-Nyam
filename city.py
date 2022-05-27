@@ -230,7 +230,7 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
     if p:
         for prev_node, node in zip(p, p[1:]):
             map.add_line(Line([g.nodes[prev_node]['pos'], g.nodes[node]['pos']],
-                              edge_color(g, prev_node, node), 4))
+                              edge_color(g, prev_node, node), 6))
 
         map.add_marker(CircleMarker(g.nodes[p[0]]['pos'], 'blue', 10))
         map.add_marker(CircleMarker(g.nodes[p[-1]]['pos'], 'red', 10))

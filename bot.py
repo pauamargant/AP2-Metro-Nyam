@@ -5,6 +5,7 @@ import sys
 import os
 import time
 from sklearn.metrics import homogeneity_completeness_v_measure
+from telegram import Location
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
@@ -12,6 +13,7 @@ from dataclasses import dataclass
 from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import traceback
+from haversine import haversine
 
 # We import the base modules
 import metro
@@ -128,7 +130,7 @@ def exception_handler(func):
 
 def time_function(func):
     def temp_func(*args):
-        t1 = time.time()
+        t1: float = time.time()
         func(*args)
         print(f"{func.__name__} time is: {time.time() - t1}")
     return temp_func
@@ -164,7 +166,7 @@ def help(update, context):
     '''
         Sends help message to the user
     '''
-    help_msg = ""
+    help_msg: str = ""
     if not context.args:
         help_msg = "".join([line+'\n' for line in help_txt.values()])
     else:
@@ -192,7 +194,8 @@ def update_location(update, context):
     '''
         Saves user location or updates it if already saved
     '''
-    lat, lon = update.message.location.latitude, update.message.location.longitude
+    lat: float = update.message.location.latitude
+    long: float = update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -213,6 +216,14 @@ def plot_metro(update, context):
     os.remove(file)
 
 
+def sort_rsts(rsts, loc, dist=True):
+    if dist:
+        rsts = [rst for rst in rsts if rst is not None]
+        return sorted(rsts, key=lambda rst: haversine((loc[1], loc[0]), (rst.coords[1], rst.coords[0])))
+    else:
+        return rsts
+
+
 @ time_function
 @ exception_handler
 def find(update, context):
@@ -222,10 +233,14 @@ def find(update, context):
     query = update.message.text[6:]
     assert query, '/find ha de tenir al menys un argument 🤨'
     print(query)
-    search = restaurants.find(query, rest)[:12]
+    search = restaurants.find(query, rest)
+    user: User = context.user_data['user']
+    # If we have the location we sort results by distance
+    if (user.location is not None and len(search) > 0):
+        search = sort_rsts(search, user.location)[:12]
+    user.current_search = search
     msg = "".join([str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
     assert msg, f"no s'han pogut trobar restaurants amb la cerca: {query} 🤷‍♂️"
-    context.user_data['user'].current_search = search
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=msg
@@ -284,7 +299,7 @@ def guide(update, context):
     file = "%d.png" % random.randint(1000000, 9999999)
     user: User = context.user_data['user']
     assert 0 <= int(context.args[0]) < len(
-        user.current_search), f"/info ha de tenir com argument un enter entre 0 i {len(user.current_search)-1} 😬"
+        user.current_search), f"/guide ha de tenir com argument un enter entre 0 i {len(user.current_search)-1} 😬"
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
