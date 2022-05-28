@@ -4,14 +4,12 @@ from dataclasses import dataclass
 import sys
 import os
 import time
-from sklearn.metrics import homogeneity_completeness_v_measure
-from telegram import Location
+# from sklearn.metrics import homogeneity_completeness_v_measure # fa falta?
+# from telegram import Location
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
-from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union
-from typing_extensions import TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union, TypeAlias
 import traceback
 from haversine import haversine
 
@@ -42,8 +40,7 @@ except IOError:
 #   **************
 #   INITIALIZATION
 #   **************
-print("******************************************************")
-print("----------------\n Initializing bot\n ----------------")
+print(f"{'*'*54}\n{'*'*16}\n Initializing bot\n {'*'*16}")
 t1 = time.time()
 metro_graph: metro.MetroGraph = metro.get_metro_graph()
 print('get_metro_graph time:', time.time() - t1)
@@ -57,7 +54,7 @@ t2 = time.time()
 rest: restaurants.Restaurants = restaurants.read()
 print('restaurants.read time:', time.time() - t2)
 print('Total initialization time:', time.time() - t1)
-print("******************************************************\n\n")
+print(f"{'*'*54}\n\n")
 
 
 help_txt = {}

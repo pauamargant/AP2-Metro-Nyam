@@ -2,8 +2,7 @@ from ctypes.wintypes import HLOCAL
 import json
 import requests  # type: ignore
 from dataclasses import dataclass
-from typing import Optional, List, Tuple, Dict, Union, Set
-from typing_extensions import TypeAlias
+from typing import Optional, List, Tuple, Dict, Union, Set, TypeAlias
 import math
 import re
 from fuzzysearch import find_near_matches  # type: ignore

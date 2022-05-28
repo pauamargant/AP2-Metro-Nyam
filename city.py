@@ -4,11 +4,10 @@ import metro
 import pandas as pd
 import osmnx as ox
 import networkx as nx
-from staticmap import StaticMap, CircleMarker, Line, IconMarker
+from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union, IO
-from typing_extensions import TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union, TypeAlias
 import pickle as pkl
 import os.path
 from datetime import datetime, timedelta
