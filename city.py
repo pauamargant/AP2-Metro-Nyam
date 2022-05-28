@@ -1,14 +1,13 @@
 from ast import Raise
 import metro
 
-import time  # temporal, solo para medir tiempos de ejecuciones
 import pandas as pd
 import osmnx as ox
 import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line, IconMarker
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union
+from typing import Optional, TextIO, List, Tuple, Dict, Union, IO
 from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
@@ -16,15 +15,13 @@ from datetime import datetime, timedelta
 from haversine import haversine, Unit
 from constants import *
 
-CityGraph: TypeAlias = nx.Graph
-OsmnxGraph: TypeAlias = nx.MultiDiGraph
 
-# CONSTANTS
 PICKLE_FILENAME: str = "barcelona.grf"
 
 
-# Definim classes
-
+# We define necessary TypeAlias
+CityGraph: TypeAlias = nx.Graph
+OsmnxGraph: TypeAlias = nx.MultiDiGraph
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
 NodeID: TypeAlias = int
@@ -43,7 +40,7 @@ def get_osmnx_graph() -> OsmnxGraph:
     '''
     try:
         if not os.path.exists(PICKLE_FILENAME):
-            graph = ox.graph_from_place(
+            graph: OsmnxGraph = ox.graph_from_place(
                 "Barcelona, Spain", network_type="walk", simplify=True)
             for u, v, key, geom in graph.edges(data="geometry", keys=True):
                 if geom is not None:
@@ -53,11 +50,12 @@ def get_osmnx_graph() -> OsmnxGraph:
                     graph.nodes[node]["x"], graph.nodes[node]["y"])
                 graph.nodes[node]["type"] = "street_intersection"
 
-            # graph.remove_edges_from(nx.selfloop_edges(graph))
+            # Necessary to remove self loops
+            graph.remove_edges_from(nx.selfloop_edges(graph))
 
             for edge in graph.edges:
-                distance = haversine(graph.nodes[edge[0]]["pos"],
-                                     graph.nodes[edge[1]]["pos"], unit="m")
+                distance: float = haversine(graph.nodes[edge[0]]["pos"],
+                                            graph.nodes[edge[1]]["pos"], unit="m")
                 graph.edges[edge]["distance"] = distance
                 graph.edges[edge]["travel_time"] = distance/WALKING_SPEED
                 graph.edges[edge]["acc_travel_time"] = distance/WALKING_SPEED
@@ -80,7 +78,7 @@ def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
         raise TypeError("g has to be an OsmnxGraph")
 
     try:
-        pickle_out = open(filename, "wb")
+        pickle_out: IO = open(filename, "wb")
         pkl.dump(g, pickle_out)
         pickle_out.close()
     except Exception as error:
@@ -104,37 +102,42 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
         raise ValueError("filename does not exist")
     else:
         try:
-            pickle_in = open(filename, "rb")
+            pickle_in: IO = open(filename, "rb")
             return pkl.load(pickle_in)
         except Exception as error:
             print("Could not retrieve osmnx graph".format(error))
 
 
-def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[int], List[int], List[float]]:
+def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> List[Tuple[NodeID, NodeID, float]]:
     '''
-    Given a OsmnxGraph g1 and a MetroGraph g2 returns a list which contains a list with the ids of the access nodes,
-    a list with the nearest node in g1 to each access node in g2 tohether with a list which contains the corresponding
-    distances
+    Given a OsmnxGraph g1 and a MetroGraph g2 finds for each access in g2 the nearest node 
+    to that access in g2, together with the distance to it. 
+
+    Parameters
+    ----------
+    g1: OsmnxGraph
+    g2: MetroGraph
+
+    Returns
+    -------
+    List[Tuple[NodeID,NodeID,float]
+        A list with contains for each acces in g2 a tupple with the access node id,
+        the id of the nearest node in g1 and the distance to it.
     '''
     if not isinstance(g1, OsmnxGraph):
         raise TypeError("g1 must be an OsmnxGraph")
     if not isinstance(g2, MetroGraph):
         raise TypeError("g2 must be a MetroGraph")
-    nodes = []
-    X, Y = [], []
+    nodes: List[NodeID] = []
+    X: List[float] = []
+    Y: List[float] = []
     for node, value in g2.nodes(data=True):
         if value["type"] == "access":
-            coords = value["pos"]
-            X.append(coords[0])
-            Y.append(coords[1])
-            nodes.append(node)
-    nearest, distances = ox.distance.nearest_nodes(g1, X, Y, return_dist=True)
-    return nodes, nearest, distances
-
-
-# def walking_street_distance(g: OsmnxGraph, orig_id: int, dest_id: int) -> float:
-#     return haversine(g.nodes[orig_id]["pos"],
-#                      g.nodes[dest_id]["pos"], unit="m")
+            X.append(value["pos"][0])
+            Y.append(value["pos"][1])
+    nearest, distances = ox.distance.nearest_nodes(
+        g1, X, Y, return_dist=True)
+    return zip(nodes, nearest, distances)
 
 
 def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
@@ -152,15 +155,12 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     city: CityGraph
 
     '''
-
-    nodes, nearest, distances = nearest_nodes(g1, g2)
-
-    # We convert g1 from Multidigraph to graph
-    g1 = nx.Graph(g1)
-    city = nx.union(g1, g2)
-    distances = [distance/WALKING_SPEED for distance in distances]
-    for e1, e2, d in zip(nodes, nearest, distances):
-        city.add_edge(e1, e2, type="Street", distance=d,
+    nearest_to_access: List[Tuple[NodeID,
+                                  NodeID, float]] = nearest_nodes(g1, g2)
+    g1: CityGraph = nx.Graph(g1)     # We convert g1 from Multidigraph to graph
+    city: CityGraph = nx.union(g1, g2)
+    for n1, n2, d in nearest_to_access:
+        city.add_edge(n1, n2, type="Street", distance=d,
                       travel_time=d/WALKING_SPEED, acc_travel_time=d/WALKING_SPEED)
     return city
 
@@ -169,11 +169,28 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord, accessibil
     '''
     Given a CityGraph g, a starting point src and a destination point dst we
     generate the shortest path (in travel time) between the two positions and
-    we return the path
+    we return the path. 
+    Depending on the accessibility parameter (which is false by default) will be 
+    accessible or not.
+
+    Parameters:
+    -----------
+    ox:g: OsmnxGraph
+    g: CityGraph
+    src: Coord
+        Coordinates of the source point.
+    dst:Coord
+        Coordinates of the destination.
+    accessibility: bool
+        False by default
+
+    Returns
+    -------
+    p: Path
     '''
     src_node: NodeID = ox.distance.nearest_nodes(ox_g, src[1], src[0])
     dst_node: NodeID = ox.distance.nearest_nodes(ox_g, dst[1], dst[0])
-    weight_parameter = 'acc_travel_time' if accessibility else 'travel_time'
+    weight_parameter: str = 'acc_travel_time' if accessibility else 'travel_time'
     p: Path = nx.shortest_path(g, src_node, dst_node, weight=weight_parameter)
     return p
 
@@ -185,19 +202,18 @@ def plot(g: MetroGraph, filename: str) -> None:
     '''
     # color for each set of edges, blue is the default
 
-    colorEdges = {'line': 'blue', 'street': 'yellow',
-                  'transfer': 'orange', 'Street': 'orange', 'access': 'blue'}
-    colorNodes = {'station': 'red', 'access': 'black',
-                  'street_intersection': 'green'}
+    colorEdges: Dict[str, str] = {'line': 'blue', 'street': 'yellow',
+                                  'transfer': 'orange', 'Street': 'orange', 'access': 'blue'}
+    colorNodes: Dict[str, str] = {'station': 'red', 'access': 'black',
+                                  'street_intersection': 'green'}
     map: StaticMap = StaticMap(
         SIZE_X, SIZE_Y, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     for u, node in g.nodes(data=True):
         map.add_marker(CircleMarker(node.get('pos'),
                        colorNodes.get(node.get('type'), 'green'), 4))
-    edgetypes = set()
     for edge in g.edges(data=True):
-        edgetypes.add(edge[2].get('type'))
-        n0, n1 = g.nodes[edge[0]], g.nodes[edge[1]]
+        n0: NodeID = g.nodes[edge[0]]
+        n1: NodeID = g.nodes[edge[1]]
         map.add_line(Line([n0['pos'], n1['pos']],
                      colorEdges[edge[2]['type']], 2))
     try:
@@ -224,6 +240,19 @@ def edge_color(g: CityGraph, n1: NodeID, n2: NodeID) -> str:
 
 
 def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) -> None:
+    '''
+        Given a path p plots it using the citygraph and the orig and dest coordinates
+        and saves it into a file.
+
+        Parameters
+        ----------
+        g: CityGraph
+        p: Path
+        filename: str
+            The filenamen of the saved image
+        orig: Coord
+        dest: Coord 
+    '''
 
     map: StaticMap = StaticMap(
         SIZE_X, SIZE_Y, padding_x=PADDING, padding_y=PADDING, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
@@ -266,14 +295,42 @@ def time_dist_txt(g: CityGraph, p: Path, orig: Coord):
 
 
 def time_txt(t: float) -> str:
-    """generates a text with the correct format from the time in seconds"""
-    t = round(t/60)  # en minuts
+    """
+    Generates a text with the correct format from the time in seconds. 
+
+    Parameters
+    ----------
+    t: float
+        time in seconds
+
+    Returns
+    -------
+    str
+        Formatted message with the time in format 
+
+    """
+    if t < 60:
+        return f"{t} s"
+    t: float = round(t/60)
     return f"{t} min" if t <= 60 else f"{t//60} h {t%60} min"
 
 
 def dist_txt(dist: float) -> str:
-    """generates a text with the correct format from the distance in meters"""
-    dist = round(dist)
+    """
+    generates a text with the correct format from the distance in meters
+
+    Parameters
+    ----------
+    dist: float
+        distance in meters
+
+    Returns
+    -------
+    str
+        Formatted distance text
+
+    """
+    dist: float = round(dist)
     return f"{dist} m" if dist < 1000 else f"{dist//1000} km {dist%1000} m"
 
 
@@ -293,14 +350,16 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
         A message of the resumed path (street and time)
     '''
     try:
-        now = datetime.now()
+        now: datetime = datetime.now()
         path_txt: str = f"{time_dist_txt(g, p, orig)}\n"
         path_txt += f"🔵 La teva ubicació\n"
-        i, n = 1, len(p)
-        street_types = ['street', 'Street', 'access']
+        i: int = 1
+        n: int = len(p)
+        street_types: List[str] = ['street', 'Street', 'access']
         while i < n:
             edge = g.edges[p[i-1], p[i]]
-            dist, t = 0, 0
+            dist: float = 0
+            t: float = 0
             if edge['type'] in street_types:
                 while edge['type'] in street_types:
                     dist += edge['distance']
@@ -358,7 +417,6 @@ def main():
     city = build_city_graph(g1, g2)
     orig = (41.388492, 2.113043)
     dest = (41.3733898465379, 2.136240845303527)
-    t1 = time.time()
     p: Path = find_path(g1, city, orig, dest)
     # print(path_stats(city, p, orig, dest))
     # print(path_time_dist(city, p, orig, dest))
@@ -370,5 +428,5 @@ def main():
     print(path_txt(city, p, orig, dest))
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
