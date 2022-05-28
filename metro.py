@@ -6,7 +6,8 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union
+from typing_extensions import TypeAlias
 from haversine import haversine, Unit
 from constants import *
 
@@ -26,7 +27,7 @@ class Station:
     id: int
     group_code: int
     name: str
-    line_name: str  # POTSER ESTARIA BE FER UNA CLASE LINEA SI NO ES MASSA TREBALL?
+    line_name: str
     line_id: int
     line_order: int
     line_colour: str

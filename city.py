@@ -7,7 +7,8 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line, IconMarker
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union, IO, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union, IO
+from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
 from datetime import datetime, timedelta
@@ -335,7 +336,8 @@ def dist_txt(dist: float) -> str:
 
 def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
     '''
-        Given a CityGraph and a path
+        Generates a resumed set of instructions from a Path in form of a
+        text message
 
         Parameters
         ----------
@@ -350,20 +352,19 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
     '''
     try:
         now: datetime = datetime.now()
-        path_txt: str = f"{time_dist_txt(g, p, orig)}\n"
-        path_txt += f"🔵 La teva ubicació\n"
+        path_txt: str = f"{time_dist_txt(g, p, orig)}\n🔵 La teva ubicació\n"
         i: int = 1
         n: int = len(p)
         street_types: List[str] = ['street', 'Street', 'access']
+        dist: float = haversine(
+            (orig[1], orig[0]), g.nodes[p[0]]["pos"], unit='m')
         while i < n:
             edge = g.edges[p[i-1], p[i]]
-            dist: float = 0
             t: float = 0
             if edge['type'] in street_types:
                 while edge['type'] in street_types:
                     dist += edge['distance']
                     t += edge['travel_time']
-
                     i += 1
                     if i >= n:
                         break
@@ -396,6 +397,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
                 if fst_edge['line_name'] != edge['line_name']:
                     path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
                 now += timedelta(seconds=edge['travel_time'])
+
+            dist = 0
 
         return path_txt + f"📍 {now.strftime('%H:%M')}"
     except Exception as e:
