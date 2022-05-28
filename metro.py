@@ -15,7 +15,7 @@ ACCESS_FILE: str = "accessos.csv"
 
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
-NodeID: TypeAlias = Union[int, str]
+NodeID: TypeAlias = int  # We use integers
 
 
 @dataclass
@@ -88,7 +88,7 @@ def create_station(row: pd.Series) -> Station:
 
     Returns
     -------
-    station: Station
+    station: Optional[Station]
 
 
     '''
@@ -100,7 +100,7 @@ def create_station(row: pd.Series) -> Station:
                        row["ID_TIPUS_ACCESSIBILITAT"],
                        string_to_point(row["GEOMETRY"]), [], [], [])
     except Exception:
-        print("station row has the wrong format or incomplete data")
+        raise TypeError("station row has the wrong format or incomplete data")
 
 
 def read_stations() -> Stations:
@@ -216,22 +216,22 @@ def get_metro_graph() -> MetroGraph:
     Metro: MetroGraph = nx.Graph()
     # We will store line_transfers for each station group in a dict
     # in order to be more efficient
-    line_transfers: Dict[int, List[int]] = dict()
+    line_transfers: Dict[int, List[NodeID]] = dict()
 
     # In order to connect subway lines we take adavantadge of the fact that
     # they are stored in order
     # We add the first station of the list before iterating through the rest
     s1: Station = station_list[0]
-    prev_id: Optional[int] = s1.id
-    prev_line: Optional[int] = s1.line_id
+    prev_id: NodeID = s1.id
+    prev_line: NodeID = s1.line_id
     Metro.add_node(s1.id, pos=s1.position, type="station", name=s1.name,
                    accessibility=s1.accessibility, line=s1.line_id,
                    line_name=s1.line_name, line_dest=s1.line_dest)
     line_transfers[s1.group_code] = [s1.id]
-
+    distance: float
     for station in station_list[1:]:
         # We create the station node
-        id: int = station.id
+        id: NodeID = station.id
         if Metro.has_node(id):
             id = -id
         Metro.add_node(id, pos=station.position, type="station",
@@ -247,7 +247,7 @@ def get_metro_graph() -> MetroGraph:
         #                type="ghost_edge", travel_time=SUBWAY_WAITING)
         # If the previous station is in the same line, we connect them
         if(station.line_id == prev_line):
-            distance: float = line_distance(Metro, prev_id, id)
+            distance = line_distance(Metro, prev_id, id)
             Metro.add_edge(prev_id, id, type="line",
                            line_name=station.line_name,
                            line_colour=station.line_colour,
@@ -269,7 +269,7 @@ def get_metro_graph() -> MetroGraph:
     for access in access_list:
         Metro.add_node(access.code, pos=access.position, station=access.station_name,
                        accessibility=access.accessibility, type="access")
-        distance: float = line_distance(
+        distance = line_distance(
             Metro, access.code, access.station_id)
 
         Metro.add_edge(access.code, access.station_id, type="access", distance=distance, travel_time=distance/WALKING_SPEED,
@@ -280,7 +280,7 @@ def get_metro_graph() -> MetroGraph:
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
                 if(i1 != i2):
-                    distance: float = line_distance(
+                    distance = line_distance(
                         Metro, i1, i2)
                     Metro.add_edge(
                         i1, i2, type="transfer", line_name=Metro.nodes[i2]["line_name"], distance=distance,
@@ -307,7 +307,7 @@ def plot(g: MetroGraph, filename: str) -> None:
         image = map.render()
         image.save(filename)
     except Exception as error:
-        print("Could not render or save image".format(error))
+        print("Could not render or save image")
 
 
 def show(g: MetroGraph) -> None:
@@ -321,4 +321,4 @@ def show(g: MetroGraph) -> None:
                 node_size=50,)
         plt.show()
     except Exception as error:
-        print("Could not show interactive plot".format(error))
+        print("Could not show interactive plot")
