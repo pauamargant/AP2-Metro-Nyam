@@ -6,8 +6,7 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict
-from typing_extensions import TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union, TypeAlias
 from haversine import haversine, Unit
 from constants import *
 
@@ -16,6 +15,7 @@ ACCESS_FILE: str = "accessos.csv"
 
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
+NodeID: TypeAlias = Union[int, str]
 
 
 @dataclass
@@ -54,9 +54,9 @@ class Access:
     position: Coord
 
 
-Stations = List[Station]
+Stations: TypeAlias = List[Station]
 
-Accesses = List[Access]
+Accesses: TypeAlias = List[Access]
 
 
 def string_to_point(point_str: str) -> Coord:
@@ -101,14 +101,12 @@ def create_station(row: pd.Series) -> Station:
                        string_to_point(row["GEOMETRY"]), [], [], [])
     except Exception:
         print("station row has the wrong format or incomplete data")
-        assert False  # a fer-ho millor
 
 
 def read_stations() -> Stations:
     '''
     Reads all the stations from the estations.csv file and returns a list of Stations
     '''
-    # AL FINAL CANVIAR DE ON SE AGAFA?
     stations_df = pd.read_csv(STATION_FILE)
     station_list: Stations = []
     for index, row in stations_df.iterrows():
@@ -137,12 +135,18 @@ def create_access(row: pd.Series) -> Access:
 
 
 def read_accesses() -> Accesses:
-    # A QUIN ARXIU AL FINAL?
     '''
-    Reads all the accesses in the file ###NOM### and returns a list of Accesses.
+    Reads all the accesses from a file (ACCESS_FILE) and returns a list of Accesses.
+    Parameters
+    ----------
+    row: pd.Series
+
+    Returns
+    -------
+    accesses: Accesses
+
     '''
-    # amb encoding "latin1" els accents surten malament
-    accesses_df = pd.read_csv(ACCESS_FILE)
+    accesses_df = pd.read_csv(ACCESS_FILE)  # Encoding
     access_list: Accesses = []
     for index, row in accesses_df.iterrows():
 
@@ -151,15 +155,40 @@ def read_accesses() -> Accesses:
     return access_list
 
 
-def line_distance(g: MetroGraph, orig_id: int, dest_id: int) -> float:
+def line_distance(g: MetroGraph, orig_id: NodeID, dest_id: NodeID) -> float:
+    '''
+        Calculates the distance between two nodes in the given graph.
+
+        Parameters
+        ----------
+        g: MetroGraph
+        orig_id: NodeID
+        dest_id: NOdeID
+
+        Returns
+        -------
+        float
+            Distance between orig_id and dest_id in g.
+    '''
     return haversine(g.nodes[orig_id]["pos"],
                      g.nodes[dest_id]["pos"], unit="m")
 
 
-def accessible_time(Metro: MetroGraph, orig_id: int, dest_id: int, distance: float) -> float:
+def accessible_time(Metro: MetroGraph, orig_id: NodeID, dest_id: NodeID, distance: float) -> float:
     '''
-        Given a graph, two station/access nodes and a distance returns the travel time if both stations are accessible,
-        if either of them is not accessible returns INF.
+        Given a graph, two station/access nodes and a distance returns the travel time if both 
+        stations are accessible, if either of them is not accessible returns INF.
+
+        Parameters
+        ----------
+        Metro: MetroGraph
+        orig_id: NodeID
+        dest_id: NodeID
+        distance: float
+
+        Returns
+        -------
+        travel_time: float
     '''
     if(Metro.nodes[orig_id]["accessibility"] == 1 and Metro.nodes[dest_id]["accessibility"] == 1):
         return distance/SUBWAY_SPEED
@@ -192,7 +221,7 @@ def get_metro_graph() -> MetroGraph:
     # In order to connect subway lines we take adavantadge of the fact that
     # they are stored in order
     # We add the first station of the list before iterating through the rest
-    s1 = station_list[0]
+    s1: Station = station_list[0]
     prev_id: Optional[int] = s1.id
     prev_line: Optional[int] = s1.line_id
     Metro.add_node(s1.id, pos=s1.position, type="station", name=s1.name,
@@ -202,7 +231,7 @@ def get_metro_graph() -> MetroGraph:
 
     for station in station_list[1:]:
         # We create the station node
-        id = station.id
+        id: int = station.id
         if Metro.has_node(id):
             id = -id
         Metro.add_node(id, pos=station.position, type="station",

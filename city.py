@@ -7,8 +7,7 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line, IconMarker
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union, IO
-from typing_extensions import TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union, IO, TypeAlias
 import pickle as pkl
 import os.path
 from datetime import datetime, timedelta
@@ -374,7 +373,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
                 now += timedelta(seconds=t)
                 dist, t = 0, 0
 
-            fst_edge, stops = edge, 0
+            fst_edge = edge
+            stops: int = 0
             if edge['type'] == 'line':
                 path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció "
                 path_txt += f"{edge['line_dest' if edge['orientation'] == (p[i-1], p[i]) else 'line_orig']}\n"
@@ -406,7 +406,7 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
 
 def show(g: CityGraph) -> None:
     '''Shows the CityGraph g in a interative window'''
-    positions = nx.get_node_attributes(g, "pos")
+    positions: Dict[NodeID, str] = nx.get_node_attributes(g, "pos")
     nx.draw(g, positions, node_size=5)
     plt.show()
 
