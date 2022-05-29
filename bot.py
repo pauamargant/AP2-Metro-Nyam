@@ -164,7 +164,8 @@ def start(update, context):
     current_user = context.user_data["user"]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"Hola {current_user.name} 🖖, benvingut a Nyam Bot\nUtilitza /help per veure totes les comandes disponibles :)")
+        text=f"""Hola {current_user.name} 🖖, benvingut a Nyam Bot\nUtilitza
+        /help per veure totes les comandes disponibles :)""")
 
 
 @ time_function
@@ -179,7 +180,8 @@ def help(update, context):
     else:
         help_msg = help_txt.get(context.args[0].replace('/', ''))
         if help_msg is None:
-            help_msg = f"la comanda {context.args[0]} no existeix, utilitza /help per veure una llista de totes les comandes disponibles :)"
+            help_msg = f"""la comanda {context.args[0]} no existeix, utilitza
+             /help per veure una llista de totes les comandes disponibles :)"""
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=help_msg)
@@ -189,9 +191,10 @@ def author(update, context):
     '''
         Sends to the user information about the authors and project
     '''
-    link: str = "<a href='https://github.com/pauamargant/AP2-Metro-Nyam/'>Github</a>"
+    link: str = "<a href='https://github.com/pauamargant/AP2-Metro-Nyam/'>Github</a>"  # noqa
     context.bot.send_message(
-        chat_id=update.effective_chat.id, text="Autors\n Joel Sole \n Pau Amargant \n Més informació a "+link
+        chat_id=update.effective_chat.id,
+        text="Autors\n Joel Sole \n Pau Amargant \n Més informació a "+link
     )
 
 
@@ -223,10 +226,13 @@ def plot_metro(update, context):
     os.remove(file)
 
 
-def sort_rsts(rsts: Optional[Restaurant], loc: Coord, dist=True) -> Optional[Restaurants]:
+def sort_rsts(rsts: Optional[Restaurant],
+              loc: Coord, dist=True) -> Optional[Restaurants]:
     if (len(rsts) > 0 and dist):
         rsts = [rst for rst in rsts if rst is not None]
-        return sorted(rsts, key=lambda rst: haversine((loc[1], loc[0]), (rst.coords[1], rst.coords[0])))
+        return sorted(rsts, key=lambda rst:
+                      haversine((loc[1], loc[0]),
+                                (rst.coords[1], rst.coords[0])))
     else:
         return rsts
 
@@ -235,7 +241,8 @@ def sort_rsts(rsts: Optional[Restaurant], loc: Coord, dist=True) -> Optional[Res
 @ exception_handler
 def find(update, context):
     '''
-        Given a query sends to the user a list of up to 12 restaurants which match the query.
+        Given a query sends to the user a list of up to 12 restaurants which
+        match the query.
     '''
     query: str = update.message.text[6:]
     assert query, '/find ha de tenir al menys un argument 🤨'
@@ -260,8 +267,8 @@ def find(update, context):
 @time_function
 def accessibility(update, context):
     '''
-        Toggles the accessibility option. If accessibility is enabled the bot will only
-        use subway stations and accesses which are accessible.
+        Toggles the accessibility option. If accessibility is enabled the bot
+        will only use subway stations and accesses which are accessible.
     '''
     old_acc: bool = context.user_data['user'].accessibility
     context.user_data['user'].accessibility = not old_acc
@@ -278,9 +285,9 @@ def accessibility(update, context):
 @ exception_handler
 def info(update, context):
     '''
-        Sends additional information about a given restaurant. The user sends the command
-        with argument a number, which is expected to be a search result number in the results
-        of a previous use of the /find command.
+        Sends additional information about a given restaurant. The user sends
+        the command with argument a number, which is expected to be a search
+        result number in the results of a previous use of the /find command.
     '''
     search: Restaurants = context.user_data['user'].current_search
     if not search:
@@ -288,7 +295,8 @@ def info(update, context):
         return
     num: int = int(context.args[0])
     assert 0 <= num < len(
-        search), f"/info ha de tenir com argument un enter entre 0 i {len(search)-1} 😬"
+        search), f"""/info ha de tenir com argument un enter entre 0
+        i {len(search)-1} 😬"""
     restaurant: Restaurant = context.user_data['user'].current_search[num]
     message: str
     photo_url: Optional[str]
@@ -312,7 +320,8 @@ def guide(update, context):
     filename: str = "%d.png" % random.randint(1000000, 9999999)
     user: User = context.user_data['user']
     assert 0 <= int(context.args[0]) < len(
-        user.current_search), f"/guide ha de tenir com argument un enter entre 0 i {len(user.current_search)-1} 😬"
+        user.current_search), f"""/guide ha de tenir com argument un enter
+        entre 0 i {len(user.current_search)-1} 😬"""
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
@@ -330,7 +339,8 @@ def guide(update, context):
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"{city.path_txt(city_graph, path, src, dst)} | Ja has arribat a {user.current_search[int(context.args[0])].name}")
+        text=f"""{city.path_txt(city_graph, path, src, dst)} | Ja has arribat
+         a {user.current_search[int(context.args[0])].name}""")
 
     print("enviat")
 
