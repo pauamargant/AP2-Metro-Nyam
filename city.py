@@ -110,8 +110,8 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
 
 def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> List[Tuple[NodeID, NodeID, float]]:
     '''
-    Given a OsmnxGraph g1 and a MetroGraph g2 finds for each access in g2 the nearest node 
-    to that access in g2, together with the distance to it. 
+    Given a OsmnxGraph g1 and a MetroGraph g2 finds for each access in g2 the nearest node
+    to that access in g2, together with the distance to it.
 
     Parameters
     ----------
@@ -170,8 +170,8 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord, accessibil
     '''
     Given a CityGraph g, a starting point src and a destination point dst we
     generate the shortest path (in travel time) between the two positions and
-    we return the path. 
-    Depending on the accessibility parameter (which is false by default) will be 
+    we return the path.
+    Depending on the accessibility parameter (which is false by default) will be
     accessible or not.
 
     Parameters:
@@ -252,7 +252,7 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
         filename: str
             The filenamen of the saved image
         orig: Coord
-        dest: Coord 
+        dest: Coord
     '''
 
     map: StaticMap = StaticMap(
@@ -297,7 +297,7 @@ def time_dist_txt(g: CityGraph, p: Path, orig: Coord):
 
 def time_txt(t: float) -> str:
     """
-    Generates a text with the correct format from the time in seconds. 
+    Generates a text with the correct format from the time in seconds.
 
     Parameters
     ----------
@@ -307,7 +307,7 @@ def time_txt(t: float) -> str:
     Returns
     -------
     str
-        Formatted message with the time in format 
+        Formatted message with the time in format
 
     """
     if t < 60:
@@ -359,9 +359,9 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
         street_types: List[str] = ['street', 'Street', 'access']
         dist: float = haversine(
             (orig[1], orig[0]), g.nodes[p[0]]["pos"], unit='m')
+        t: float = 0
         while i < n:
             edge = g.edges[p[i-1], p[i]]
-            t: float = 0
             if edge['type'] in street_types:
                 while edge['type'] in street_types:
                     dist += edge['distance']
@@ -389,13 +389,17 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
                         break
                     edge = g.edges[p[i-1], p[i]]
                 # we update the message
-                now += timedelta(seconds=t)
                 path_txt += f"🚊 Espera't {stops} parades ({time_txt(t)}) i baixa't a {g.nodes[p[i-1]]['name']}\n"
+                now += timedelta(seconds=t)
+                dist, t = 0, 0
 
             if edge['type'] == 'transfer':
                 i += 1
                 edge = g.edges[p[i-1], p[i]]
-                if fst_edge['line_name'] != edge['line_name']:
+                dist += edge['distance']
+                t += edge['travel_time']
+                if fst_edge['type'] == edge['type'] == 'line' and\
+                        fst_edge['line_name'] != edge['line_name']:
                     path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
                 now += timedelta(seconds=edge['travel_time'])
 
