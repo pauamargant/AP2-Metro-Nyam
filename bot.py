@@ -71,11 +71,26 @@ class User:
     accessibility: bool = False
 
 
+def type_error_exception(update, context, func):
+    if not context.user_data["user"].current_search:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='Unexisting search\nUse command /find to search restaurants')
+    elif not context.user_data["user"].location:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"/{func.__name__} function needs to acces your location\nShare your location in order to use it")
+
+# SEPARAR TODAS LAS EXCEPCIONES EN FUNCIONES APARTE
+
+
 def exception_handler(func):
     """Decorator that handles the exceptions exceptions of the bot functions"""
     def custom_exception(*args):
         update, context = args[0], args[1]
         try:
+            if not "user" in context.user_data:
+                register_user(update, context)
             func(*args)
 
         except KeyError as e:
@@ -84,21 +99,12 @@ def exception_handler(func):
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
                     text='Unexisting user, you need to be registered to use the bot\nUse command /start to register')
-                # register_user(update, context)
-                # func(*args)
             else:
                 print(traceback.format_exc())
 
         except TypeError as e:
             print('TypeError:', e)
-            if not context.user_data["user"].current_search:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text='Unexisting search\nUse command /find to search restaurants')
-            elif not context.user_data["user"].location:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"/{func.__name__} function needs to acces your location\nShare your location in order to use it")
+            type_error_exception(update, context, func)
 
         except ValueError as e:
             print('ValueError', e)
@@ -136,9 +142,6 @@ def time_function(func):
         func(*args)
         print(f"{func.__name__} time is: {time.time() - t1}")
     return temp_func
-
-# ES MEJOR REGISTRAR AL USUARIO EN VEZ DE DAR ERROR?
-# PAU: JO CREC QUE SI
 
 
 def register_user(update, context) -> User:
@@ -278,6 +281,9 @@ def info(update, context):
         of a previous use of the /find command.
     '''
     search: Restaurants = context.user_data['user'].current_search
+    if not search:
+        type_error_exception(update, context, info)
+        return
     num: int = int(context.args[0])
     assert 0 <= num < len(
         search), f"/info ha de tenir com argument un enter entre 0 i {len(search)-1} 😬"
