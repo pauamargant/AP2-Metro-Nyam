@@ -1,13 +1,12 @@
-from ctypes.wintypes import HLOCAL
 import json
-import requests  # type: ignore
 from dataclasses import dataclass
 from typing import Optional, List, Tuple, Dict, Union, Set
-from typing_extensions import TypeAlias
 import math
+import requests
+from typing_extensions import TypeAlias
 import re
-from fuzzysearch import find_near_matches  # type: ignore
-import pandas as pd  # type: ignore
+from fuzzysearch import find_near_matches
+import pandas as pd
 from constants import *
 
 
@@ -91,6 +90,10 @@ Restaurants: TypeAlias = List[Restaurant]
 Operand: TypeAlias = Optional[Union[str, Restaurants]]
 
 
+#   *******************
+#   Reading restaurants
+#   *******************
+
 def read() -> Restaurants:
     """
     Reads data from the open data RESTAURANT_FILE file the and returns a list
@@ -105,7 +108,7 @@ def read() -> Restaurants:
     rest_data = pd.read_csv(
         RESTAURANT_FILE, delimiter=",", encoding='latin-1')
     rest_lst: Restaurants = []
-    for index, row in rest_data.iterrows():
+    for _, row in rest_data.iterrows():
         if not rest_lst or row['register_id'] != rest_lst[-1].id:
             res: Optional[Restaurant] = create_restaurant(row)
             if res is not None:
@@ -151,9 +154,13 @@ def create_restaurant(row: pd.Series) -> Optional[Restaurant]:
                           str(row['values_value']),
                           (float(row['geo_epgs_4326_x']),
                           float(row['geo_epgs_4326_y'])))
-    except Exception as e:
+    except Exception:
         print("Could not create restaurant. Check format of row data")
         return None
+
+#   *******************************************
+#   Finding restaurants and getting information
+#   *******************************************
 
 
 def find(query: str, rsts: Restaurants) -> Restaurants:
@@ -180,6 +187,21 @@ def find(query: str, rsts: Restaurants) -> Restaurants:
 
 
 def rec_search(query: List[str], rsts: Set[Restaurant]) -> Set[Restaurant]:
+    '''
+    Given a query, peform recursively a restaurant search from a logical
+    expression. The input is expected to be a list of str which consist of
+    supported operators (and, or, not) and operands (search terms) in the
+    correct order. The input is expected to come from the "find" function.
+
+    Parameters
+    ----------
+    query: List[str]
+    rsts: Set[Restaurant]
+
+    Returns
+    -------
+    Set[Restaurants]
+    '''
     current = query.pop(0)
     if current == "and":
         return rec_search(query, rsts).intersection(rec_search(query, rsts))
@@ -190,19 +212,11 @@ def rec_search(query: List[str], rsts: Set[Restaurant]) -> Set[Restaurant]:
     return multiword_search(current, rsts)
 
 
-# def is_operator(expression: str) -> bool:
-#     '''
-#     Given a string checks if it's a valid operator.
-#     The following operators are accepted: "and","or","not"
-#     '''
-#     if isinstance(expression, str):
-#         expression_dict = {"and": True, "or": True, "not": True}
-#         return expression_dict.get(expression, False)
-#     return False
-
-
 def multiword_search(query: str, rst: Set[Restaurant]) -> Set[Restaurant]:
     '''
+        Given a query finds restaurants which satisfy the query. If the query
+        consists of more than one word it fins restauants which satisfty all
+        the words.
 
         Parameters
         ----------
@@ -243,6 +257,8 @@ def is_interesting(query: str, res: Restaurant) -> bool:
     terms_of_interest = [res.name, res.adress.nb_name,
                          res.adress.dist_name, res.adress.road_name]
     for t in terms_of_interest:
+        # If the length of the return of find_near_matches is greater than 0
+        # it means that it has found at least one match.
         if len(find_near_matches(query, normalize_str(t), max_l_dist=MAX_L,
                                  max_deletions=MAX_DEL)) > 0:
             return True
@@ -287,7 +303,7 @@ def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
             if len(info_rst) > 0:
                 return info_rst[0]
         return None
-    except Exception as e:
+    except Exception:
         print("Error al realizar la request a l'API de YELP")
         return None
 

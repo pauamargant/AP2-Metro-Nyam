@@ -46,7 +46,7 @@ class Access:
     '''
     Class used to store subway access
     '''
-    code: int  # FAIG SERVIR CODE PQ SI POSO ID ES LIA AMB LES ESTACIONS. SOLUCIO??
+    code: int
     name: str
     station_id: int
     station_name: int
@@ -80,7 +80,8 @@ def string_to_point(point_str: str) -> Coord:
 # COM FER EL TYPE HINTING AMB PANDAS?
 def create_station(row: pd.Series) -> Station:
     '''
-    Given station information in a dataframe row, returns a Station with the relevant information
+    Given station information in a dataframe row, returns a Station with the
+    relevant information.
     The given row is assumed to be of the expected format
 
     Parameters
@@ -106,7 +107,8 @@ def create_station(row: pd.Series) -> Station:
 
 def read_stations() -> Stations:
     '''
-    Reads all the stations from the estations.csv file and returns a list of Stations
+    Reads all the stations from the estations.csv file and returns a list
+    of Stations
     '''
     stations_df = pd.read_csv(STATION_FILE)
     station_list: Stations = []
@@ -128,8 +130,10 @@ def create_access(row: pd.Series) -> Access:
     access: Access
     '''
     try:
-        return Access(row["CODI_ACCES"], row["NOM_ACCES"], row["ID_ESTACIO"], row["NOM_ESTACIO"], row["CODI_GRUP_ESTACIO"],
-                      row["ID_TIPUS_ACCESSIBILITAT"], string_to_point(row["GEOMETRY"]))
+        return Access(row["CODI_ACCES"], row["NOM_ACCES"], row["ID_ESTACIO"],
+                      row["NOM_ESTACIO"], row["CODI_GRUP_ESTACIO"],
+                      row["ID_TIPUS_ACCESSIBILITAT"],
+                      string_to_point(row["GEOMETRY"]))
     except Exception:
         print("access row has the wrong format or is incomplete")
         assert False
@@ -137,7 +141,8 @@ def create_access(row: pd.Series) -> Access:
 
 def read_accesses() -> Accesses:
     '''
-    Reads all the accesses from a file (ACCESS_FILE) and returns a list of Accesses.
+    Reads all the accesses from a file (ACCESS_FILE) and returns
+    a list of Accesses.
     Parameters
     ----------
     row: pd.Series
@@ -175,10 +180,12 @@ def line_distance(g: MetroGraph, orig_id: NodeID, dest_id: NodeID) -> float:
                      g.nodes[dest_id]["pos"], unit="m")
 
 
-def accessible_time(Metro: MetroGraph, orig_id: NodeID, dest_id: NodeID, distance: float) -> float:
+def accessible_time(Metro: MetroGraph, orig_id: NodeID, dest_id: NodeID,
+                    distance: float) -> float:
     '''
-        Given a graph, two station/access nodes and a distance returns the travel time if both 
-        stations are accessible, if either of them is not accessible returns INF.
+        Given a graph, two station/access nodes and a distance returns the
+        travel time if both stations are accessible, if either of them is
+        not accessible returns INF.
 
         Parameters
         ----------
@@ -191,18 +198,20 @@ def accessible_time(Metro: MetroGraph, orig_id: NodeID, dest_id: NodeID, distanc
         -------
         travel_time: float
     '''
-    if(Metro.nodes[orig_id]["accessibility"] == 1 and Metro.nodes[dest_id]["accessibility"] == 1):
+    if(Metro.nodes[orig_id]["accessibility"] == 1
+       and Metro.nodes[dest_id]["accessibility"] == 1):
         return distance/SUBWAY_SPEED
     return INF
 
 
 def get_metro_graph() -> MetroGraph:
     '''
-    Reads station and access data from STATION_FILE and ACCESS_FILE and creates a graph with the
-    following characteristics:
+    Reads station and access data from STATION_FILE and ACCESS_FILE and
+    creates a graph with the following characteristics:
     -Stations and accesses are nodes in the graph.
     -There is and edge between each access and its corresponding station
-    -Subway lines are represented as edges between contiguous stations in the line.
+    -Subway lines are represented as edges between contiguous stations
+     in the line.
     -Stations of the same group but different line are connected by an edge.
 
     Returns
@@ -259,24 +268,31 @@ def get_metro_graph() -> MetroGraph:
                            acc_travel_time=distance/SUBWAY_SPEED)
         prev_id, prev_line = id, station.line_id
 
-        # If we have previously read a station in the same group we append the current
-        # station id to the list of transfers. Otherwise we create a new entry in the dict
+        # If we have previously read a station in the same group we append
+        # the current station id to the list of transfers.
+        # Otherwise we create a new entry in the dict
         if line_transfers.get(station.group_code) is None:
             line_transfers[station.group_code] = [id]
         else:
             line_transfers[station.group_code].append(id)
 
-    # We add the nodes corresponding to the accesses and connect each access with its station
+    # We add the nodes corresponding to the accesses and connect each access
+    # with its station
     for access in access_list:
-        Metro.add_node(access.code, pos=access.position, station=access.station_name,
+        Metro.add_node(access.code, pos=access.position,
+                       station=access.station_name,
                        accessibility=access.accessibility, type="access")
         distance = line_distance(
             Metro, access.code, access.station_id)
 
-        Metro.add_edge(access.code, access.station_id, type="access", distance=distance, travel_time=distance/WALKING_SPEED,
-                       acc_travel_time=accessible_time(Metro, access.code, access.station_id, distance))
+        Metro.add_edge(access.code, access.station_id, type="access",
+                       distance=distance, travel_time=distance/WALKING_SPEED,
+                       acc_travel_time=accessible_time(Metro, access.code,
+                                                       access.station_id,
+                                                       distance))
 
-    # We connect stations which are in the same station group but are of a different line
+    # We connect stations which are in the same station group but are of
+    # a different line
     for item in line_transfers.items():
         for id1, i1 in enumerate(item[1]):
             for i2 in item[1][id1+1:]:
@@ -284,9 +300,12 @@ def get_metro_graph() -> MetroGraph:
                     distance = line_distance(
                         Metro, i1, i2)
                     Metro.add_edge(
-                        i1, i2, type="transfer", line_name=Metro.nodes[i2]["line_name"], distance=distance,
+                        i1, i2, type="transfer",
+                        line_name=Metro.nodes[i2]["line_name"],
+                        distance=distance,
                         travel_time=distance/WALKING_SPEED + TRANSFER_TIME,
-                        acc_travel_time=accessible_time(Metro, i1, i2, distance) + TRANSFER_TIME)
+                        acc_travel_time=accessible_time(
+                            Metro, i1, i2, distance) + TRANSFER_TIME)
 
     return Metro
 
@@ -298,12 +317,14 @@ def plot(g: MetroGraph, filename: str) -> None:
     '''
 
     map: StaticMap = StaticMap(
-        HD_SIZE_X, HD_SIZE_Y, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
+        HD_SIZE_X, HD_SIZE_Y,
+        url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     for pos in nx.get_node_attributes(g, "pos").values():
         map.add_marker(CircleMarker(pos, 'red', 6))
     for edge in g.edges:
         map.add_line(
-            Line([g.nodes[edge[0]]['pos'], g.nodes[edge[1]]['pos']], 'blue', 3))
+            Line([g.nodes[edge[0]]['pos'],
+                  g.nodes[edge[1]]['pos']], 'blue', 3))
     try:
         image = map.render()
         image.save(filename)

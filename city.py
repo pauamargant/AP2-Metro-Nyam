@@ -1,6 +1,4 @@
-from ast import Raise
 
-from pyrsistent import b
 import metro
 
 # import pandas as pd
@@ -9,8 +7,8 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
+from typing import IO, List, Tuple, Dict
 import pickle as pkl
 import os.path
 from datetime import datetime, timedelta

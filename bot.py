@@ -1,5 +1,4 @@
 # importa l'API de Telegram
-from bdb import effective
 from dataclasses import dataclass
 import sys
 import os
@@ -9,7 +8,7 @@ import time
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
-from typing import Optional, TextIO, List, Tuple, Dict, Union
+from typing import Optional, List, Tuple, Dict, Union
 from typing_extensions import TypeAlias
 import traceback
 from haversine import haversine
@@ -23,8 +22,8 @@ Restaurant = restaurants.Restaurant
 Restaurants = restaurants.Restaurants
 
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+logging.basicConfig(format="""%(asctime)s - %(name)s - %(levelname)s -
+                    %(message)s""", level=logging.INFO)
 
 Coord: TypeAlias = Tuple[float, float]
 NodeID: TypeAlias = int
@@ -79,7 +78,8 @@ def type_error_exception(update, context, func):
     elif not context.user_data["user"].location:
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"/{func.__name__} function needs to acces your location\nShare your location in order to use it")
+            text=f"""/{func.__name__} function needs to acces your location
+            \nShare your location in order to use it""")
 
 # SEPARAR TODAS LAS EXCEPCIONES EN FUNCIONES APARTE
 
@@ -89,7 +89,7 @@ def exception_handler(func):
     def custom_exception(*args):
         update, context = args[0], args[1]
         try:
-            if not "user" in context.user_data:
+            if "user" not in context.user_data:
                 register_user(update, context)
             func(*args)
 
@@ -98,7 +98,8 @@ def exception_handler(func):
             if e.args[0] == "user":
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text='Unexisting user, you need to be registered to use the bot\nUse command /start to register')
+                    text="""Unexisting user, you need to be registered to use
+                     the bot\nUse command /start to register""")
             else:
                 print(traceback.format_exc())
 
@@ -124,7 +125,8 @@ def exception_handler(func):
             if not context.args:
                 context.bot.send_message(
                     chat_id=update.effective_chat.id,
-                    text=f"/{func.__name__} requires extra arguments arguments\nLook in /help for more information")
+                    text=f"""/{func.__name__} requires extra arguments
+                        arguments\nLook in /help for more information""")
 
         except Exception as e:
             print('General exception:', e)
@@ -157,7 +159,7 @@ def start(update, context):
     '''
         Registers (if already registered) a new user and greets him
     '''
-    if not "user" in context.user_data:
+    if "user" not in context.user_data:
         register_user(update, context)
     current_user = context.user_data["user"]
     context.bot.send_message(
@@ -259,7 +261,7 @@ def find(update, context):
 def accessibility(update, context):
     '''
         Toggles the accessibility option. If accessibility is enabled the bot will only
-        use subway stations and accesses which are accessible. 
+        use subway stations and accesses which are accessible.
     '''
     old_acc: bool = context.user_data['user'].accessibility
     context.user_data['user'].accessibility = not old_acc
@@ -277,7 +279,7 @@ def accessibility(update, context):
 def info(update, context):
     '''
         Sends additional information about a given restaurant. The user sends the command
-        with argument a number, which is expected to be a search result number in the results 
+        with argument a number, which is expected to be a search result number in the results
         of a previous use of the /find command.
     '''
     search: Restaurants = context.user_data['user'].current_search
@@ -303,7 +305,7 @@ def info(update, context):
 @ exception_handler
 def guide(update, context):
     '''
-        Guides the user from its location to a restaurant. 
+        Guides the user from its location to a restaurant.
     '''
     t1: float = time.time()
     # flags = context.args
