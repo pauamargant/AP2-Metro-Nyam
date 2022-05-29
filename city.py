@@ -281,7 +281,7 @@ def plot_path(g: CityGraph, p: Path, filename: str,
         print("Could not render or save image")
 
 
-def time_dist_txt(g: CityGraph, p: Path, orig: Coord):
+def time_dist_txt(g: CityGraph, p: Path, orig: Coord) -> str:
     '''
         Given a path and a CityGraph calculates the time and distance of the
         path
