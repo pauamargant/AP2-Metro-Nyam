@@ -1,4 +1,6 @@
 from ast import Raise
+
+from pyrsistent import b
 import metro
 
 import pandas as pd
@@ -82,7 +84,7 @@ def save_osmnx_graph(g: OsmnxGraph, filename: str) -> None:
         pkl.dump(g, pickle_out)
         pickle_out.close()
     except Exception as error:
-        print("Error while saving osmnx_graph".format(error))
+        print("Error while saving osmnx_graph")
 
 
 def load_osmnx_graph(filename: str) -> OsmnxGraph:
@@ -105,10 +107,10 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
             pickle_in: IO = open(filename, "rb")
             return pkl.load(pickle_in)
         except Exception as error:
-            print("Could not retrieve osmnx graph".format(error))
+            print("Could not retrieve osmnx graph")
 
 
-def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> List[Tuple[NodeID, NodeID, float]]:
+def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[NodeID], List[NodeID], List[float]]:
     '''
     Given a OsmnxGraph g1 and a MetroGraph g2 finds for each access in g2 the nearest node
     to that access in g2, together with the distance to it.
@@ -140,7 +142,7 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> List[Tuple[NodeID, NodeID, 
     return nodes, nearest, distances
 
 
-def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
+def build_city_graph(g: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     '''
     Given a OsmnxGraph g1 and a MetroGraph g2, unites both Graphs and connects each access in g2 to the
     nearest node in g1.
@@ -155,10 +157,10 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     city: CityGraph
 
     '''
-    nodes, nearest, distances = nearest_nodes(g1, g2)
+    nodes, nearest, distances = nearest_nodes(g, g2)
 
     # We convert g1 from Multidigraph to graph
-    g1: CityGraph = nx.Graph(g1)
+    g1: CityGraph = nx.Graph(g)
     city: CityGraph = nx.union(g1, g2)
     for n1, n2, d in zip(nodes, nearest, distances):
         city.add_edge(n1, n2, type="Street", distance=d,
@@ -221,7 +223,7 @@ def plot(g: MetroGraph, filename: str) -> None:
         image = map.render()
         image.save(filename)
     except Exception as error:
-        print("Could not render or save image".format(error))
+        print("Could not render or save image")
 
 
 def edge_color(g: CityGraph, n1: NodeID, n2: NodeID) -> str:
@@ -268,7 +270,7 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
         image = map.render()
         image.save(filename)
     except Exception as error:
-        print("Could not render or save image".format(error))
+        print("Could not render or save image")
 
 
 def time_dist_txt(g: CityGraph, p: Path, orig: Coord):
@@ -312,7 +314,7 @@ def time_txt(t: float) -> str:
     """
     if t < 60:
         return f"{t} s"
-    t: float = round(t/60)
+    t = round(t/60)
     return f"{t} min" if t <= 60 else f"{t//60} h {t%60} min"
 
 
@@ -331,7 +333,7 @@ def dist_txt(dist: float) -> str:
         Formatted distance text
 
     """
-    dist: float = round(dist)
+    dist = round(dist)
     return f"{dist} m" if dist < 1000 else f"{dist//1000} km {dist%1000} m"
 
 
