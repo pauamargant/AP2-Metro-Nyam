@@ -3,7 +3,7 @@ from ast import Raise
 from pyrsistent import b
 import metro
 
-import pandas as pd
+# import pandas as pd
 import osmnx as ox
 import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
@@ -57,7 +57,8 @@ def get_osmnx_graph() -> OsmnxGraph:
 
             for edge in graph.edges:
                 distance: float = haversine(graph.nodes[edge[0]]["pos"],
-                                            graph.nodes[edge[1]]["pos"], unit="m")
+                                            graph.nodes[edge[1]]["pos"],
+                                            unit="m")
                 graph.edges[edge]["distance"] = distance
                 graph.edges[edge]["travel_time"] = distance/WALKING_SPEED
                 graph.edges[edge]["acc_travel_time"] = distance/WALKING_SPEED
@@ -110,10 +111,11 @@ def load_osmnx_graph(filename: str) -> OsmnxGraph:
             print("Could not retrieve osmnx graph")
 
 
-def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[NodeID], List[NodeID], List[float]]:
+def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) \
+        -> Tuple[List[NodeID], List[NodeID], List[float]]:
     '''
-    Given a OsmnxGraph g1 and a MetroGraph g2 finds for each access in g2 the nearest node
-    to that access in g2, together with the distance to it.
+    Given a OsmnxGraph g1 and a MetroGraph g2 finds for each access in g2 the
+    nearest node to that access in g2, together with the distance to it.
 
     Parameters
     ----------
@@ -123,8 +125,8 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[NodeID], List[No
     Returns
     -------
     List[Tuple[NodeID,NodeID,float]
-        A list with contains for each acces in g2 a tupple with the access node id,
-        the id of the nearest node in g1 and the distance to it.
+        A list with contains for each acces in g2 a tupple with the access
+        node id, the id of the nearest node in g1 and the distance to it.
     '''
     if not isinstance(g1, OsmnxGraph):
         raise TypeError("g1 must be an OsmnxGraph")
@@ -144,8 +146,8 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> Tuple[List[NodeID], List[No
 
 def build_city_graph(g: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     '''
-    Given a OsmnxGraph g1 and a MetroGraph g2, unites both Graphs and connects each access in g2 to the
-    nearest node in g1.
+    Given a OsmnxGraph g1 and a MetroGraph g2, unites both Graphs and connects
+    each access in g2 to the nearest node in g1.
 
     Parameters
     ----------
@@ -164,17 +166,19 @@ def build_city_graph(g: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     city: CityGraph = nx.union(g1, g2)
     for n1, n2, d in zip(nodes, nearest, distances):
         city.add_edge(n1, n2, type="Street", distance=d,
-                      travel_time=d/WALKING_SPEED, acc_travel_time=d/WALKING_SPEED)
+                      travel_time=d/WALKING_SPEED,
+                      acc_travel_time=d/WALKING_SPEED)
     return city
 
 
-def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord, accessibility: bool = False) -> Path:
+def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord,
+              accessibility: bool = False) -> Path:
     '''
     Given a CityGraph g, a starting point src and a destination point dst we
     generate the shortest path (in travel time) between the two positions and
     we return the path.
-    Depending on the accessibility parameter (which is false by default) will be
-    accessible or not.
+    Depending on the accessibility parameter (which is false by default) will
+    be accessible or not.
 
     Parameters:
     -----------
@@ -193,8 +197,8 @@ def find_path(ox_g: OsmnxGraph, g: CityGraph, src: Coord, dst: Coord, accessibil
     '''
     src_node: NodeID = ox.distance.nearest_nodes(ox_g, src[1], src[0])
     dst_node: NodeID = ox.distance.nearest_nodes(ox_g, dst[1], dst[0])
-    weight_parameter: str = 'acc_travel_time' if accessibility else 'travel_time'
-    p: Path = nx.shortest_path(g, src_node, dst_node, weight=weight_parameter)
+    weight_param: str = 'acc_travel_time' if accessibility else 'travel_time'
+    p: Path = nx.shortest_path(g, src_node, dst_node, weight=weight_param)
     return p
 
 
@@ -206,7 +210,8 @@ def plot(g: MetroGraph, filename: str) -> None:
     # color for each set of edges, blue is the default
 
     colorEdges: Dict[str, str] = {'line': 'blue', 'street': 'yellow',
-                                  'transfer': 'orange', 'Street': 'orange', 'access': 'blue'}
+                                  'transfer': 'orange', 'Street': 'orange',
+                                  'access': 'blue'}
     colorNodes: Dict[str, str] = {'station': 'red', 'access': 'black',
                                   'street_intersection': 'green'}
     map: StaticMap = StaticMap(
@@ -242,10 +247,11 @@ def edge_color(g: CityGraph, n1: NodeID, n2: NodeID) -> str:
         return 'black'
 
 
-def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) -> None:
+def plot_path(g: CityGraph, p: Path, filename: str,
+              orig: Coord, dest: Coord) -> None:
     '''
-        Given a path p plots it using the citygraph and the orig and dest coordinates
-        and saves it into a file.
+        Given a path p plots it using the citygraph and the orig and dest
+        coordinates and saves it into a file.
 
         Parameters
         ----------
@@ -258,10 +264,12 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
     '''
 
     map: StaticMap = StaticMap(
-        SIZE_X, SIZE_Y, padding_x=PADDING, padding_y=PADDING, url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
+        SIZE_X, SIZE_Y, padding_x=PADDING, padding_y=PADDING,
+        url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     if p:
         for prev_node, node in zip(p, p[1:]):
-            map.add_line(Line([g.nodes[prev_node]['pos'], g.nodes[node]['pos']],
+            map.add_line(Line([g.nodes[prev_node]['pos'],
+                               g.nodes[node]['pos']],
                               edge_color(g, prev_node, node), 6))
 
         map.add_marker(CircleMarker(g.nodes[p[0]]['pos'], 'blue', 10))
@@ -275,7 +283,8 @@ def plot_path(g: CityGraph, p: Path, filename: str, orig: Coord, dest: Coord) ->
 
 def time_dist_txt(g: CityGraph, p: Path, orig: Coord):
     '''
-        Given a path and a citygraph calculates the time and distance of the path
+        Given a path and a CityGraph calculates the time and distance of the
+        path
 
         Parameters
         ----------
@@ -373,15 +382,21 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
                         break
                     edge = g.edges[p[i-1], p[i]]
                 # we update the message
-                path_txt += f"🚶‍ {now.strftime('%H:%M')} | Camina {time_txt(t)} ({dist_txt(dist)})\n"
+                path_txt += (f"🚶‍ {now.strftime('%H:%M')} | "
+                             f"Camina {time_txt(t)} ({dist_txt(dist)})\n")
                 now += timedelta(seconds=t)
                 dist, t = 0, 0
 
             fst_edge = edge
             stops: int = 0
             if edge['type'] == 'line':
-                path_txt += f"Ⓜ️ {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció "
-                path_txt += f"{edge['line_dest' if edge['orientation'] == (p[i-1], p[i]) else 'line_orig']}\n"
+                line_dest = edge['line_dest'
+                                 if edge['orientation'] == (p[i-1], p[i])
+                                 else 'line_orig']
+                path_txt += (f"Ⓜ️ {now.strftime('%H:%M')} | Agafa la linea "
+                             f"{edge['line_name']} en "
+                             f"{g.nodes[p[i-1]]['name']}, amb direcció "
+                             f"{line_dest}\n")
                 while edge['type'] == 'line':
                     dist += edge['distance']
                     t += edge['travel_time']
@@ -391,7 +406,8 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
                         break
                     edge = g.edges[p[i-1], p[i]]
                 # we update the message
-                path_txt += f"🚊 Espera't {stops} parades ({time_txt(t)}) i baixa't a {g.nodes[p[i-1]]['name']}\n"
+                path_txt += (f"🚊 Espera't {stops} parades ({time_txt(t)}) i "
+                             f"baixa't a {g.nodes[p[i-1]]['name']}\n")
                 now += timedelta(seconds=t)
                 dist, t = 0, 0
 
@@ -402,7 +418,9 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
                 t += edge['travel_time']
                 if fst_edge['type'] == edge['type'] == 'line' and\
                         fst_edge['line_name'] != edge['line_name']:
-                    path_txt += f"🔳 {now.strftime('%H:%M')} | Transbord de la línia {fst_edge['line_name']} a la línia {edge['line_name']}\n"
+                    path_txt += (f"🔳 {now.strftime('%H:%M')} | Transbord de "
+                                 f"la línia {fst_edge['line_name']} a la "
+                                 f"línia {edge['line_name']}\n")
                 now += timedelta(seconds=edge['travel_time'])
 
             dist = 0
@@ -410,7 +428,7 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
         return path_txt + f"📍 {now.strftime('%H:%M')}"
     except Exception as e:
         print(e)
-        print("Could not create elaborate message, returning simple path message")
+        print("Could not create elaborate message, returning simple message")
         return time_dist_txt(g, p, orig)
 
 
