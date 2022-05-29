@@ -7,7 +7,8 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union
+from typing_extensions import TypeAlias
 import pickle as pkl
 import os.path
 from datetime import datetime, timedelta
@@ -131,12 +132,12 @@ def nearest_nodes(g1: OsmnxGraph, g2: MetroGraph) -> List[Tuple[NodeID, NodeID, 
     X: List[float] = []
     Y: List[float] = []
     for node, value in g2.nodes(data=True):
-        if value["type"] == "access":
-            X.append(value["pos"][0])
-            Y.append(value["pos"][1])
-    nearest, distances = ox.distance.nearest_nodes(
-        g1, X, Y, return_dist=True)
-    return zip(nodes, nearest, distances)
+        coords = value["pos"]
+        X.append(coords[0])
+        Y.append(coords[1])
+        nodes.append(node)
+    nearest, distances = ox.distance.nearest_nodes(g1, X, Y, return_dist=True)
+    return nodes, nearest, distances
 
 
 def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
@@ -154,11 +155,12 @@ def build_city_graph(g1: OsmnxGraph, g2: MetroGraph) -> CityGraph:
     city: CityGraph
 
     '''
-    nearest_to_access: List[Tuple[NodeID,
-                                  NodeID, float]] = nearest_nodes(g1, g2)
-    g1: CityGraph = nx.Graph(g1)     # We convert g1 from Multidigraph to graph
+    nodes, nearest, distances = nearest_nodes(g1, g2)
+
+    # We convert g1 from Multidigraph to graph
+    g1: CityGraph = nx.Graph(g1)
     city: CityGraph = nx.union(g1, g2)
-    for n1, n2, d in nearest_to_access:
+    for n1, n2, d in zip(nodes, nearest, distances):
         city.add_edge(n1, n2, type="Street", distance=d,
                       travel_time=d/WALKING_SPEED, acc_travel_time=d/WALKING_SPEED)
     return city
@@ -376,7 +378,7 @@ def path_txt(g: CityGraph, p: Path, orig: Coord, dest: Coord) -> str:
             fst_edge = edge
             stops: int = 0
             if edge['type'] == 'line':
-                path_txt += f"Ⓜ️  {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció "
+                path_txt += f"Ⓜ️ {now.strftime('%H:%M')} | Agafa la linea {edge['line_name']} en {g.nodes[p[i-1]]['name']}, amb direcció "
                 path_txt += f"{edge['line_dest' if edge['orientation'] == (p[i-1], p[i]) else 'line_orig']}\n"
                 while edge['type'] == 'line':
                     dist += edge['distance']

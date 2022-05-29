@@ -9,7 +9,8 @@ import time
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
 import logging
 import random
-from typing import Optional, TextIO, List, Tuple, Dict, Union, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union
+from typing_extensions import TypeAlias
 import traceback
 from haversine import haversine
 
@@ -40,7 +41,7 @@ except IOError:
 #   **************
 #   INITIALIZATION
 #   **************
-print(f"{'*'*54}\n{'*'*16}\n Initializing bot\n {'*'*16}")
+print(f"{'*'*54}\n{'*'*16}\nInitializing bot\n{'*'*16}")
 t1 = time.time()
 metro_graph: metro.MetroGraph = metro.get_metro_graph()
 print('get_metro_graph time:', time.time() - t1)
@@ -54,7 +55,7 @@ t2 = time.time()
 rest: restaurants.Restaurants = restaurants.read()
 print('restaurants.read time:', time.time() - t2)
 print('Total initialization time:', time.time() - t1)
-print(f"{'*'*54}\n\n")
+print(f"{'*'*54}\n")
 
 
 help_txt = {}

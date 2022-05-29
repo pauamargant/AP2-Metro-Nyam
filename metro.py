@@ -6,7 +6,8 @@ import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union, TypeAlias
+from typing import Optional, TextIO, List, Tuple, Dict, Union
+from typing_extensions import TypeAlias
 from haversine import haversine, Unit
 from constants import *
 
