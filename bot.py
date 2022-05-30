@@ -1,4 +1,5 @@
 # importa l'API de Telegram
+from ast import Assert
 from dataclasses import dataclass
 import sys
 import os
@@ -21,9 +22,10 @@ import restaurants
 Restaurant = restaurants.Restaurant
 Restaurants = restaurants.Restaurants
 
+# POTSER POSAR TOT AIXO EN EL IF __NAME__ == '__MAIN__'? PER TENIR-HO MÉS ORGANITZAT
 
-logging.basicConfig(format="""%(asctime)s - %(name)s - %(levelname)s -
-                    %(message)s""", level=logging.INFO)
+logging.basicConfig(format=(f"%(asctime)s - %(name)s - %(levelname)s -"
+                            f" %(message)s"), level=logging.INFO)
 
 Coord: TypeAlias = Tuple[float, float]
 NodeID: TypeAlias = int
@@ -34,13 +36,13 @@ Path: TypeAlias = List[NodeID]
 try:
     TOKEN = open('token.txt').read().strip()
 except IOError:
-    print("Could not read the token.txt file")
+    print("Could not read the token.txt file")  # PEL CANAL D'ERRORS MILLOR
     sys.exit()
 
 #   **************
 #   INITIALIZATION
 #   **************
-print(f"{'*'*54}\n{'*'*16}\nInitializing bot\n{'*'*16}")
+print(f"{'*'*16}\nInitializing bot\n{'*'*16}")
 t1 = time.time()
 metro_graph: metro.MetroGraph = metro.get_metro_graph()
 print('get_metro_graph time:', time.time() - t1)
@@ -70,18 +72,57 @@ class User:
     accessibility: bool = False
 
 
-def type_error_exception(update, context, func):
-    if not context.user_data["user"].current_search:
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='Unexisting search\nUse command /find to search restaurants')
-    elif not context.user_data["user"].location:
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"""/{func.__name__} function needs to acces your location
-            \nShare your location in order to use it""")
+class Exception_messages:
 
-# SEPARAR TODAS LAS EXCEPCIONES EN FUNCIONES APARTE
+    def type_error(update, context, func) -> None:
+        if not context.user_data["user"].current_search:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text='Unexisting search\nUse command /find to search restaurants')
+        elif not context.user_data["user"].location:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(f"/{func.__name__} function needs to acces your "
+                      f"location\nShare your location in order to use it"))
+        else:
+            Exception_messages.general(update, context)
+
+    def key_error(update, context, e: KeyError) -> None:
+        if e.args[0] == "user":
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=("Unexisting user, you need to be registered to use"
+                      "the bot\nUse command /start to register"))
+        else:
+            Exception_messages.general(update, context)
+
+    def value_error(update, context) -> None:
+        if 'invalid literal for int()' in traceback.format_exc():
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text='Wrong parameters type, expected integers')
+        else:
+            Exception_messages.general(update, context)
+
+    def assertion_error(update, context, e: AssertionError) -> None:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=e.args[0])
+
+    def index_error(update, context, func) -> None:
+        if not context.args:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(f"/{func.__name__} requires extra arguments\n"
+                      f"Look in /help for more information"))
+        else:
+            Exception_messages.general(update, context)
+
+    def general(update, context) -> None:
+        print(traceback.format_exc())
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='💣')
 
 
 def exception_handler(func):
@@ -95,67 +136,39 @@ def exception_handler(func):
 
         except KeyError as e:
             print('KeyError:', e)
-            if e.args[0] == "user":
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text="""Unexisting user, you need to be registered to use
-                     the bot\nUse command /start to register""")
-            else:
-                print(traceback.format_exc())
+            Exception_messages.key_error(update, context, e)
 
         except TypeError as e:
             print('TypeError:', e)
-            type_error_exception(update, context, func)
+            Exception_messages.type_error(update, context, func)
 
         except ValueError as e:
             print('ValueError', e)
-            if 'invalid literal for int()' in traceback.format_exc():
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text='Wrong parameters type, expected integers')
+            Exception_messages.value_error(update, context)
 
         except AssertionError as e:
             print('AssertionError', e)
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=e.args[0])
+            Exception_messages.assertion_error(update, context, e)
 
         except IndexError as e:
             print('IndexError:', e)
-            if not context.args:
-                context.bot.send_message(
-                    chat_id=update.effective_chat.id,
-                    text=f"""/{func.__name__} requires extra arguments
-                        arguments\nLook in /help for more information""")
+            Exception_messages.index_error(update, context, func)
 
         except Exception as e:
             print('General exception:', e)
-            print(traceback.format_exc())
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text='💣')
+            Exception_messages.general(update, context)
 
     return custom_exception
 
 
-def time_function(func):
-    def temp_func(*args):
-        t1: float = time.time()
-        func(*args)
-        print(f"{func.__name__} time is: {time.time() - t1}")
-    return temp_func
-
-
-def register_user(update, context) -> User:
-    """registers a new user and returns the user"""
+def register_user(update, context) -> None:
+    """registers a new user"""
     context.user_data["user"] = User(
         None, None, update['message']['chat']['first_name'], False)
-    return context.user_data["user"]
 
 
-@ time_function
 @ exception_handler
-def start(update, context):
+def start(update, context) -> None:
     '''
         Registers (if already registered) a new user and greets him
     '''
@@ -164,13 +177,12 @@ def start(update, context):
     current_user = context.user_data["user"]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"""Hola {current_user.name} 🖖, benvingut a Nyam Bot\nUtilitza
-        /help per veure totes les comandes disponibles :)""")
+        text=(f"Hola {current_user.name} 🖖, benvingut a Nyam Bot\nUtilitza"
+              f" /help per veure totes les comandes disponibles :)"))
 
 
-@ time_function
 @ exception_handler
-def help(update, context):
+def help(update, context) -> None:
     '''
         Sends help message to the user
     '''
@@ -180,14 +192,15 @@ def help(update, context):
     else:
         help_msg = help_txt.get(context.args[0].replace('/', ''))
         if help_msg is None:
-            help_msg = f"""la comanda {context.args[0]} no existeix, utilitza
-             /help per veure una llista de totes les comandes disponibles :)"""
+            help_msg = (f"la comanda {context.args[0]} no existeix, utilitza"
+                        f"/help per veure una llista de totes les comandes "
+                        f"disponibles :)")
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=help_msg)
 
 
-def author(update, context):
+def author(update, context) -> None:
     '''
         Sends to the user information about the authors and project
     '''
@@ -198,9 +211,8 @@ def author(update, context):
     )
 
 
-@ time_function
 @ exception_handler
-def update_location(update, context):
+def update_location(update, context) -> None:
     '''
         Saves user location or updates it if already saved
     '''
@@ -212,9 +224,8 @@ def update_location(update, context):
         text='Localització actualitzada 📍')
 
 
-@ time_function
 @ exception_handler
-def plot_metro(update, context):
+def plot_metro(update, context) -> None:
     '''
         Send metro plot image to the user
     '''
@@ -228,18 +239,16 @@ def plot_metro(update, context):
 
 def sort_rsts(rsts: Optional[Restaurant],
               loc: Coord, dist=True) -> Optional[Restaurants]:
-    if (len(rsts) > 0 and dist):
+    if rsts and dist:
         rsts = [rst for rst in rsts if rst is not None]
         return sorted(rsts, key=lambda rst:
                       haversine((loc[1], loc[0]),
                                 (rst.coords[1], rst.coords[0])))
-    else:
-        return rsts
+    return rsts
 
 
-@ time_function
 @ exception_handler
-def find(update, context):
+def find(update, context) -> None:
     '''
         Given a query sends to the user a list of up to 12 restaurants which
         match the query.
@@ -256,7 +265,8 @@ def find(update, context):
     user.current_search = search
     msg: str = "".join(
         [str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
-    assert msg, f"no s'han pogut trobar restaurants amb la cerca: {query} 🤷‍♂️"
+    assert msg,\
+        f"no s'han pogut trobar restaurants amb la cerca: {query} 🤷‍♂️"
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=msg
@@ -264,8 +274,7 @@ def find(update, context):
 
 
 @ exception_handler
-@time_function
-def accessibility(update, context):
+def accessibility(update, context) -> None:
     '''
         Toggles the accessibility option. If accessibility is enabled the bot
         will only use subway stations and accesses which are accessible.
@@ -281,9 +290,8 @@ def accessibility(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
-@ time_function
 @ exception_handler
-def info(update, context):
+def info(update, context) -> None:
     '''
         Sends additional information about a given restaurant. The user sends
         the command with argument a number, which is expected to be a search
@@ -291,12 +299,12 @@ def info(update, context):
     '''
     search: Restaurants = context.user_data['user'].current_search
     if not search:
-        type_error_exception(update, context, info)
+        Exception_messages.type_error(update, context, info)
         return
     num: int = int(context.args[0])
-    assert 0 <= num < len(
-        search), f"""/info ha de tenir com argument un enter entre 0
-        i {len(search)-1} 😬"""
+    assert 0 <= num < len(search),\
+        (f"/ info ha de tenir com argument un enter entre 0"
+         f" i {len(search)-1} 😬")
     restaurant: Restaurant = context.user_data['user'].current_search[num]
     message: str
     photo_url: Optional[str]
@@ -309,9 +317,8 @@ def info(update, context):
             chat_id=update.effective_chat.id, text=message)
 
 
-@ time_function
 @ exception_handler
-def guide(update, context):
+def guide(update, context) -> None:
     '''
         Guides the user from its location to a restaurant.
     '''
@@ -319,9 +326,9 @@ def guide(update, context):
     # flags = context.args
     filename: str = "%d.png" % random.randint(1000000, 9999999)
     user: User = context.user_data['user']
-    assert 0 <= int(context.args[0]) < len(
-        user.current_search), f"""/guide ha de tenir com argument un enter
-        entre 0 i {len(user.current_search)-1} 😬"""
+    assert 0 <= int(context.args[0]) < len(user.current_search),\
+        (f"/ guide ha de tenir com argument un enter "
+         f"entre 0 i {len(user.current_search)-1} 😬")
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
@@ -339,15 +346,14 @@ def guide(update, context):
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f"""{city.path_txt(city_graph, path, src, dst)} | Ja has arribat
-         a {user.current_search[int(context.args[0])].name}""")
+        text=(f"{city.path_txt(city_graph, path, src, dst)} | Ja has arribat"
+              f"a {user.current_search[int(context.args[0])].name}"))
 
     print("enviat")
 
 
-@ time_function
 @ exception_handler
-def default_location(update, context):
+def default_location(update, context) -> None:
     """localización de la uni, función de debugging"""
     context.user_data['user'].location = (41.388492, 2.113043)
     context.bot.send_message(
@@ -359,10 +365,8 @@ def main():
     # crea objectes per treballar amb Telegram
     updater = Updater(token=TOKEN, use_context=True)
     dispatcher = updater.dispatcher
-    print("-------------")
-    print("Bot is active")
-    print("-------------")
-    # indica que quan el bot rebi la comanda /start s'executi la funció start
+    print(f"{'-'*13}\nBot is active\n{'-'*13}")
+
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help))
     dispatcher.add_handler(CommandHandler('author', author))
