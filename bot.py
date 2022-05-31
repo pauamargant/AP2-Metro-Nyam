@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, CallbackContext
 import logging
 import random
-from typing import Optional, List, Tuple, Dict, Union
+from typing import Optional, List, Tuple, Dict, Union, Callable
 from typing_extensions import TypeAlias
 import traceback
 from haversine import haversine
@@ -26,15 +26,17 @@ Path: TypeAlias = List[NodeID]
 
 @ dataclass
 class User:
-    location: Coord
-    current_search: restaurants.Restaurants
+    location: Optional[Coord]
+    current_search: Optional[restaurants.Restaurants]
     name: str
     accessibility: bool = False
 
 
 class Exception_messages:
 
-    def type_error(update: Update, context: CallbackContext, func: function) -> None:
+    @ staticmethod
+    def type_error(update: Update, context: CallbackContext, func: Callable) -> None:
+        assert not(update.effective_chat is None or context.user_data is None)
         if not context.user_data["user"].current_search:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -47,7 +49,9 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
+    @ staticmethod
     def key_error(update: Update, context: CallbackContext, e: KeyError) -> None:
+        assert not(update.effective_chat is None or context.user_data is None)
         if e.args[0] == "user":
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -56,7 +60,9 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
+    @ staticmethod
     def value_error(update: Update, context: CallbackContext) -> None:
+        assert not(update.effective_chat is None or context.user_data is None)
         if 'invalid literal for int()' in traceback.format_exc():
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -64,12 +70,16 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
+    @ staticmethod
     def assertion_error(update: Update, context: CallbackContext, e: AssertionError) -> None:
+        assert not(update.effective_chat is None or context.user_data is None)
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=e.args[0])
 
-    def index_error(update: Update, context: CallbackContext, func: function) -> None:
+    @ staticmethod
+    def index_error(update: Update, context: CallbackContext, func: Callable) -> None:
+        assert not(update.effective_chat is None or context.user_data is None)
         if not context.args:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -78,14 +88,16 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
+    @ staticmethod
     def general(update: Update, context: CallbackContext) -> None:
+        assert not(update.effective_chat is None or context.user_data is None)
         print(traceback.format_exc())
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text='💣')
 
 
-def exception_handler(func: function):
+def exception_handler(func: Callable):
     """Decorator that handles the exceptions exceptions of the bot functions"""
     def custom_exception(*args):
         update: Update = args[0]
@@ -124,8 +136,12 @@ def exception_handler(func: function):
 
 def register_user(update: Update, context: CallbackContext) -> None:
     """registers a new user"""
-    context.user_data["user"] = User(
-        None, None, update['message']['chat']['first_name'], False)
+    assert context.user_data is not None and update is not None
+    try:
+        context.user_data["user"] = User(
+            None, None, update['message']['chat']['first_name'], False)
+    except Exception:
+        context.user_data["user"] = User(None, None, "", False)
 
 
 @ exception_handler
@@ -133,6 +149,7 @@ def start(update: Update, context: CallbackContext) -> None:
     '''
         Registers (if already registered) a new user and greets him
     '''
+    assert not(context.user_data is None or update.effective_chat is None)
     if "user" not in context.user_data:
         register_user(update, context)
     current_user = context.user_data["user"]
@@ -151,11 +168,12 @@ def help(update: Update, context: CallbackContext) -> None:
     if not context.args:
         help_msg = "".join([line+'\n' for line in help_txt.values()])
     else:
-        help_msg = help_txt.get(context.args[0].replace('/', ''))
-        if help_msg is None:
+        help_msg = help_txt.get(context.args[0].replace('/', ''), '')
+        if help_msg == '':
             help_msg = (f"la comanda {context.args[0]} no existeix, utilitza"
                         f"/help per veure una llista de totes les comandes "
                         f"disponibles :)")
+    assert update.effective_chat is not None
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=help_msg)
@@ -166,6 +184,7 @@ def author(update: Update, context: CallbackContext) -> None:
         Sends to the user information about the authors and project
     '''
     link: str = "<a href='https://github.com/pauamargant/AP2-Metro-Nyam/'>Github</a>"  # noqa
+    assert update.effective_chat is not None
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Autors\n Joel Sole \n Pau Amargant \n Més informació a "+link
@@ -177,6 +196,8 @@ def update_location(update: Update, context: CallbackContext) -> None:
     '''
         Saves user location or updates it if already saved
     '''
+    assert not(
+        update.message is None or update.message.location is None or context.user_data is None or update.effective_chat is None)
     lat: float = update.message.location.latitude
     lon: float = update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
@@ -192,14 +213,14 @@ def plot_metro(update: Update, context: CallbackContext) -> None:
     '''
     file: str = "%d.png" % random.randint(1000000, 9999999)
     metro.plot(metro_graph, file)
+    assert update.effective_chat is not None
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(file, 'rb'))
     os.remove(file)
 
 
-def sort_rsts(rsts: Optional[Restaurant],
-              loc: Coord, dist=True) -> Optional[Restaurants]:
+def sort_rsts(rsts: Restaurants, loc: Coord, dist=True) -> Restaurants:
     if rsts and dist:
         rsts = [rst for rst in rsts if rst is not None]
         return sorted(rsts, key=lambda rst:
@@ -214,6 +235,8 @@ def find(update: Update, context: CallbackContext) -> None:
         Given a query sends to the user a list of up to 12 restaurants which
         match the query.
     '''
+    assert not(
+        update.message is None or update.message.text is None or context.user_data is None or update.effective_chat is None)
     query: str = update.message.text[6:]
     assert query, '/find ha de tenir al menys un argument 🤨'
     print(query)
@@ -240,6 +263,7 @@ def accessibility(update: Update, context: CallbackContext) -> None:
         Toggles the accessibility option. If accessibility is enabled the bot
         will only use subway stations and accesses which are accessible.
     '''
+    assert not(context.user_data is None or update.effective_chat is None)
     old_acc: bool = context.user_data['user'].accessibility
     context.user_data['user'].accessibility = not old_acc
     if not old_acc:
@@ -247,7 +271,7 @@ def accessibility(update: Update, context: CallbackContext) -> None:
         message: str = "Accessibilitat activada"
     else:
         print("Accessibility disabled")
-        message: str = "Accessiblitat desactivada"
+        message = "Accessiblitat desactivada"
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
@@ -258,6 +282,8 @@ def info(update: Update, context: CallbackContext) -> None:
         the command with argument a number, which is expected to be a search
         result number in the results of a previous use of the /find command.
     '''
+    assert not(
+        context.user_data is None or context.args is None or update.effective_chat is None)
     search: Restaurants = context.user_data['user'].current_search
     if not search:
         Exception_messages.type_error(update, context, info)
@@ -283,6 +309,8 @@ def guide(update: Update, context: CallbackContext) -> None:
     '''
         Guides the user from its location to a restaurant.
     '''
+    assert not(
+        context.user_data is None or context.args is None)
     t1: float = time.time()
     # flags = context.args
     filename: str = "%d.png" % random.randint(1000000, 9999999)
