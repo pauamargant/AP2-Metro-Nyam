@@ -1,12 +1,9 @@
-# importa l'API de Telegram
-from ast import Assert
 from dataclasses import dataclass
 import sys
 import os
 import time
-# from sklearn.metrics import homogeneity_completeness_v_measure # fa falta?
-# from telegram import Location
-from telegram.ext import Updater, CommandHandler, Filters, MessageHandler
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, CallbackContext
 import logging
 import random
 from typing import Optional, List, Tuple, Dict, Union
@@ -22,46 +19,9 @@ import restaurants
 Restaurant = restaurants.Restaurant
 Restaurants = restaurants.Restaurants
 
-# POTSER POSAR TOT AIXO EN EL IF __NAME__ == '__MAIN__'? PER TENIR-HO MÉS ORGANITZAT
-
-logging.basicConfig(format=(f"%(asctime)s - %(name)s - %(levelname)s -"
-                            f" %(message)s"), level=logging.INFO)
-
 Coord: TypeAlias = Tuple[float, float]
 NodeID: TypeAlias = int
 Path: TypeAlias = List[NodeID]
-
-
-# We import the token
-try:
-    TOKEN = open('token.txt').read().strip()
-except IOError:
-    print("Could not read the token.txt file")  # PEL CANAL D'ERRORS MILLOR
-    sys.exit()
-
-#   **************
-#   INITIALIZATION
-#   **************
-print(f"{'*'*16}\nInitializing bot\n{'*'*16}")
-t1 = time.time()
-metro_graph: metro.MetroGraph = metro.get_metro_graph()
-print('get_metro_graph time:', time.time() - t1)
-t2 = time.time()
-city_osmnx = city.get_osmnx_graph()
-print('get_osmnx_graph time:', time.time() - t2)
-t2 = time.time()
-city_graph: city.CityGraph = city.build_city_graph(city_osmnx, metro_graph)
-print('build_city_graph time:', time.time() - t2)
-t2 = time.time()
-rest: restaurants.Restaurants = restaurants.read()
-print('restaurants.read time:', time.time() - t2)
-print('Total initialization time:', time.time() - t1)
-print(f"{'*'*54}\n")
-
-
-help_txt = {}
-with open('help_msg.txt', 'r') as msg:
-    help_txt = {line.split()[0][1:].replace(':', ''): line for line in msg}
 
 
 @ dataclass
@@ -74,7 +34,7 @@ class User:
 
 class Exception_messages:
 
-    def type_error(update, context, func) -> None:
+    def type_error(update: Update, context: CallbackContext, func: function) -> None:
         if not context.user_data["user"].current_search:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -87,7 +47,7 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
-    def key_error(update, context, e: KeyError) -> None:
+    def key_error(update: Update, context: CallbackContext, e: KeyError) -> None:
         if e.args[0] == "user":
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -96,7 +56,7 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
-    def value_error(update, context) -> None:
+    def value_error(update: Update, context: CallbackContext) -> None:
         if 'invalid literal for int()' in traceback.format_exc():
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -104,12 +64,12 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
-    def assertion_error(update, context, e: AssertionError) -> None:
+    def assertion_error(update: Update, context: CallbackContext, e: AssertionError) -> None:
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text=e.args[0])
 
-    def index_error(update, context, func) -> None:
+    def index_error(update: Update, context: CallbackContext, func: function) -> None:
         if not context.args:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
@@ -118,17 +78,18 @@ class Exception_messages:
         else:
             Exception_messages.general(update, context)
 
-    def general(update, context) -> None:
+    def general(update: Update, context: CallbackContext) -> None:
         print(traceback.format_exc())
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text='💣')
 
 
-def exception_handler(func):
+def exception_handler(func: function):
     """Decorator that handles the exceptions exceptions of the bot functions"""
     def custom_exception(*args):
-        update, context = args[0], args[1]
+        update: Update = args[0]
+        context: CallbackContext = args[1]
         try:
             if "user" not in context.user_data:
                 register_user(update, context)
@@ -161,14 +122,14 @@ def exception_handler(func):
     return custom_exception
 
 
-def register_user(update, context) -> None:
+def register_user(update: Update, context: CallbackContext) -> None:
     """registers a new user"""
     context.user_data["user"] = User(
         None, None, update['message']['chat']['first_name'], False)
 
 
 @ exception_handler
-def start(update, context) -> None:
+def start(update: Update, context: CallbackContext) -> None:
     '''
         Registers (if already registered) a new user and greets him
     '''
@@ -182,7 +143,7 @@ def start(update, context) -> None:
 
 
 @ exception_handler
-def help(update, context) -> None:
+def help(update: Update, context: CallbackContext) -> None:
     '''
         Sends help message to the user
     '''
@@ -200,7 +161,7 @@ def help(update, context) -> None:
         text=help_msg)
 
 
-def author(update, context) -> None:
+def author(update: Update, context: CallbackContext) -> None:
     '''
         Sends to the user information about the authors and project
     '''
@@ -212,7 +173,7 @@ def author(update, context) -> None:
 
 
 @ exception_handler
-def update_location(update, context) -> None:
+def update_location(update: Update, context: CallbackContext) -> None:
     '''
         Saves user location or updates it if already saved
     '''
@@ -225,7 +186,7 @@ def update_location(update, context) -> None:
 
 
 @ exception_handler
-def plot_metro(update, context) -> None:
+def plot_metro(update: Update, context: CallbackContext) -> None:
     '''
         Send metro plot image to the user
     '''
@@ -248,7 +209,7 @@ def sort_rsts(rsts: Optional[Restaurant],
 
 
 @ exception_handler
-def find(update, context) -> None:
+def find(update: Update, context: CallbackContext) -> None:
     '''
         Given a query sends to the user a list of up to 12 restaurants which
         match the query.
@@ -274,7 +235,7 @@ def find(update, context) -> None:
 
 
 @ exception_handler
-def accessibility(update, context) -> None:
+def accessibility(update: Update, context: CallbackContext) -> None:
     '''
         Toggles the accessibility option. If accessibility is enabled the bot
         will only use subway stations and accesses which are accessible.
@@ -291,7 +252,7 @@ def accessibility(update, context) -> None:
 
 
 @ exception_handler
-def info(update, context) -> None:
+def info(update: Update, context: CallbackContext) -> None:
     '''
         Sends additional information about a given restaurant. The user sends
         the command with argument a number, which is expected to be a search
@@ -318,7 +279,7 @@ def info(update, context) -> None:
 
 
 @ exception_handler
-def guide(update, context) -> None:
+def guide(update: Update, context: CallbackContext) -> None:
     '''
         Guides the user from its location to a restaurant.
     '''
@@ -353,7 +314,7 @@ def guide(update, context) -> None:
 
 
 @ exception_handler
-def default_location(update, context) -> None:
+def default_location(update: Update, context: CallbackContext) -> None:
     """localización de la uni, función de debugging"""
     context.user_data['user'].location = (41.388492, 2.113043)
     context.bot.send_message(
@@ -385,4 +346,36 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(format=(f"%(asctime)s - %(name)s - %(levelname)s -"
+                                f" %(message)s"), level=logging.INFO)
+    # We import the token
+    try:
+        TOKEN = open('token.txt').read().strip()
+    except IOError:
+        print("Could not read the token.txt file")  # PEL CANAL D'ERRORS MILLOR
+        sys.exit()
+
+    #   **************
+    #   INITIALIZATION
+    #   **************
+    print(f"{'*'*16}\nInitializing bot\n{'*'*16}")
+    t1 = time.time()
+    metro_graph: metro.MetroGraph = metro.get_metro_graph()
+    print('get_metro_graph time:', time.time() - t1)
+    t2 = time.time()
+    city_osmnx = city.get_osmnx_graph()
+    print('get_osmnx_graph time:', time.time() - t2)
+    t2 = time.time()
+    city_graph: city.CityGraph = city.build_city_graph(city_osmnx, metro_graph)
+    print('build_city_graph time:', time.time() - t2)
+    t2 = time.time()
+    rest: restaurants.Restaurants = restaurants.read()
+    print('restaurants.read time:', time.time() - t2)
+    print('Total initialization time:', time.time() - t1)
+    print(f"{'*'*54}\n")
+
+    help_txt = {}
+    with open('help_msg.txt', 'r') as msg:
+        help_txt = {line.split()[0][1:].replace(':', ''): line for line in msg}
+
     main()
