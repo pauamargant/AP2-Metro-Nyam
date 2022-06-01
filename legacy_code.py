@@ -34,3 +34,18 @@ def perform_operation(rests: Restaurants, operator: str, operand_1: Operand, ope
     if operator == "not":
         return list(set(rests) - set(operand_1))
     return []
+
+
+# MISSATGE D'ERROR QUE DONARIA SI L'USUARI NO ES REGISTRES AUTOMATICAMENT
+@ staticmethod
+def key_error(update: Update, context: CallbackContext, e: KeyError)\
+        -> None:
+    assert not(update.effective_chat is None or context.user_data is None)
+    if e.args[0] == "user":
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=("Usuari inexistent 🙎‍♂️, necessites estar registrat per"
+                  "fer servir bot\nUtilitza la comanda /start per "
+                  "registrar-te"))
+    else:
+        Exception_messages.general(update, context)

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import sys
 import os
 import time
 from telegram import Update
@@ -54,19 +53,6 @@ class Exception_messages:
             Exception_messages.general(update, context)
 
     @ staticmethod
-    def key_error(update: Update, context: CallbackContext, e: KeyError)\
-            -> None:
-        assert not(update.effective_chat is None or context.user_data is None)
-        if e.args[0] == "user":
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=("Usuari inexistent 🙎‍♂️, necessites estar registrat per"
-                      "fer servir bot\nUtilitza la comanda /start per "
-                      "registrar-te"))
-        else:
-            Exception_messages.general(update, context)
-
-    @ staticmethod
     def value_error(update: Update, context: CallbackContext) -> None:
         assert not(update.effective_chat is None or context.user_data is None)
         if 'invalid literal for int()' in traceback.format_exc():
@@ -75,12 +61,6 @@ class Exception_messages:
                 text="Tipus de parametre incorrecte, s'esperaven enters 🤦‍♂️")
         else:
             Exception_messages.general(update, context)
-
-    @ staticmethod
-    def assertion_error(update: Update, context: CallbackContext,
-                        e: AssertionError) -> None:
-        print(e.args[0])
-        Exception_messages.general(update, context)
 
     @ staticmethod
     def index_error(update: Update, context: CallbackContext, func: Callable)\

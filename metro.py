@@ -1,14 +1,13 @@
 # IMPORTS
 from logging import exception
 import pandas as pd
-import osmnx as ox
 import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from typing import Optional, TextIO, List, Tuple, Dict, Union
+from typing import List, Tuple, Dict
 from typing_extensions import TypeAlias
-from haversine import haversine, Unit
+from haversine import haversine
 from constants import *
 
 STATION_FILE: str = "estacions.csv"
