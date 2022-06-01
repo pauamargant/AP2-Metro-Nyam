@@ -16,8 +16,8 @@ import metro
 import city
 import restaurants
 
-Restaurant = restaurants.Restaurant
-Restaurants = restaurants.Restaurants
+Restaurant: TypeAlias = restaurants.Restaurant
+Restaurants: TypeAlias = restaurants.Restaurants
 
 Coord: TypeAlias = Tuple[float, float]
 NodeID: TypeAlias = int
@@ -310,9 +310,11 @@ def guide(update: Update, context: CallbackContext) -> None:
         Guides the user from its location to a restaurant.
     '''
     assert not(
-        context.user_data is None or context.args is None)
+        context.user_data is None or context.args is None or update.effective_chat is None)
+    if not user.current_search:
+        Exception_messages.type_error(update, context, guide)
+        return
     t1: float = time.time()
-    # flags = context.args
     filename: str = "%d.png" % random.randint(1000000, 9999999)
     user: User = context.user_data['user']
     assert 0 <= int(context.args[0]) < len(user.current_search),\
@@ -344,6 +346,8 @@ def guide(update: Update, context: CallbackContext) -> None:
 @ exception_handler
 def default_location(update: Update, context: CallbackContext) -> None:
     """localización de la uni, función de debugging"""
+    assert not(context.user_data is None or context.user_data['user'] is None or context.user_data['user']
+               .location is None or update.effective_chat is None)
     context.user_data['user'].location = (41.388492, 2.113043)
     context.bot.send_message(
         chat_id=update.effective_chat.id, text="Default ubication set: UPC")
