@@ -4,4 +4,5 @@
 /find <query>: Cerca quins restaurants satisfan la cerca i n'escriu una llista numerada (12 elements com a molt). Per exemple: /find pizza.
 /info <numero>: mostra la informació sobre el restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find).
 /guide <numero>: mostra un mapa amb el camí més curt per anar del punt actual on es troba l'usuari al restaurant especificat pel seu número (triat de la darrera llista numerada obtinguda amb /find).
+/accessibility: Alterna l'accessibilitat, si esta activada, la funció /guide només buscara camins adaptats a l'accessibilitat de l'usuari
 /plot_metro: mostra el graph del metro de barcelona
