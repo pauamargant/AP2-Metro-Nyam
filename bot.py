@@ -2,10 +2,12 @@ from dataclasses import dataclass
 import sys
 import os
 import time
-from telegram.ext import Updater, CommandHandler, Filters, MessageHandler, CallbackContext
+from telegram import Update
+from telegram.ext import CommandHandler, Filters, MessageHandler,\
+    CallbackContext, Updater
 import logging
 import random
-from typing import Optional, List, Tuple, Dict, Union, Callable
+from typing import Optional, List, Tuple, Dict, Callable
 from typing_extensions import TypeAlias
 import traceback
 from haversine import haversine
@@ -34,7 +36,8 @@ class User:
 class Exception_messages:
 
     @ staticmethod
-    def type_error(update: Updater, context: CallbackContext, func: Callable) -> None:
+    def type_error(update: Update, context: CallbackContext, func: Callable)\
+            -> None:
         assert not(update.effective_chat is None or context.user_data is None)
         if not context.user_data["user"].current_search:
             context.bot.send_message(
@@ -51,7 +54,8 @@ class Exception_messages:
             Exception_messages.general(update, context)
 
     @ staticmethod
-    def key_error(update: Updater, context: CallbackContext, e: KeyError) -> None:
+    def key_error(update: Update, context: CallbackContext, e: KeyError)\
+            -> None:
         assert not(update.effective_chat is None or context.user_data is None)
         if e.args[0] == "user":
             context.bot.send_message(
@@ -63,7 +67,7 @@ class Exception_messages:
             Exception_messages.general(update, context)
 
     @ staticmethod
-    def value_error(update: Updater, context: CallbackContext) -> None:
+    def value_error(update: Update, context: CallbackContext) -> None:
         assert not(update.effective_chat is None or context.user_data is None)
         if 'invalid literal for int()' in traceback.format_exc():
             context.bot.send_message(
@@ -73,12 +77,14 @@ class Exception_messages:
             Exception_messages.general(update, context)
 
     @ staticmethod
-    def assertion_error(update: Updater, context: CallbackContext, e: AssertionError) -> None:
+    def assertion_error(update: Update, context: CallbackContext,
+                        e: AssertionError) -> None:
         print(e.args[0])
         Exception_messages.general(update, context)
 
     @ staticmethod
-    def index_error(update: Updater, context: CallbackContext, func: Callable) -> None:
+    def index_error(update: Update, context: CallbackContext, func: Callable)\
+            -> None:
         assert not(update.effective_chat is None or context.user_data is None)
         if not context.args:
             context.bot.send_message(
@@ -89,7 +95,7 @@ class Exception_messages:
             Exception_messages.general(update, context)
 
     @ staticmethod
-    def general(update: Updater, context: CallbackContext) -> None:
+    def general(update: Update, context: CallbackContext) -> None:
         '''
         Message for a general error
 
@@ -152,7 +158,7 @@ def exception_handler(func: Callable):
     return custom_exception
 
 
-def register_user(update: Updater, context: CallbackContext) -> None:
+def register_user(update: Update, context: CallbackContext) -> None:
     '''
     Registers a new user
 
@@ -172,7 +178,7 @@ def register_user(update: Updater, context: CallbackContext) -> None:
 
 
 @ exception_handler
-def start(update: Updater, context: CallbackContext) -> None:
+def start(update: Update, context: CallbackContext) -> None:
     '''
     Registers (if not registered yet) a new user and greets him
 
@@ -194,7 +200,7 @@ def start(update: Updater, context: CallbackContext) -> None:
 
 
 @ exception_handler
-def help(update: Updater, context: CallbackContext) -> None:
+def help(update: Update, context: CallbackContext) -> None:
     '''
     Sends the user a help message about all the avaliable commands, or about
     some specific command if it's specified after the /help
@@ -212,8 +218,8 @@ def help(update: Updater, context: CallbackContext) -> None:
     else:
         help_msg = help_txt.get(context.args[0].replace('/', ''), '')
         if help_msg == '':
-            help_msg = (f"la comanda {context.args[0]} no existeix, utilitza"
-                        f"/help per veure una llista de totes les comandes "
+            help_msg = (f"La comanda {context.args[0]} no existeix, utilitza"
+                        f" /help per veure una llista de totes les comandes "
                         f"disponibles :)")
     assert update.effective_chat is not None
     context.bot.send_message(
@@ -221,7 +227,7 @@ def help(update: Updater, context: CallbackContext) -> None:
         text=help_msg)
 
 
-def author(update: Updater, context: CallbackContext) -> None:
+def author(update: Update, context: CallbackContext) -> None:
     '''
     Sends to the user information about the authors and project
 
@@ -232,7 +238,7 @@ def author(update: Updater, context: CallbackContext) -> None:
     context : CallbackContext
         _description_
     '''
-    link: str = "<a href='https://github.com/pauamargant/AP2-Metro-Nyam/'>Github</a>"  # noqa
+    link: str = "https://github.com/pauamargant/AP2-Metro-Nyam/"
     assert update.effective_chat is not None
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -241,7 +247,7 @@ def author(update: Updater, context: CallbackContext) -> None:
 
 
 @ exception_handler
-def update_location(update: Updater, context: CallbackContext) -> None:
+def update_location(update: Update, context: CallbackContext) -> None:
     '''
     Saves user location or updates it if already saved
 
@@ -252,8 +258,8 @@ def update_location(update: Updater, context: CallbackContext) -> None:
     context : CallbackContext
         _description_
     '''
-    assert not(
-        update.message is None or update.message.location is None or context.user_data is None or update.effective_chat is None)
+    assert not(update.message is None or update.message.location is None or
+               context.user_data is None or update.effective_chat is None)
     lat: float = update.message.location.latitude
     lon: float = update.message.location.longitude
     context.user_data['user'].location = (lat, lon)
@@ -263,7 +269,7 @@ def update_location(update: Updater, context: CallbackContext) -> None:
 
 
 @ exception_handler
-def plot_metro(update: Updater, context: CallbackContext) -> None:
+def plot_metro(update: Update, context: CallbackContext) -> None:
     '''
     Send metro plot image to the user
 
@@ -293,7 +299,7 @@ def sort_rsts(rsts: Restaurants, loc: Coord, dist=True) -> Restaurants:
 
 
 @ exception_handler
-def find(update: Updater, context: CallbackContext) -> None:
+def find(update: Update, context: CallbackContext) -> None:
     '''
     Given a query sends to the user a list of up to 12 restaurants which
     match the query.
@@ -305,10 +311,15 @@ def find(update: Updater, context: CallbackContext) -> None:
     context : CallbackContext
         _description_
     '''
-    assert not(
-        update.message is None or update.message.text is None or context.user_data is None or update.effective_chat is None)
+    assert not(update.message is None or update.message.text is None or
+               context.user_data is None or update.effective_chat is None)
     query: str = update.message.text[6:]
-    assert query, '/find ha de tenir al menys un argument 🤨'
+    if not query:
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text='/find ha de tenir al menys un argument 🤨'
+        )
+        return
     print(query)
     search: Restaurants = restaurants.find(query, rest)
     user: User = context.user_data['user']
@@ -319,16 +330,15 @@ def find(update: Updater, context: CallbackContext) -> None:
     user.current_search = search
     msg: str = "".join(
         [str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
-    assert msg,\
-        f"no s'han pogut trobar restaurants amb la cerca: {query} 🤷‍♂️"
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=msg
+        text=msg if msg else
+        f"no s'han pogut trobar restaurants amb la cerca: {query} 🤷‍♂️"
     )
 
 
 @ exception_handler
-def accessibility(update: Updater, context: CallbackContext) -> None:
+def accessibility(update: Update, context: CallbackContext) -> None:
     '''
     Toggles the accessibility option. If accessibility is enabled the bot
     will only use subway stations and accesses which are accessible.
@@ -345,15 +355,15 @@ def accessibility(update: Updater, context: CallbackContext) -> None:
     context.user_data['user'].accessibility = not old_acc
     if old_acc:
         print("Accessibility disabled")
-        message = "Accessiblitat desactivada ❌"
+        message: str = "Accessiblitat desactivada ❌"
     else:
         print("Accessibility enabled")
-        message: str = "Accessibilitat activada ⭕"
+        message = "Accessibilitat activada ⭕"
     context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
 
 @ exception_handler
-def info(update: Updater, context: CallbackContext) -> None:
+def info(update: Update, context: CallbackContext) -> None:
     '''
     Sends additional information about a given restaurant. The user sends the
     command with argument a number, which is expected to be a search result
@@ -366,30 +376,35 @@ def info(update: Updater, context: CallbackContext) -> None:
     context : CallbackContext
         _description_
     '''
-    assert not(
-        context.user_data is None or context.args is None or update.effective_chat is None)
+    assert not(context.user_data is None or context.args is None or
+               update.effective_chat is None)
     search: Restaurants = context.user_data['user'].current_search
     if not search:
         Exception_messages.type_error(update, context, info)
         return
     num: int = int(context.args[0])
-    assert 0 <= num < len(search),\
-        (f"/ info ha de tenir com argument un enter entre 0"
-         f" i {len(search)-1} 😬")
+    if not(0 <= num < len(search)):
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=(f"/info ha de tenir com argument un enter entre 0"
+                  f" i {len(search)-1} 😬"))
+        return
+
     restaurant: Restaurant = context.user_data['user'].current_search[num]
     message: str
     photo_url: Optional[str]
     message, photo_url = restaurants.info_message(restaurant)
     if photo_url is not None:
         context.bot.send_photo(
-            chat_id=update.effective_chat.id, photo=photo_url, caption=message)
+            chat_id=update.effective_chat.id,
+            photo=photo_url, caption=message)
     else:
         context.bot.send_message(
             chat_id=update.effective_chat.id, text=message)
 
 
 @ exception_handler
-def guide(update: Updater, context: CallbackContext) -> None:
+def guide(update: Update, context: CallbackContext) -> None:
     '''
     Guides the user from its location to a restaurant.
 
@@ -400,17 +415,22 @@ def guide(update: Updater, context: CallbackContext) -> None:
     context : CallbackContext
         _description_
     '''
-    assert not(
-        context.user_data is None or context.args is None or update.effective_chat is None)
+    assert not(context.user_data is None or context.args is None or
+               update.effective_chat is None)
+    user: User = context.user_data['user']
     if not user.current_search:
         Exception_messages.type_error(update, context, guide)
         return
+    if not(0 <= int(context.args[0]) < len(user.current_search)):
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=(f"/guide ha de tenir com argument un enter "
+                  f"entre 0 i {len(user.current_search)-1} 😬"))
+        return
+
     t1: float = time.time()
-    filename: str = "%d.png" % random.randint(1000000, 9999999)
-    user: User = context.user_data['user']
-    assert 0 <= int(context.args[0]) < len(user.current_search),\
-        (f"/ guide ha de tenir com argument un enter "
-         f"entre 0 i {len(user.current_search)-1} 😬")
+    filename: str = f"{random.randint(1000000, 9999999)}.png"
+
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
     print('antes de path:', time.time()-t1)
@@ -435,16 +455,19 @@ def guide(update: Updater, context: CallbackContext) -> None:
 
 
 @ exception_handler
-def default_location(update: Updater, context: CallbackContext) -> None:
+def default_location(update: Update, context: CallbackContext) -> None:
     """localización de la uni, función de debugging"""
-    assert not(context.user_data is None or context.user_data['user'] is None or context.user_data['user']
-               .location is None or update.effective_chat is None)
+    assert not(context.user_data is None or context.user_data['user']
+               is None or update.effective_chat is None)
     context.user_data['user'].location = (41.388492, 2.113043)
     context.bot.send_message(
         chat_id=update.effective_chat.id, text="Default ubication set: UPC")
 
 
 def main():
+    '''
+    Main function that turns on the bot
+    '''
 
     # crea objectes per treballar amb Telegram
     updater = Updater(token=TOKEN, use_context=True)
@@ -471,12 +494,7 @@ def main():
 if __name__ == "__main__":
     logging.basicConfig(format=(f"%(asctime)s - %(name)s - %(levelname)s -"
                                 f" %(message)s"), level=logging.INFO)
-    # We import the token
-    try:
-        TOKEN = open('token.txt').read().strip()
-    except IOError:
-        print("Could not read the token.txt file")  # PEL CANAL D'ERRORS MILLOR
-        sys.exit()
+    TOKEN = open('token.txt').read().strip()
 
     #   **************
     #   INITIALIZATION
@@ -489,7 +507,8 @@ if __name__ == "__main__":
     city_osmnx = city.get_osmnx_graph()
     print('get_osmnx_graph time:', time.time() - t2)
     t2 = time.time()
-    city_graph: city.CityGraph = city.build_city_graph(city_osmnx, metro_graph)
+    city_graph: city.CityGraph = city.build_city_graph(city_osmnx,
+                                                       metro_graph)
     print('build_city_graph time:', time.time() - t2)
     t2 = time.time()
     rest: restaurants.Restaurants = restaurants.read()
@@ -499,6 +518,7 @@ if __name__ == "__main__":
 
     help_txt = {}
     with open('help_msg.txt', 'r') as msg:
-        help_txt = {line.split()[0][1:].replace(':', ''): line for line in msg}
+        help_txt = {line.split()[0][1:].replace(':', ''): line
+                    for line in msg}
 
     main()
