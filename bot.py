@@ -105,7 +105,8 @@ class Exception_messages:
         assert update.effective_chat is not None
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text=f"Tipus de parametre incorrecte, s'esperaven {correct_type} 🤦‍♂️")
+            text=("Tipus de parametre incorrecte,"
+                  f" s'esperaven {correct_type} 🤦‍♂️"))
 
     @ staticmethod
     def missing_arguments(update: Update, context: CallbackContext,
