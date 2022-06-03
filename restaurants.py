@@ -23,6 +23,9 @@ Coord: TypeAlias = Tuple[float, float]
 #   restaurants when using /info in the bot.
 #   Not all restaurants can be found in Yelp, therefore if no information is
 #   found we use the information from opendata barcelona.
+#
+#   More information about the api usage can be found at:
+#   https://www.yelp.com/developers/documentation/v3/business_search
 api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS\
 3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
 headers = {'Authorization': 'Bearer %s' % api_key}
@@ -101,7 +104,7 @@ Operand: TypeAlias = Optional[Union[str, Restaurants]]
 def read() -> Restaurants:
     """
     Reads data from the open data RESTAURANT_FILE file the and returns a list
-    with all the valid Restaurants. 
+    with all the valid Restaurants.
     We assume that the restaurant file has the expected format and structure
 
     Returns
@@ -292,11 +295,11 @@ def normalize_str(string: str) -> str:
 
     '''
     normalizeMap = {'à': 'a', 'á': 'a', 'ä': 'a',
-                 'è': 'e', 'é': 'e', 'ë': 'e',
-                 'í': 'i', 'ï': 'i',
-                 'ò': 'o', 'ó': 'o', 'ö': 'o',
-                 'ú': 'u', 'ü': 'u',
-                 }
+                    'è': 'e', 'é': 'e', 'ë': 'e',
+                    'í': 'i', 'ï': 'i',
+                    'ò': 'o', 'ó': 'o', 'ö': 'o',
+                    'ú': 'u', 'ü': 'u',
+                    }
     return string.lower().translate(str.maketrans(normalizeMap))
 
 
@@ -304,8 +307,7 @@ def get_yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
     '''
         If possible find information about a restaurant using the Yelp API
         (OPTIONAL FEATURE)
-        The returned dictionary has the following keys:
-        
+
 
         Parameters
         ----------
@@ -314,7 +316,7 @@ def get_yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
         Returns
         -------
         Optional[Dict[str,str]]
-            If possible, a dictionary with information about the restaurant-
+            If possible, a dictionary with information about the restaurant.
     '''
     try:
         params = {'term': rst.name,
