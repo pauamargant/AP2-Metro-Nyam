@@ -11,6 +11,7 @@ from constants import *
 
 
 RESTAURANT_FILE = "restaurants.csv"
+Coord: TypeAlias = Tuple[float, float]
 
 
 #   ************************
@@ -19,10 +20,9 @@ RESTAURANT_FILE = "restaurants.csv"
 #   Without using any external package (only requests which is already)
 #   required by the osmnx package, we use the Yelp (an online restaurant
 #   rating platform) and its API to obtain additional information about
-#   restaurants when using /info in the bot. Not all restaurants can be found
-#   in Yelp, therefore if no information is found we use the information from
-#   opendata barcelona.
-
+#   restaurants when using /info in the bot.
+#   Not all restaurants can be found in Yelp, therefore if no information is
+#   found we use the information from opendata barcelona.
 api_key = 'fKX1kpm-0ZL6ks4ZFucWXiFtpZOPmf06_kPJz3i73A-k1hM34oQy2OdKL9Sd0XQYKS\
 3gujj7UQ9-pCsJrk9qJvNMIBd9Ph8Ywp3nrp-7V5bP5ljv7OIbYaBkoPiFYnYx'
 headers = {'Authorization': 'Bearer %s' % api_key}
@@ -42,19 +42,23 @@ class Adress:
         ----------
         road_id: int
         road_name: str
-        (It stores either a number or a tuple of street numbers):
-        street_n: Union[int,Tuple[int,int]]
+            (It stores either a number or a tuple of street numbers):
+            street_n: Union[int,Tuple[int,int]]
         nb_id: int
+            Neighborhood id
         nb_name: str
+            Neighborhood name
         dist_id: int
+            District id
         dist_name: str
+            District name
         zip_code: int
     '''
     road_id: int
     road_name: str
     street_n: Union[int, Tuple[int, int]]
-    nb_id: int  # Id del barri
-    nb_name: str  # nom del barri
+    nb_id: int
+    nb_name: str
     dist_id: int
     dist_name: str
     zip_code: int
@@ -77,7 +81,7 @@ class Restaurant:
     name: str
     adress: Adress
     tlf: str
-    coords: Tuple[float, float]
+    coords: Coord
 
     def __eq__(self, other) -> bool:
         return self.id == other.id
@@ -97,13 +101,12 @@ Operand: TypeAlias = Optional[Union[str, Restaurants]]
 def read() -> Restaurants:
     """
     Reads data from the open data RESTAURANT_FILE file the and returns a list
-    with all the valid Restaurants. We assume that the restaurant file has the
-    expected format and structure
+    with all the valid Restaurants. 
+    We assume that the restaurant file has the expected format and structure
 
     Returns
     -------
     Restaurants
-
     """
     rest_data = pd.read_csv(
         RESTAURANT_FILE, delimiter=",", encoding='latin-1')
@@ -117,7 +120,8 @@ def read() -> Restaurants:
 
 
 def create_restaurant(row: pd.Series) -> Optional[Restaurant]:
-    """Creates a restaurant from a row of the read data, returns None if the
+    """
+    Creates a restaurant from a row of the read data, returns None if the
     restaurant data is invalid
 
     Parameters
@@ -274,23 +278,43 @@ def search_in_rsts(query: str, rest: Set[Restaurant]) -> Set[Restaurant]:
         query, restaurant)])
 
 
-def normalize_str(string):
+def normalize_str(string: str) -> str:
     '''
-    Normalizes a string
+    Normalizes a string (removes accents and some special characters)
+
+    Parameters
+    ----------
+    string: str
+
+    Returns
+    -------
+    str
+
     '''
-    normalMap = {'à': 'a', 'á': 'a', 'ä': 'a',
+    normalizeMap = {'à': 'a', 'á': 'a', 'ä': 'a',
                  'è': 'e', 'é': 'e', 'ë': 'e',
                  'í': 'i', 'ï': 'i',
                  'ò': 'o', 'ó': 'o', 'ö': 'o',
                  'ú': 'u', 'ü': 'u',
                  }
-    return string.lower().translate(str.maketrans(normalMap))
+    return string.lower().translate(str.maketrans(normalizeMap))
 
 
-def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
+def get_yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
     '''
         If possible find information about a restaurant using the Yelp API
         (OPTIONAL FEATURE)
+        The returned dictionary has the following keys:
+        
+
+        Parameters
+        ----------
+        rst: Restaurant
+
+        Returns
+        -------
+        Optional[Dict[str,str]]
+            If possible, a dictionary with information about the restaurant-
     '''
     try:
         params = {'term': rst.name,
@@ -308,7 +332,7 @@ def yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
         return None
 
 
-def info_message(rst: Restaurant) -> Tuple[str, Optional[str]]:
+def get_info_message(rst: Restaurant) -> Tuple[str, Optional[str]]:
     '''
         Given a restaurant returns a string with formatted
         information about the restaurant.
@@ -332,7 +356,7 @@ def info_message(rst: Restaurant) -> Tuple[str, Optional[str]]:
                f"Districte: {rst.adress.dist_name}\n"
                f"Telèfon: {rst.tlf}\n")
 
-    extra_info: Optional[Dict[str, str]] = yelp_info(rst)
+    extra_info: Optional[Dict[str, str]] = get_yelp_info(rst)
     if extra_info is not None:
         if extra_info.get("rating") is not None:
             message += f"\nValoració {extra_info['rating']}"
@@ -340,14 +364,3 @@ def info_message(rst: Restaurant) -> Tuple[str, Optional[str]]:
             message += f"\nPreu {extra_info['price']}"
         return message, extra_info["image_url"]
     return message, None
-
-
-def test(q):
-    r = read()
-    x = find(q, r)
-    print([res.name for res in x])
-
-
-if __name__ == '__main__':
-    test('barcelona')
-    test('and(barcelona,pizza)')

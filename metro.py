@@ -1,5 +1,4 @@
 # IMPORTS
-from logging import exception
 import pandas as pd
 import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
@@ -10,12 +9,19 @@ from typing_extensions import TypeAlias
 from haversine import haversine
 from constants import *
 
+
+# We define the files where data is stored
 STATION_FILE: str = "estacions.csv"
 ACCESS_FILE: str = "accessos.csv"
 
+
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
-NodeID: TypeAlias = int  # We use integers
+NodeID: TypeAlias = int  # We use integers as ids
+
+#   *****************
+#   Class definitions
+#   *****************
 
 
 @dataclass
@@ -55,8 +61,11 @@ class Access:
 
 
 Stations: TypeAlias = List[Station]
-
 Accesses: TypeAlias = List[Access]
+
+#   *****************************
+#   Reading stations and accesses
+#   *****************************
 
 
 def string_to_point(point_str: str) -> Coord:
@@ -69,14 +78,13 @@ def string_to_point(point_str: str) -> Coord:
 
     Returns
     -------
-    coordinates: Coords
+    coordinates: Coord
 
     '''
     point: List[str] = point_str.split('(')[1].split(')')[0].split()
     return (float(point[0]), float(point[1]))
 
 
-# COM FER EL TYPE HINTING AMB PANDAS?
 def create_station(row: pd.Series) -> Station:
     '''
     Given station information in a dataframe row, returns a Station with the
@@ -106,9 +114,15 @@ def create_station(row: pd.Series) -> Station:
 
 def read_stations() -> Stations:
     '''
-    Reads all the stations from the estations.csv file and returns a list
-    of Stations
+    Reads all the stations from the STATION_FILE file and returns a list
+    of Stations.
+
+    Returns
+    -------
+    Stations
+        List with all the valid stations in the file
     '''
+
     stations_df = pd.read_csv(STATION_FILE)
     station_list: Stations = []
     for index, row in stations_df.iterrows():
@@ -142,9 +156,6 @@ def read_accesses() -> Accesses:
     '''
     Reads all the accesses from a file (ACCESS_FILE) and returns
     a list of Accesses.
-    Parameters
-    ----------
-    row: pd.Series
 
     Returns
     -------
@@ -159,10 +170,15 @@ def read_accesses() -> Accesses:
 
     return access_list
 
+#   **************
+#   Creating graph
+#   **************
+
 
 def line_distance(g: MetroGraph, orig_id: NodeID, dest_id: NodeID) -> float:
     '''
-        Calculates the distance between two nodes in the given graph.
+        Calculates the distance (in meters) between two nodes in the given
+        graph.
 
         Parameters
         ----------
@@ -223,7 +239,8 @@ def get_metro_graph() -> MetroGraph:
 
     # We create the graph
     Metro: MetroGraph = nx.Graph()
-    # We will store line_transfers for each station group in a dict
+
+    # We store line_transfers for each station group in a dict
     # in order to be more efficient
     line_transfers: Dict[int, List[NodeID]] = dict()
 
@@ -240,6 +257,9 @@ def get_metro_graph() -> MetroGraph:
     distance: float
     for station in station_list[1:]:
         # We create the station node
+        # If an station with the same id has previously been added, we still
+        # add the new station but with the id being negative
+        # This happens with some stations in lines L9, L10.
         id: NodeID = station.id
         if Metro.has_node(id):
             id = -id
@@ -247,14 +267,7 @@ def get_metro_graph() -> MetroGraph:
                        name=station.name, accessibility=station.accessibility,
                        line=station.line_id, line_name=station.line_name,)
 
-        # We create a ghost station and connect it to the "main" one
-        # ES BONA IDEA??
-
-        # Metro.add_node(-10*station.id, pos=station.position,
-        #                type="ghost_station")
-        # Metro.add_edge(station.id, -10*station.id,
-        #                type="ghost_edge", travel_time=SUBWAY_WAITING)
-        # If the previous station is in the same line, we connect them
+        # We connect it with the previous station if they are in the same line
         if(station.line_id == prev_line):
             distance = line_distance(Metro, prev_id, id)
             Metro.add_edge(prev_id, id, type="line",
@@ -308,15 +321,26 @@ def get_metro_graph() -> MetroGraph:
 
     return Metro
 
+#   ********************
+#   Plotting and showing
+#   ********************
+
 
 def plot(g: MetroGraph, filename: str) -> None:
     '''
     Given a MetroGraph g and a filename we create an image of the graph
-    g and save it with the corresponding filename
+    g and save it with the corresponding filename.
+
+    Parameters
+    ----------
+    g: Metrograph
+        the graph we want to plot
+    filename: str
+        name of the file we create
     '''
 
     map: StaticMap = StaticMap(
-        HD_SIZE_X, HD_SIZE_Y,
+        SIZE_X, SIZE_Y,
         url_template='http://a.tile.osm.org/{z}/{x}/{y}.png')
     for pos in nx.get_node_attributes(g, "pos").values():
         map.add_marker(CircleMarker(pos, 'red', 6))
@@ -333,7 +357,12 @@ def plot(g: MetroGraph, filename: str) -> None:
 
 def show(g: MetroGraph) -> None:
     '''
-    Given a MetroGraph g plots it interactively
+    Given a MetroGraph g plots it interactively.
+
+    Parameters
+    ----------
+    g: MetroGraph
+        the graph to plot interactively
     '''
     positions: Dict[int, Coord] = nx.get_node_attributes(g, "pos")
     try:

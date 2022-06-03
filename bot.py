@@ -373,7 +373,7 @@ def info(update: Update, context: CallbackContext) -> None:
     restaurant: Restaurant = context.user_data['user'].current_search[num]
     message: str
     photo_url: Optional[str]
-    message, photo_url = restaurants.info_message(restaurant)
+    message, photo_url = restaurants.get_info_message(restaurant)
     if photo_url is not None:
         context.bot.send_photo(
             chat_id=update.effective_chat.id,
