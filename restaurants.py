@@ -7,10 +7,13 @@ from typing_extensions import TypeAlias
 import re
 from fuzzysearch import find_near_matches
 import pandas as pd
-from constants import *
 
 
+# Constants
 RESTAURANT_FILE = "restaurants.csv"
+MAX_L = 1
+MAX_DEL = 5
+
 Coord: TypeAlias = Tuple[float, float]
 
 
@@ -94,7 +97,6 @@ class Restaurant:
 
 
 Restaurants: TypeAlias = List[Restaurant]
-Operand: TypeAlias = Optional[Union[str, Restaurants]]
 
 
 #   *******************

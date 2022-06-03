@@ -7,13 +7,17 @@ from dataclasses import dataclass
 from typing import List, Tuple, Dict
 from typing_extensions import TypeAlias
 from haversine import haversine
-from constants import *
 
 
-# We define the files where data is stored
+# Constants
 STATION_FILE: str = "estacions.csv"
 ACCESS_FILE: str = "accessos.csv"
-
+SIZE_X: int = 1500
+SIZE_Y: int = 1500
+WALKING_SPEED: float = 1.42  # m/s
+SUBWAY_SPEED: float = 7.22222222  # m/s
+SUBWAY_WAITING: float = 60  # seconds
+TRANSFER_TIME: float = 30  # seconds
 
 Coord: TypeAlias = Tuple[float, float]
 MetroGraph: TypeAlias = nx.Graph
@@ -200,7 +204,7 @@ def accessible_time(Metro: MetroGraph, orig_id: NodeID, dest_id: NodeID,
     '''
         Given a graph, two station/access nodes and a distance returns the
         travel time if both stations are accessible, if either of them is
-        not accessible returns INF.
+        not accessible returns infinity.
 
         Parameters
         ----------
@@ -216,7 +220,7 @@ def accessible_time(Metro: MetroGraph, orig_id: NodeID, dest_id: NodeID,
     if(Metro.nodes[orig_id]["accessibility"] == 1
        and Metro.nodes[dest_id]["accessibility"] == 1):
         return distance/SUBWAY_SPEED
-    return INF
+    return float('inf')
 
 
 def get_metro_graph() -> MetroGraph:

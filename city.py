@@ -12,11 +12,18 @@ from typing import IO, List, Tuple, Dict
 import pickle as pkl
 import os.path
 from datetime import datetime, timedelta
-from haversine import haversine, Unit
-from constants import *
+from haversine import haversine
 
 
+# Constants
 PICKLE_FILENAME: str = "barcelona.grf"
+PADDING: int = 10
+WALKING_SPEED: float = metro.WALKING_SPEED
+SIZE_X: int = metro.SIZE_X
+SIZE_Y: int = metro.SIZE_Y
+TRANSFER_COLOR: str = 'orange'
+STREET_COLOR: str = 'black'
+ACCESS_COLOR: str = 'grey'
 
 
 # We define necessary TypeAlias
