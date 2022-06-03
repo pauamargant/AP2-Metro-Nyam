@@ -300,7 +300,7 @@ def normalize_str(string: str) -> str:
                     'ò': 'o', 'ó': 'o', 'ö': 'o',
                     'ú': 'u', 'ü': 'u',
                     }
-    return string.lower().translate(str.maketrans(normalizeMap))
+    return ''.join([normalizeMap.get(c, c) for c in string.lower()])
 
 
 def get_yelp_info(rst: Restaurant) -> Optional[Dict[str, str]]:
