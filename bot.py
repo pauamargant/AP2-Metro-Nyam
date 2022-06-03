@@ -6,9 +6,8 @@ from telegram.ext import CommandHandler, Filters, MessageHandler,\
     CallbackContext, Updater
 import logging
 import random
-from typing import Optional, List, Tuple, Dict, Callable
+from typing import Optional, List, Tuple, Callable
 from typing_extensions import TypeAlias
-import traceback
 from haversine import haversine
 
 # We import the base modules
@@ -26,6 +25,16 @@ Path: TypeAlias = List[NodeID]
 
 @ dataclass
 class User:
+    '''
+    Class to store the user's information
+
+    Attributes
+    ----------
+    location: Optional[Coord]
+    current_search: Optional[restaurants.Restaurants]
+    name: str
+    accessibility: bool = False
+    '''
     location: Optional[Coord]
     current_search: Optional[restaurants.Restaurants]
     name: str
@@ -33,9 +42,22 @@ class User:
 
 
 class Exception_messages:
+    '''
+    Class to handle all the exception messages
+    '''
 
     @ staticmethod
     def unexisting_search(update: Update, context: CallbackContext) -> None:
+        '''
+        Exception message for when the user has not searched anything yet
+
+        Parameters
+        ----------
+        update : Update
+            _description_
+        context : CallbackContext
+            _description_
+        '''
         assert update.effective_chat is not None
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -45,6 +67,18 @@ class Exception_messages:
     @ staticmethod
     def missing_location(update: Update, context: CallbackContext,
                          command: str) -> None:
+        '''
+        Exception message for when the user has not shared he's location yet
+
+        Parameters
+        ----------
+        update : Update
+            _description_
+        context : CallbackContext
+            _description_
+        command : str
+            The name of the command that raised the exception
+        '''
         assert update.effective_chat is not None
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -55,6 +89,19 @@ class Exception_messages:
     @ staticmethod
     def invalid_type(update: Update, context: CallbackContext,
                      correct_type: str) -> None:
+        '''
+        Exception message for when the user does not pass the correct
+        parameter type
+
+        Parameters
+        ----------
+        update : Update
+            _description_
+        context : CallbackContext
+            _description_
+        correct_type : str
+            The name of the expected parameter type
+        '''
         assert update.effective_chat is not None
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -63,6 +110,19 @@ class Exception_messages:
     @ staticmethod
     def missing_arguments(update: Update, context: CallbackContext,
                           command: str) -> None:
+        '''
+        Exception message for when the user does not pass all the required
+        arguments to a function
+
+        Parameters
+        ----------
+        update : Update
+            _description_
+        context : CallbackContext
+            _description_
+        command : str
+            The name of the command that raised the exception
+        '''
         assert update.effective_chat is not None
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -72,11 +132,31 @@ class Exception_messages:
     @ staticmethod
     def invalid_range(update: Update, context: CallbackContext,
                       command: str, range: Tuple[int, int]) -> None:
+        '''
+        Exception message for when the user passes an integer as argument
+        outside of an expected range
+
+        Parameters
+        ----------
+        update : Update
+            _description_
+        context : CallbackContext
+            _description_
+        command : str
+            The name of the command that raised the exception
+        range : Tuple[int, int]
+            The integer range the argument is suposed to belong
+        '''
         assert update.effective_chat is not None
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=(f"/{command} ha de tenir com argument un enter"
-                  f" entre {range[0]} i {range[1]} 😬"))
+        if range[0] != range[1]:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(f"/{command} ha de tenir com argument un enter"
+                      f" entre {range[0]} i {range[1]} 😬"))
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=(f"/{command} ha de tenir com argument {range[1]} 😬"))
 
     @ staticmethod
     def general_error(update: Update, context: CallbackContext) -> None:
@@ -90,8 +170,7 @@ class Exception_messages:
         context : CallbackContext
             _description_
         '''
-        assert not(update.effective_chat is None or context.user_data is None)
-        print(traceback.format_exc())
+        assert update.effective_chat is not None
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text='Commanda incorrecte 💣')
@@ -165,7 +244,7 @@ def start(update: Update, context: CallbackContext) -> None:
 def help(update: Update, context: CallbackContext) -> None:
     '''
     Sends the user a help message about all the avaliable commands, or about
-    some specific command if it's specified after the /help
+    some specific command if it is specified as argument after the /help
 
     Parameters
     ----------
