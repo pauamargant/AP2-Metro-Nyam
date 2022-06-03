@@ -225,14 +225,13 @@ def plot(g: MetroGraph, filename: str) -> None:
         map.add_marker(CircleMarker(node.get('pos'),
                        colorNodes.get(node.get('type'), 'green'), 4))
     for edge in g.edges(data=True):
-        n0: NodeID = g.nodes[edge[0]]
-        n1: NodeID = g.nodes[edge[1]]
-        map.add_line(Line([n0['pos'], n1['pos']],
-                     colorEdges[edge[2]['type']], 2))
+        n0: Coord = g.nodes[edge[0]]['pos']
+        n1: Coord = g.nodes[edge[1]]['pos']
+        map.add_line(Line([n0, n1], colorEdges[edge[2]['type']], 2))
     try:
         image = map.render()
         image.save(filename)
-    except Exception as error:
+    except Exception:
         print("Could not render or save image")
 
 

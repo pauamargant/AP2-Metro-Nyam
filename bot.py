@@ -15,9 +15,10 @@ import metro
 import city
 import restaurants
 
+
+# We define necessary TypeAlias
 Restaurant: TypeAlias = restaurants.Restaurant
 Restaurants: TypeAlias = restaurants.Restaurants
-
 Coord: TypeAlias = Tuple[float, float]
 NodeID: TypeAlias = int
 Path: TypeAlias = List[NodeID]
@@ -54,9 +55,7 @@ class Exception_messages:
         Parameters
         ----------
         update : Update
-            _description_
         context : CallbackContext
-            _description_
         '''
         assert update.effective_chat is not None
         context.bot.send_message(
@@ -73,9 +72,7 @@ class Exception_messages:
         Parameters
         ----------
         update : Update
-            _description_
         context : CallbackContext
-            _description_
         command : str
             The name of the command that raised the exception
         '''
@@ -96,9 +93,7 @@ class Exception_messages:
         Parameters
         ----------
         update : Update
-            _description_
         context : CallbackContext
-            _description_
         correct_type : str
             The name of the expected parameter type
         '''
@@ -118,9 +113,7 @@ class Exception_messages:
         Parameters
         ----------
         update : Update
-            _description_
         context : CallbackContext
-            _description_
         command : str
             The name of the command that raised the exception
         '''
@@ -140,9 +133,7 @@ class Exception_messages:
         Parameters
         ----------
         update : Update
-            _description_
         context : CallbackContext
-            _description_
         command : str
             The name of the command that raised the exception
         range : Tuple[int, int]
@@ -167,9 +158,7 @@ class Exception_messages:
         Parameters
         ----------
         update : Update
-            _description_
         context : CallbackContext
-            _description_
         '''
         assert update.effective_chat is not None
         context.bot.send_message(
@@ -208,9 +197,7 @@ def register_user(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     assert context.user_data is not None and update is not None
     try:
@@ -228,9 +215,7 @@ def start(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     assert not(context.user_data is None or update.effective_chat is None)
     if "user" not in context.user_data:
@@ -250,9 +235,7 @@ def help(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     help_msg: str = ""
     if not context.args:
@@ -276,9 +259,7 @@ def author(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     link: str = "https://github.com/pauamargant/AP2-Metro-Nyam/"
     assert update.effective_chat is not None
@@ -296,9 +277,7 @@ def update_location(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     assert not(update.message is None or update.message.location is None or
                context.user_data is None or update.effective_chat is None)
@@ -318,9 +297,7 @@ def plot_metro(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     file: str = f"{random.randint(1000000, 9999999)}.png"
     metro.plot(metro_graph, file)
@@ -360,9 +337,7 @@ def find(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     assert not(update.message is None or update.message.text is None or
                context.user_data is None or update.effective_chat is None)
@@ -396,9 +371,7 @@ def accessibility(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     assert not(context.user_data is None or update.effective_chat is None)
     old_acc: bool = context.user_data['user'].accessibility
@@ -422,9 +395,7 @@ def info(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     assert not(context.user_data is None or context.args is None or
                update.effective_chat is None)
@@ -466,9 +437,7 @@ def guide(update: Update, context: CallbackContext) -> None:
     Parameters
     ----------
     update : Update
-        _description_
     context : CallbackContext
-        _description_
     '''
     assert not(context.user_data is None or context.args is None or
                update.effective_chat is None)
