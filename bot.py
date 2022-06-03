@@ -35,47 +35,51 @@ class User:
 class Exception_messages:
 
     @ staticmethod
-    def type_error(update: Update, context: CallbackContext, func: Callable)\
-            -> None:
-        assert not(update.effective_chat is None or context.user_data is None)
-        if not context.user_data["user"].current_search:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=("Cerca inexistent 🤷‍♂️\nUtilitza la comanda /find per "
-                      "buscar restaurants :)"))
-        elif not context.user_data["user"].location:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(f"La comanda /{func.__name__} necessita accedir a la "
-                      f"teva ubicació 🤦‍♂️\nComparteix la teva ubicació per "
-                      f"fer servir la comanda /{func.__name__}"))
-        else:
-            Exception_messages.general(update, context)
+    def unexisting_search(update: Update, context: CallbackContext) -> None:
+        assert update.effective_chat is not None
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=("Cerca inexistent 🤷‍♂️\nUtilitza la comanda /find per "
+                  "buscar restaurants :)"))
 
     @ staticmethod
-    def value_error(update: Update, context: CallbackContext) -> None:
-        assert not(update.effective_chat is None or context.user_data is None)
-        if 'invalid literal for int()' in traceback.format_exc():
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text="Tipus de parametre incorrecte, s'esperaven enters 🤦‍♂️")
-        else:
-            Exception_messages.general(update, context)
+    def missing_location(update: Update, context: CallbackContext,
+                         command: str) -> None:
+        assert update.effective_chat is not None
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=(f"La comanda /{command} necessita accedir a la "
+                  f"teva ubicació 🤦‍♂️\nComparteix la teva ubicació per "
+                  f"fer servir la comanda /{command}"))
 
     @ staticmethod
-    def index_error(update: Update, context: CallbackContext, func: Callable)\
-            -> None:
-        assert not(update.effective_chat is None or context.user_data is None)
-        if not context.args:
-            context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=(f"/{func.__name__} necessita més arguments\nMira"
-                      f" en '/help {func.__name__}' per a més informació"))
-        else:
-            Exception_messages.general(update, context)
+    def invalid_type(update: Update, context: CallbackContext,
+                     correct_type: str) -> None:
+        assert update.effective_chat is not None
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=f"Tipus de parametre incorrecte, s'esperaven {correct_type} 🤦‍♂️")
 
     @ staticmethod
-    def general(update: Update, context: CallbackContext) -> None:
+    def missing_arguments(update: Update, context: CallbackContext,
+                          command: str) -> None:
+        assert update.effective_chat is not None
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=(f"/{command} necessita més arguments 🤔\nMira"
+                  f" en '/help {command}' per a més informació"))
+
+    @ staticmethod
+    def invalid_range(update: Update, context: CallbackContext,
+                      command: str, range: Tuple[int, int]) -> None:
+        assert update.effective_chat is not None
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=(f"/{command} ha de tenir com argument un enter"
+                  f" entre {range[0]} i {range[1]} 😬"))
+
+    @ staticmethod
+    def general_error(update: Update, context: CallbackContext) -> None:
         '''
         Message for a general error
 
@@ -110,30 +114,9 @@ def exception_handler(func: Callable):
             if "user" not in context.user_data:
                 register_user(update, context)
             func(*args)
-
-        except KeyError as e:
-            print('KeyError:', e)
-            Exception_messages.key_error(update, context, e)
-
-        except TypeError as e:
-            print('TypeError:', e)
-            Exception_messages.type_error(update, context, func)
-
-        except ValueError as e:
-            print('ValueError', e)
-            Exception_messages.value_error(update, context)
-
-        except AssertionError as e:
-            print('AssertionError', e)
-            Exception_messages.assertion_error(update, context, e)
-
-        except IndexError as e:
-            print('IndexError:', e)
-            Exception_messages.index_error(update, context, func)
-
         except Exception as e:
-            print('General exception:', e)
-            Exception_messages.general(update, context)
+            print('Exception:', e)
+            Exception_messages.general_error(update, context)
 
     return custom_exception
 
@@ -172,11 +155,10 @@ def start(update: Update, context: CallbackContext) -> None:
     assert not(context.user_data is None or update.effective_chat is None)
     if "user" not in context.user_data:
         register_user(update, context)
-    current_user = context.user_data["user"]
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=(f"Hola {current_user.name} 🖖, benvingut a Nyam Bot\nUtilitza"
-              f" /help per veure totes les comandes disponibles :)"))
+        text=(f"Hola {context.user_data['user'].name} 🖖, benvingut a Nyam Bot"
+              "\nUtilitza /help per veure totes les comandes disponibles :)"))
 
 
 @ exception_handler
@@ -260,7 +242,7 @@ def plot_metro(update: Update, context: CallbackContext) -> None:
     context : CallbackContext
         _description_
     '''
-    file: str = "%d.png" % random.randint(1000000, 9999999)
+    file: str = f"{random.randint(1000000, 9999999)}.png"
     metro.plot(metro_graph, file)
     assert update.effective_chat is not None
     context.bot.send_photo(
@@ -269,13 +251,24 @@ def plot_metro(update: Update, context: CallbackContext) -> None:
     os.remove(file)
 
 
-def sort_rsts(rsts: Restaurants, loc: Coord, dist=True) -> Restaurants:
-    if rsts and dist:
-        rsts = [rst for rst in rsts if rst is not None]
-        return sorted(rsts, key=lambda rst:
-                      haversine((loc[1], loc[0]),
-                                (rst.coords[1], rst.coords[0])))
-    return rsts
+def sort_rsts(rsts: Restaurants, loc: Coord) -> Restaurants:
+    '''
+    Sorts a list of restaurants by proximity to the user's location
+
+    Parameters
+    ----------
+    rsts : Restaurants
+        Restaurant list to sort
+    loc : Coord
+        User's location
+
+    Returns
+    -------
+    Restaurants
+        A sorted by proximity list of restaurants
+    '''
+    return sorted(rsts, key=lambda rst: haversine(
+        (loc[1], loc[0]), (rst.coords[1], rst.coords[0])))
 
 
 @ exception_handler
@@ -295,21 +288,18 @@ def find(update: Update, context: CallbackContext) -> None:
                context.user_data is None or update.effective_chat is None)
     query: str = update.message.text[6:]
     if not query:
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text='/find ha de tenir al menys un argument 🤨'
-        )
+        Exception_messages.missing_arguments(update, context, 'find')
         return
     print(query)
+
     search: Restaurants = restaurants.find(query, rest)
     user: User = context.user_data['user']
     # If we have the location we sort results by distance
-    if (user.location is not None and len(search) > 0):
+    if user.location is not None:
         search = sort_rsts(search, user.location)
     search = search[:12]
     user.current_search = search
-    msg: str = "".join(
-        [str(i)+". "+res.name+"\n" for i, res in enumerate(search)])
+    msg: str = "".join([f"{i}. {res.name}\n" for i, res in enumerate(search)])
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=msg if msg else
@@ -359,15 +349,19 @@ def info(update: Update, context: CallbackContext) -> None:
     assert not(context.user_data is None or context.args is None or
                update.effective_chat is None)
     search: Restaurants = context.user_data['user'].current_search
+    if not context.args:
+        Exception_messages.missing_arguments(update, context, 'info')
+        return
     if not search:
-        Exception_messages.type_error(update, context, info)
+        Exception_messages.unexisting_search(update, context)
+        return
+    if not context.args[0].isdigit():
+        Exception_messages.invalid_type(update, context, 'enters')
         return
     num: int = int(context.args[0])
     if not(0 <= num < len(search)):
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=(f"/info ha de tenir com argument un enter entre 0"
-                  f" i {len(search)-1} 😬"))
+        Exception_messages.invalid_range(
+            update, context, 'info', (0, len(search)-1))
         return
 
     restaurant: Restaurant = context.user_data['user'].current_search[num]
@@ -386,7 +380,8 @@ def info(update: Update, context: CallbackContext) -> None:
 @ exception_handler
 def guide(update: Update, context: CallbackContext) -> None:
     '''
-    Guides the user from its location to a restaurant.
+    Guides the user from its location to a restaurant by sending an image of
+    the path, and a resumed set of instructions in a text message
 
     Parameters
     ----------
@@ -398,40 +393,42 @@ def guide(update: Update, context: CallbackContext) -> None:
     assert not(context.user_data is None or context.args is None or
                update.effective_chat is None)
     user: User = context.user_data['user']
+    if not context.args:
+        Exception_messages.missing_arguments(update, context, 'guide')
+        return
     if not user.current_search:
-        Exception_messages.type_error(update, context, guide)
+        Exception_messages.unexisting_search(update, context)
+        return
+    if user.location is None:
+        Exception_messages.missing_location(update, context, 'guide')
+        return
+    if not context.args[0].isdigit():
+        Exception_messages.invalid_type(update, context, 'enters')
         return
     if not(0 <= int(context.args[0]) < len(user.current_search)):
-        context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=(f"/guide ha de tenir com argument un enter "
-                  f"entre 0 i {len(user.current_search)-1} 😬"))
+        Exception_messages.invalid_range(
+            update, context, 'guide', (0, len(user.current_search)-1))
         return
 
     t1: float = time.time()
     filename: str = f"{random.randint(1000000, 9999999)}.png"
-
     src: Coord = user.location
     dst: Coord = user.current_search[int(context.args[0])].coords
-    print('antes de path:', time.time()-t1)
+
     path: city.Path = city.find_path(
         city_osmnx, city_graph, src, dst, user.accessibility)
-    print("path trobat")
-    print(time.time()-t1)
     city.plot_path(city_graph, path, filename, src, dst)
-    print('path plotted', time.time()-t1)
     context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(filename, 'rb'))
     os.remove(filename)
-    print('foto enviada:', time.time()-t1)
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=(f"{city.path_txt(city_graph, path, src, dst)} | Ja has arribat"
               f"a {user.current_search[int(context.args[0])].name}"))
 
-    print("enviat")
+    print(f"Path sent in: {time.time()-t1}s")
 
 
 @ exception_handler
