@@ -1,0 +1,6 @@
+_pycache_
+.mypy_cache
+.vscode
+cache
+.ipynb_checkpoints
+token.txt
