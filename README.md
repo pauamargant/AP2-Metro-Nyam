@@ -35,7 +35,7 @@ The bot offers the following commands
 #### Detailed usage
 Start the bot by issuing the `/start` and share your location to the bot.
 
-|![](scr1.png) |![](scr2.png)|
+<img src="scr1.png" width="40%"/>) |<img src="scr2.png" width="40%"/>
 
 
 Restaurants can be found using `/search` together with a query. Search queries can be composed of multiples words such as "Pizzeria Sants". The `/find` command will find restaurants which are a result to all the words in the query. 
