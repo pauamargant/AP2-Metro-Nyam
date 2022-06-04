@@ -1,9 +1,9 @@
 # Metro Nyam
 
-![](header_image.png)
+![header image](header_image.png)
 
 Search and find restaurants and bars in Barcelona using MetroNyam. Look for restaurants near your location and get to them using the Barcelona subway.
-FALTA AFEGIR ALGO MÉS
+
 ## Getting Started
 ### Prerequisites
 * [Python](https://www.python.org/) is required, version 3.9 or older is recommended.
@@ -34,32 +34,39 @@ The bot offers the following commands
 
 #### Detailed usage
 Start the bot by issuing the `/start` and share your location to the bot.
-
-<img src="scr1.png" width="40%"/>) |<img src="scr2.png" width="40%"/>
-
+<center>
+<img src="scr1.png" width="30%" alt="start"/>) |<img src="scr2.png" width="30%" alt ="location"/>
+</center>
 
 Restaurants can be found using `/search` together with a query. Search queries can be composed of multiples words such as "Pizzeria Sants". The `/find` command will find restaurants which are a result to all the words in the query. 
 Logical expressions can be used.  The supported operators are `and`, `or` and `not`. Queries are in preorder format. An example is 
-`/find and(frankfurt,and(Pedralbes,not(Sants)))`.
+`/find and(frankfurt,and(Pedralbes,not(Sants)))`.   
+Results are ordered by distance to your location.
 
-AQUI IMATGE
-
+<center>
+<img src="scr3.png" width="30%"/>) |<img src="scr4.png" width="30%"/>
+</center>
 The command `/info N` ()where N is the restaurant number in the search results) allows you to get detailed information about the restaurant.
 
-AQUI IMATGE
+<center>
+<img src="scr5.png" width="30%"/>) |<img src="scr6.png" width="30%"/>
+</center>
+In order to get a route from your location to the restaurant issue the command `/guide N`. Accessibility can be toggled in order to get only accessible routes.
 
-In order to get a route from your location to the restaurant issue the command `/guide N`.
-
-AQUI IMATGE 
-
+<center>
+<img src="scr7.png" width="30%"/>) |<img src="scr8.png" width="30%"/>
+</center>
 
 ## Contributing
 When contributing to this repository, please first discuss the change you wish to make via issue, email, or any other method with the owners of this repository before making a change.
 
 ## License
-This project is licensed under the MIT License
+This project is licensed under the MIT License.
+The Barcelona Opendata used licensed under its [license](barcelona.cat/opendata).
+
+
 
 ## Authors
 This project has been created by:
-- JOEL + EL TEU CORREU?
-- Pau Amargant
+- [Joel Sole Casale](https://github.com/JoelSoleCasale)
+- [Pau Amargant](https://github.com/pauamargant/)
