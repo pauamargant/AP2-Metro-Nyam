@@ -1,4 +1,7 @@
 # Metro Nyam
+
+![](header_image.png)
+
 Search and find restaurants and bars in Barcelona using MetroNyam. Look for restaurants near your location and get to them using the Barcelona subway.
 FALTA AFEGIR ALGO MÉS
 ## Getting Started
