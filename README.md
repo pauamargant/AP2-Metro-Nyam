@@ -35,7 +35,8 @@ The bot offers the following commands
 #### Detailed usage
 Start the bot by issuing the `/start` and share your location to the bot.
 
-AQUI IMATGE
+|![](scr1.png) |![](scr2.png)|
+
 
 Restaurants can be found using `/search` together with a query. Search queries can be composed of multiples words such as "Pizzeria Sants". The `/find` command will find restaurants which are a result to all the words in the query. 
 Logical expressions can be used.  The supported operators are `and`, `or` and `not`. Queries are in preorder format. An example is 
