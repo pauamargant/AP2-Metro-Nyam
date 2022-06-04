@@ -34,7 +34,7 @@ The bot offers the following commands
 - `/plot_metro` Plot in an image the metro network of Barcelona.
 
 #### Detailed usage
-Start the bot by issuing the `/start` and share your location to the bot.
+Start the bot by issuing the `/start` and share your location with the bot.
 
 <img src="scr1.png" width="30%" alt="start"/> |<img src="scr2.png" width="30%" alt ="location"/>  
 
