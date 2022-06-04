@@ -1,12 +1,7 @@
-
-import metro
-
-# import pandas as pd
 import osmnx as ox
 import networkx as nx
 from staticmap import StaticMap, CircleMarker, Line
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
 from typing_extensions import TypeAlias
 from typing import IO, List, Tuple, Dict
 import pickle as pkl
@@ -14,6 +9,8 @@ import os.path
 from datetime import datetime, timedelta
 from haversine import haversine
 
+# We import the required module
+import metro
 
 # Constants
 PICKLE_FILENAME: str = "barcelona.grf"

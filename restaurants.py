@@ -12,7 +12,7 @@ import pandas as pd
 # Constants
 RESTAURANT_FILE = "restaurants.csv"
 MAX_L = 1
-MAX_DEL = 5
+MAX_DEL = 1
 
 Coord: TypeAlias = Tuple[float, float]
 
