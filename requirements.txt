@@ -8,5 +8,4 @@ python_telegram_bot==13.11
 requests==2.26.0
 scikit_learn==1.1.1
 staticmap==0.5.5
-telegram==0.0.1
 typing_extensions==4.2.0
