@@ -200,11 +200,10 @@ def register_user(update: Update, context: CallbackContext) -> None:
     context : CallbackContext
     '''
     assert context.user_data is not None and update is not None
-    try:
-        context.user_data["user"] = User(
-            None, None, update['message']['chat']['first_name'], False)
-    except Exception:
-        context.user_data["user"] = User(None, None, "", False)
+    name = getattr(update['message'], 'chat')['first_name']
+    if name is None:
+        name = 'Usuari'
+    context.user_data["user"] = User(None, None, name, False)
 
 
 @ exception_handler
@@ -520,6 +519,9 @@ def main():
 if __name__ == "__main__":
     logging.basicConfig(format=(f"%(asctime)s - %(name)s - %(levelname)s -"
                                 f" %(message)s"), level=logging.INFO)
+    if not os.path.exists('token.txt'):
+        raise ValueError(
+            "file 'token.txt' does not exist in the current directory")
     TOKEN = open('token.txt').read().strip()
 
     #   **************

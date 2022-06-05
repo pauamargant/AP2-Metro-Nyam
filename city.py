@@ -438,24 +438,3 @@ def show(g: CityGraph) -> None:
     positions: Dict[NodeID, str] = nx.get_node_attributes(g, "pos")
     nx.draw(g, positions, node_size=5)
     plt.show()
-
-
-def main():
-    g2 = metro.get_metro_graph()
-    g1 = get_osmnx_graph()
-    city = build_city_graph(g1, g2)
-    orig = (41.388492, 2.113043)
-    dest = (41.3733898465379, 2.136240845303527)
-    p: Path = find_path(g1, city, orig, dest)
-    # print(path_stats(city, p, orig, dest))
-    # print(path_time_dist(city, p, orig, dest))
-    # # show(city)
-    # # plot_path(city, p, "path.png",  orig, dest)
-    # plot(city, 'cityTest.png')
-    # print(time.time()-t1)
-    plot_path(city, p, 'borrame.png', orig, dest)
-    print(path_txt(city, p, orig, dest))
-
-
-# if __name__ == "__main__":
-#     main()

@@ -32,6 +32,23 @@ NodeID: TypeAlias = int  # We use integers as ids
 class Station:
     '''
     Class used to store subway stations.
+
+    Attributes
+    ----------
+    id: int
+    group_code: int
+    name: str
+    line_name: str
+    line_id: int
+    line_order: int
+    line_colour: str
+    line_orig: str
+    line_dest: str
+    accessibility: int
+    position: Coord
+    connections: List[int]
+    accesses: List[int]
+    line_transfers: List[int]
     '''
     id: int
     group_code: int
@@ -54,6 +71,16 @@ class Station:
 class Access:
     '''
     Class used to store subway access
+
+    Attributes
+    ----------
+    code: int
+    name: str
+    station_id: int
+    station_name: int
+    group_code: int
+    accessibility: int
+    position: Coord
     '''
     code: int
     name: str
@@ -217,8 +244,8 @@ def accessible_time(Metro: MetroGraph, orig_id: NodeID, dest_id: NodeID,
         -------
         travel_time: float
     '''
-    if(Metro.nodes[orig_id]["accessibility"] == 1
-       and Metro.nodes[dest_id]["accessibility"] == 1):
+    if(Metro.nodes[orig_id]["accessibility"] == 1 and
+            Metro.nodes[dest_id]["accessibility"] == 1):
         return distance/SUBWAY_SPEED
     return float('inf')
 
@@ -355,7 +382,7 @@ def plot(g: MetroGraph, filename: str) -> None:
     try:
         image = map.render()
         image.save(filename)
-    except Exception as error:
+    except Exception:
         print("Could not render or save image")
 
 
@@ -374,5 +401,5 @@ def show(g: MetroGraph) -> None:
                 node_color="blue",
                 node_size=50,)
         plt.show()
-    except Exception as error:
+    except Exception:
         print("Could not show interactive plot")
